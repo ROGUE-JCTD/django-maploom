@@ -1,0 +1,7 @@
+include README.rst CHANGES LICENSE
+recursive-include maploom/static *.js
+recursive-include maploom/static *.css
+recursive-include maploom/static *.png
+recursive-include maploom/static/maploom/fonts  *.eot *.woff *.tff *.svg
+recursive-include maploom/templates *.html
+
