@@ -29,11 +29,11 @@ Usage
 
 Once installed, you can easily add a classification banner to any template on your site.
 
-First load the classification banner in your template:
+First load the template tags in your template:
 
 	{% load maploom_tags %}
 	
-Then add the banner to your page::
+Then add a map loom map to your page:
 
 	{% maploom_html %}
 
