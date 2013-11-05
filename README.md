@@ -32,11 +32,12 @@ Once installed, you can easily add a classification banner to any template on yo
 First load the template tags in your template:
 
 	{% load maploom_tags %}
-	
-Then add a map loom map to your page:
+
+In the <head> section of your html section add the MapLoom js files:
+
+    {% maploom_js %}
+
+Then add a map loom map to your page by placing the following tag anywhere in the <body> tags.:
 
 	{% maploom_html %}
-
-* Note: ```maploom_html``` currently reutrns a full HTML site that can be loaded via an iframe.
-This will be improved as MapLoom development continues.
 
