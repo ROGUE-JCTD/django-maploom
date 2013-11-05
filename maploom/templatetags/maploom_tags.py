@@ -10,4 +10,10 @@ def maploom_html(options=None):
     """
     return dict()
 
+@register.inclusion_tag('maploom/_maploom_js.html')
+def maploom_js(options=None):
+    """
+    Maploom js template tag.
+    """
+    return dict()
 

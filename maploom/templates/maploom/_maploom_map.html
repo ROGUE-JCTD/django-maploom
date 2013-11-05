@@ -1,56 +1,34 @@
 {% load staticfiles i18n %}
 
-<!DOCTYPE html>
-<html ng-app="ngBoilerplate" ng-controller="AppCtrl">
-<head>
-  <title ng-bind="pageTitle"></title>
-
-  <!-- social media tags -->
-  <meta property="og:title" content="ngBoilerplate"/>
-  <meta property="og:type" content="website"/>
-  <meta property="og:url" content="http://bit.ly/ngBoilerplate"/>
-  <meta property="og:image"
-        content="https://a248.e.akamai.net/assets.github.com/images/modules/logos_page/Octocat.png?1366128846"/>
-  <meta property="og:description"
-        content="Non-Trivial AngularJS Made Easy: Everything you need to kickstart AngularJS projects: a best-practice directory structure, an intelligent build system, and the best web design libraries around.">
-
-  <!-- compiled CSS -->
-  <link rel="stylesheet" type="text/css" href="{% static 'maploom/vendor/ol3/ol.css' %}" />
-  <link rel="stylesheet" type="text/css" href="{% static 'maploom/assets/MapLoom-0.0.1.css' %}" />
-
-  <!-- compiled JavaScript -->
-  <script type="text/javascript" src="{% static 'maploom/assets/MapLoom-0.0.1.js' %}"></script>
-
-</head>
-<body>
 <div id="map" class="map">
-  <div id="pulldown">
+  <div class="map-shadow"></div>
+  <div id="pulldown" ng-controller="LoomPulldownController">
     <div id="pulldown-shadow">
       <div class="panel flat" id="map-title">
         <div class="panel-heading">
                         <span style="font-weight: 100; font-size: 20px;">
                             <em id="map-name" translate="new_map">New Map</em>
                         </span>
-          <span class="loom-notification-badge pull-right"></span>
+          <span ng-class="{'hidden': !notificationsPanel}" class="loom-notification-badge pull-right"></span>
         </div>
       </div>
       <div id="pulldown-content" class="panel-group in">
-        <div class="panel">
+        <div class="panel" ng-class="{'hidden': !notificationsPanel}">
           <div class="panel-heading" data-toggle="collapse" data-parent="#pulldown-content"
                data-target="#notification-panel">
             <span>Notifications</span>
             <span class="loom-notification-badge pull-right"></span>
           </div>
           <div id="notification-panel" notification-empty-text="No notifications..."
-               class="loom-notifications">
+               class="pulldown-panel loom-notifications">
           </div>
         </div>
-        <div class="panel">
+        <div class="panel" ng-class="{'hidden': !layersPanel}">
           <div class="panel-heading" data-toggle="collapse" data-parent="#pulldown-content"
                data-target="#layer-manager-panel">
             <span>Map Layers</span>
           </div>
-          <div id="layer-manager-panel" class="panel-collapse collapse">
+          <div id="layer-manager-panel" class="panel-collapse collapse pulldown-panel">
             <div class="loom-layers"></div>
             <div align="center" class="panel-heading layer-heading" data-target="#add-layer-dialog" data-toggle="modal">
               <i class="glyphicon glyphicon-plus-sign"></i>
@@ -58,19 +36,17 @@
             </div>
           </div>
         </div>
-        <div ng-controller="LoomDiffController">
-          <div class="panel" ng-if="hasDifferences">
-            <div class="panel-heading" data-toggle="collapse" data-parent="#pulldown-content"
-                 data-target="#diff-panel">
-              <span>Differences</span>
-            </div>
-            <div id="diff-panel" class="loom-diff-panel panel-collapse collapse">Diffs go here.</div>
+        <div class="panel" ng-class="{'hidden': !diffPanel}" ng-controller="LoomDiffController">
+          <div class="panel-heading" data-toggle="collapse" data-parent="#pulldown-content"
+               data-target="#diff-panel">
+            <span>{{title}}</span>
           </div>
+          <div id="diff-panel" class="loom-diff-panel panel-collapse collapse pulldown-panel">Diffs go here.</div>
         </div>
       </div>
     </div>
     <button type="button" data-toggle="collapse" data-target="#pulldown-content"
-            class="toggle btn btn-default flat-top">Toggle Menu
+            class="toggle-menu toggle btn btn-default flat-top">Toggle Menu
     </button>
   </div>
   <div class="loom-notification-poster"></div>
@@ -85,5 +61,6 @@
   <div loom-add-server id="add-server">
   </div>
 </div>
-</body>
-</html>
+<div loom-feature-info-box id="info-box" ng-show="featureInfoBoxService.getSelectedItem()" class="feature-info-box-popup">
+</div>
+
