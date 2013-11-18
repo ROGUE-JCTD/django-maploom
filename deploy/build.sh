@@ -1,5 +1,7 @@
 ## this script is used by jenkins to update the django-maploom project after building latest maploom
 # exit if anything returns failure
+set -e
+
 pwd
 
 git checkout master
@@ -24,7 +26,10 @@ mv _maploom_map.html maploom/templates/maploom
 
 # get the commit id of the last commit
 VER_DATE=`date +%Y-%m-%d.%H:%M:%S`
+pushd .
+cd ../../maploom
 VER_SHA1=`git log --format="%H" | head -n1`
+popd
 VER=$VER_DATE.$VER_SHA1
 sed -i "s|^    version=.*|    version='0.0.1@"$VER_DATE.$VER_SHA1"',|" ./setup.py
 
