@@ -1,5 +1,7 @@
 ## this script is used by jenkins to update the django-maploom project after building latest maploom
 # exit if anything returns failure
+set -e
+
 pwd
 
 git checkout master
@@ -22,16 +24,19 @@ cp -r ../../maploom/lastSuccessful/archive/bin/assets maploom/static/maploom/
 cp -r ../../maploom/lastSuccessful/archive/bin/fonts maploom/static/maploom/
 mv _maploom_map.html maploom/templates/maploom
 
-# get the commit id of the last commit
+# get the commit id of the last commit of the maploom repo and the current date-time to build 
+# a version number which we can set in setup.py
 VER_DATE=`date +%Y-%m-%d.%H:%M:%S`
-VER_SHA1=`git log --format="%H" | head -n1`
+pushd .
+cd ../../maploom/workspace
+VER_SHA1=`git log --format="%H" | head -n1 | cut -c 1-10`
+popd
 VER=$VER_DATE.$VER_SHA1
 sed -i "s|^    version=.*|    version='0.0.1@"$VER_DATE.$VER_SHA1"',|" ./setup.py
 
 # if git status doesn't have 'nothing' (to commit) in it, go ahead and commit
 if [[ $(git status) != *nothing* ]]; then
   git add .
-  git commit -m "jenkins job django-maploom: use latest maploom to build maploom django wrapper. http://jnkins.rogue.lmnsolutions.com/job/django-maploom"
+  git commit -m "jenkins job django-maploom: use latest maploom to build maploom django wrapper. http://jnkins.rogue.$
   git push origin master
 fi
-
