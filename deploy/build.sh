@@ -27,7 +27,7 @@ mv _maploom_map.html maploom/templates/maploom
 # get the commit id of the last commit
 VER_DATE=`date +%Y-%m-%d.%H:%M:%S`
 pushd .
-cd ../../maploom
+cd ../../maploom/workspace
 VER_SHA1=`git log --format="%H" | head -n1`
 popd
 VER=$VER_DATE.$VER_SHA1
