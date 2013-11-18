@@ -37,6 +37,6 @@ sed -i "s|^    version=.*|    version='0.0.1@"$VER_DATE.$VER_SHA1"',|" ./setup.p
 # if git status doesn't have 'nothing' (to commit) in it, go ahead and commit
 if [[ $(git status) != *nothing* ]]; then
   git add .
-  git commit -m "jenkins job django-maploom: use latest maploom to build maploom django wrapper. http://jnkins.rogue.$
+  git commit -m "jenkins job django-maploom: use latest maploom to build maploom django wrapper."
   git push origin master
 fi
