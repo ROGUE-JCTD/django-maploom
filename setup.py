@@ -5,7 +5,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 setup(
     name='django-maploom',
-    version='0.0.1',
+    version='0.0.1@2013-11-18.17:47:47.e35b622bd2f9cc51782ae1b80d38c95c25976e03',
     author='LMN Solutions',
     author_email='garnertb@gmail.com',
     url='https://github.com/garnertb/django-maploom',
