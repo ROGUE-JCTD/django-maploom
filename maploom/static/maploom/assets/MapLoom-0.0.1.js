@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2013-11-18
+ * MapLoom - v0.0.1 - 2013-11-19
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2013 LMN Solutions
@@ -61114,6 +61114,1824 @@ ol.tilegrid.WMTSOptions;
 ol.tilegrid.XYZOptions;
 
 
+/*
+ * blueimp Gallery JS 2.11.5
+ * https://github.com/blueimp/Gallery
+ *
+ * Copyright 2013, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Swipe implementation based on
+ * https://github.com/bradbirdsall/Swipe
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ */
+
+/*jslint regexp: true */
+/*global define, window, document, DocumentTouch */
+
+(function (factory) {
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        // Register as an anonymous AMD module:
+        define(['./blueimp-helper'], factory);
+    } else {
+        // Browser globals:
+        window.blueimp = window.blueimp || {};
+        window.blueimp.Gallery = factory(
+            window.blueimp.helper || window.jQuery
+        );
+    }
+}(function ($) {
+    'use strict';
+
+    function Gallery(list, options) {
+        if (!list || !list.length || document.body.style.maxHeight === undefined) {
+            // document.body.style.maxHeight is undefined on IE6 and lower
+            return false;
+        }
+        if (!this || this.options !== Gallery.prototype.options) {
+            // Called as function instead of as constructor,
+            // so we simply return a new instance:
+            return new Gallery(list, options);
+        }
+        this.list = list;
+        this.num = list.length;
+        this.initOptions(options);
+        this.initialize();
+    }
+
+    $.extend(Gallery.prototype, {
+
+        options: {
+            // The Id, element or querySelector of the gallery widget:
+            container: '#blueimp-gallery',
+            // The tag name, Id, element or querySelector of the slides container:
+            slidesContainer: 'div',
+            // The tag name, Id, element or querySelector of the title element:
+            titleElement: 'h3',
+            // The class to add when the gallery is visible:
+            displayClass: 'blueimp-gallery-display',
+            // The class to add when the gallery controls are visible:
+            controlsClass: 'blueimp-gallery-controls',
+            // The class to add when the gallery only displays one element:
+            singleClass: 'blueimp-gallery-single',
+            // The class to add when the left edge has been reached:
+            leftEdgeClass: 'blueimp-gallery-left',
+            // The class to add when the right edge has been reached:
+            rightEdgeClass: 'blueimp-gallery-right',
+            // The class to add when the automatic slideshow is active:
+            playingClass: 'blueimp-gallery-playing',
+            // The class for all slides:
+            slideClass: 'slide',
+            // The slide class for loading elements:
+            slideLoadingClass: 'slide-loading',
+            // The slide class for elements that failed to load:
+            slideErrorClass: 'slide-error',
+            // The class for the content element loaded into each slide:
+            slideContentClass: 'slide-content',
+            // The class for the "toggle" control:
+            toggleClass: 'toggle',
+            // The class for the "prev" control:
+            prevClass: 'prev',
+            // The class for the "next" control:
+            nextClass: 'next',
+            // The class for the "close" control:
+            closeClass: 'close',
+            // The class for the "play-pause" toggle control:
+            playPauseClass: 'play-pause',
+            // The list object property (or data attribute) with the object type:
+            typeProperty: 'type',
+            // The list object property (or data attribute) with the object title:
+            titleProperty: 'title',
+            // The list object property (or data attribute) with the object URL:
+            urlProperty: 'href',
+            // The gallery listens for transitionend events before triggering the
+            // opened and closed events, unless the following option is set to false:
+            displayTransition: true,
+            // Defines if the gallery slides are cleared from the gallery modal,
+            // or reused for the next gallery initialization:
+            clearSlides: true,
+            // Defines if images should be stretched to fill the available space,
+            // while maintaining their aspect ratio (will only be enabled for browsers
+            // supporting background-size="contain", which excludes IE < 9).
+            // Set to "cover", to make images cover all available space (requires
+            // support for background-size="cover", which excludes IE < 9):
+            stretchImages: false,
+            // Toggle the controls on pressing the Return key:
+            toggleControlsOnReturn: true,
+            // Toggle the automatic slideshow interval on pressing the Space key:
+            toggleSlideshowOnSpace: true,
+            // Navigate the gallery by pressing left and right on the keyboard:
+            enableKeyboardNavigation: true,
+            // Close the gallery on pressing the Esc key:
+            closeOnEscape: true,
+            // Close the gallery when clicking on an empty slide area:
+            closeOnSlideClick: true,
+            // Close the gallery by swiping up or down:
+            closeOnSwipeUpOrDown: true,
+            // Emulate touch events on mouse-pointer devices such as desktop browsers:
+            emulateTouchEvents: true,
+            // Hide the page scrollbars: 
+            hidePageScrollbars: true,
+            // Stops any touches on the container from scrolling the page:
+            disableScroll: true,
+            // Carousel mode (shortcut for carousel specific options):
+            carousel: false,
+            // Allow continuous navigation, moving from last to first
+            // and from first to last slide:
+            continuous: true,
+            // Remove elements outside of the preload range from the DOM:
+            unloadElements: true,
+            // Start with the automatic slideshow:
+            startSlideshow: false,
+            // Delay in milliseconds between slides for the automatic slideshow:
+            slideshowInterval: 5000,
+            // The starting index as integer.
+            // Can also be an object of the given list,
+            // or an equal object with the same url property:
+            index: 0,
+            // The number of elements to load around the current index:
+            preloadRange: 2,
+            // The transition speed between slide changes in milliseconds:
+            transitionSpeed: 400,
+            // The transition speed for automatic slide changes, set to an integer
+            // greater 0 to override the default transition speed:
+            slideshowTransitionSpeed: undefined,
+            // The event object for which the default action will be canceled
+            // on Gallery initialization (e.g. the click event to open the Gallery):
+            event: undefined,
+            // Callback function executed when the Gallery is initialized.
+            // Is called with the gallery instance as "this" object:
+            onopen: undefined,
+            // Callback function executed when the Gallery has been initialized
+            // and the initialization transition has been completed.
+            // Is called with the gallery instance as "this" object:
+            onopened: undefined,
+            // Callback function executed on slide change.
+            // Is called with the gallery instance as "this" object and the
+            // current index and slide as arguments:
+            onslide: undefined,
+            // Callback function executed after the slide change transition.
+            // Is called with the gallery instance as "this" object and the
+            // current index and slide as arguments:
+            onslideend: undefined,
+            // Callback function executed on slide content load.
+            // Is called with the gallery instance as "this" object and the
+            // slide index and slide element as arguments:
+            onslidecomplete: undefined,
+            // Callback function executed when the Gallery is about to be closed.
+            // Is called with the gallery instance as "this" object:
+            onclose: undefined,
+            // Callback function executed when the Gallery has been closed
+            // and the closing transition has been completed.
+            // Is called with the gallery instance as "this" object:
+            onclosed: undefined
+        },
+
+        carouselOptions: {
+            hidePageScrollbars: false,
+            toggleControlsOnReturn: false,
+            toggleSlideshowOnSpace: false,
+            enableKeyboardNavigation: false,
+            closeOnEscape: false,
+            closeOnSlideClick: false,
+            closeOnSwipeUpOrDown: false,
+            disableScroll: false,
+            startSlideshow: true
+        },
+
+        // Detect touch, transition, transform and background-size support:
+        support: (function (element) {
+            var support = {
+                    touch: window.ontouchstart !== undefined ||
+                        (window.DocumentTouch && document instanceof DocumentTouch)
+                },
+                transitions = {
+                    webkitTransition: {
+                        end: 'webkitTransitionEnd',
+                        prefix: '-webkit-'
+                    },
+                    MozTransition: {
+                        end: 'transitionend',
+                        prefix: '-moz-'
+                    },
+                    OTransition: {
+                        end: 'otransitionend',
+                        prefix: '-o-'
+                    },
+                    transition: {
+                        end: 'transitionend',
+                        prefix: ''
+                    }
+                },
+                elementTests = function () {
+                    var transition = support.transition,
+                        prop,
+                        translateZ;
+                    document.body.appendChild(element);
+                    if (transition) {
+                        prop = transition.name.slice(0, -9) + 'ransform';
+                        if (element.style[prop] !== undefined) {
+                            element.style[prop] = 'translateZ(0)';
+                            translateZ = window.getComputedStyle(element)
+                                .getPropertyValue(transition.prefix + 'transform');
+                            support.transform = {
+                                prefix: transition.prefix,
+                                name: prop,
+                                translate: true,
+                                translateZ: !!translateZ && translateZ !== 'none'
+                            };
+                        }
+                    }
+                    if (element.style.backgroundSize !== undefined) {
+                        support.backgroundSize = {};
+                        element.style.backgroundSize = 'contain';
+                        support.backgroundSize.contain = window
+                                .getComputedStyle(element)
+                                .getPropertyValue('background-size') === 'contain';
+                        element.style.backgroundSize = 'cover';
+                        support.backgroundSize.cover = window
+                                .getComputedStyle(element)
+                                .getPropertyValue('background-size') === 'cover';
+                    }
+                    document.body.removeChild(element);
+                };
+            (function (support, transitions) {
+                var prop;
+                for (prop in transitions) {
+                    if (transitions.hasOwnProperty(prop) &&
+                            element.style[prop] !== undefined) {
+                        support.transition = transitions[prop];
+                        support.transition.name = prop;
+                        break;
+                    }
+                }
+            }(support, transitions));
+            if (document.body) {
+                elementTests();
+            } else {
+                $(document).on('DOMContentLoaded', elementTests);
+            }
+            return support;
+            // Test element, has to be standard HTML and must not be hidden
+            // for the CSS3 tests using window.getComputedStyle to be applicable:
+        }(document.createElement('div'))),
+
+        requestAnimationFrame: window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame,
+
+        initialize: function () {
+            this.initStartIndex();
+            if (this.initWidget() === false) {
+                return false;
+            }
+            this.initEventListeners();
+            // Load the slide at the given index:
+            this.onslide(this.index);
+            // Manually trigger the slideend event for the initial slide:
+            this.ontransitionend();
+            // Start the automatic slideshow if applicable:
+            if (this.options.startSlideshow) {
+                this.play();
+            }
+        },
+
+        slide: function (to, speed) {
+            window.clearTimeout(this.timeout);
+            var index = this.index,
+                direction,
+                natural_direction,
+                diff;
+            if (index === to || this.num === 1) {
+                return;
+            }
+            if (!speed) {
+                speed = this.options.transitionSpeed;
+            }
+            if (this.support.transition) {
+                if (!this.options.continuous) {
+                    to = this.circle(to);
+                }
+                // 1: backward, -1: forward:
+                direction = Math.abs(index - to) / (index - to);
+                // Get the actual position of the slide:
+                if (this.options.continuous) {
+                    natural_direction = direction;
+                    direction = -this.positions[this.circle(to)] / this.slideWidth;
+                    // If going forward but to < index, use to = slides.length + to
+                    // If going backward but to > index, use to = -slides.length + to
+                    if (direction !== natural_direction) {
+                        to = -direction * this.num + to;
+                    }
+                }
+                diff = Math.abs(index - to) - 1;
+                // Move all the slides between index and to in the right direction:
+                while (diff) {
+                    diff -= 1;
+                    this.move(
+                        this.circle((to > index ? to : index) - diff - 1),
+                        this.slideWidth * direction,
+                        0
+                    );
+                }
+                to = this.circle(to);
+                this.move(index, this.slideWidth * direction, speed);
+                this.move(to, 0, speed);
+                if (this.options.continuous) {
+                    this.move(
+                        this.circle(to - direction),
+                        -(this.slideWidth * direction),
+                        0
+                    );
+                }
+            } else {
+                to = this.circle(to);
+                this.animate(index * -this.slideWidth, to * -this.slideWidth, speed);
+            }
+            this.onslide(to);
+        },
+
+        getIndex: function () {
+            return this.index;
+        },
+
+        getNumber: function () {
+            return this.num;
+        },
+
+        prev: function () {
+            if (this.options.continuous || this.index) {
+                this.slide(this.index - 1);
+            }
+        },
+
+        next: function () {
+            if (this.options.continuous || this.index < this.num - 1) {
+                this.slide(this.index + 1);
+            }
+        },
+
+        play: function (time) {
+            var that = this;
+            window.clearTimeout(this.timeout);
+            this.interval = time || this.options.slideshowInterval;
+            if (this.elements[this.index] > 1) {
+                this.timeout = this.setTimeout(
+                    (!this.requestAnimationFrame && this.slide) || function (to, speed) {
+                        that.animationFrameId = that.requestAnimationFrame.call(
+                            window,
+                            function () {
+                                that.slide(to, speed);
+                            }
+                        );
+                    },
+                    [this.index + 1, this.options.slideshowTransitionSpeed],
+                    this.interval
+                );
+            }
+            this.container.addClass(this.options.playingClass);
+        },
+
+        pause: function () {
+            window.clearTimeout(this.timeout);
+            this.interval = null;
+            this.container.removeClass(this.options.playingClass);
+        },
+
+        add: function (list) {
+            var i;
+            if (!list.concat) {
+                // Make a real array out of the list to add:
+                list = Array.prototype.slice.call(list);
+            }
+            if (!this.list.concat) {
+                // Make a real array out of the Gallery list:
+                this.list = Array.prototype.slice.call(this.list);
+            }
+            this.list = this.list.concat(list);
+            this.num = this.list.length;
+            if (this.num > 2 && this.options.continuous === null) {
+                this.options.continuous = true;
+                this.container.removeClass(this.options.leftEdgeClass);
+            }
+            this.container
+                .removeClass(this.options.rightEdgeClass)
+                .removeClass(this.options.singleClass);
+            for (i = this.num - list.length; i < this.num; i += 1) {
+                this.addSlide(i);
+                this.positionSlide(i);
+            }
+            this.positions.length = this.num;
+            this.initSlides(true);
+        },
+
+        resetSlides: function () {
+            this.slidesContainer.empty();
+            this.slides = [];
+        },
+
+        handleClose: function () {
+            var options = this.options;
+            this.destroyEventListeners();
+            // Cancel the slideshow:
+            this.pause();
+            this.container[0].style.display = 'none';
+            this.container
+                .removeClass(options.displayClass)
+                .removeClass(options.singleClass)
+                .removeClass(options.leftEdgeClass)
+                .removeClass(options.rightEdgeClass);
+            if (options.hidePageScrollbars) {
+                document.body.style.overflow = this.bodyOverflowStyle;
+            }
+            if (this.options.clearSlides) {
+                this.resetSlides();
+            }
+            if (this.options.onclosed) {
+                this.options.onclosed.call(this);
+            }
+        },
+
+        close: function () {
+            var that = this,
+                closeHandler = function (event) {
+                    if (event.target === that.container[0]) {
+                        that.container.off(
+                            that.support.transition.end,
+                            closeHandler
+                        );
+                        that.handleClose();
+                    }
+                };
+            if (this.options.onclose) {
+                this.options.onclose.call(this);
+            }
+            if (this.support.transition && this.options.displayTransition) {
+                this.container.on(
+                    this.support.transition.end,
+                    closeHandler
+                );
+                this.container.removeClass(this.options.displayClass);
+            } else {
+                this.handleClose();
+            }
+        },
+
+        circle: function (index) {
+            // Always return a number inside of the slides index range:
+            return (this.num + (index % this.num)) % this.num;
+        },
+
+        move: function (index, dist, speed) {
+            this.translateX(index, dist, speed);
+            this.positions[index] = dist;
+        },
+
+        translate: function (index, x, y, speed) {
+            var style = this.slides[index].style,
+                transition = this.support.transition,
+                transform = this.support.transform;
+            style[transition.name + 'Duration'] = speed + 'ms';
+            style[transform.name] = 'translate(' + x + 'px, ' + y + 'px)' +
+                (transform.translateZ ? ' translateZ(0)' : '');
+        },
+
+        translateX: function (index, x, speed) {
+            this.translate(index, x, 0, speed);
+        },
+
+        translateY: function (index, y, speed) {
+            this.translate(index, 0, y, speed);
+        },
+
+        animate: function (from, to, speed) {
+            if (!speed) {
+                this.slidesContainer[0].style.left = to + 'px';
+                return;
+            }
+            var that = this,
+                start = new Date().getTime(),
+                timer = window.setInterval(function () {
+                    var timeElap = new Date().getTime() - start;
+                    if (timeElap > speed) {
+                        that.slidesContainer[0].style.left = to + 'px';
+                        that.ontransitionend();
+                        window.clearInterval(timer);
+                        return;
+                    }
+                    that.slidesContainer[0].style.left = (((to - from) *
+                        (Math.floor((timeElap / speed) * 100) / 100)) +
+                            from) + 'px';
+                }, 4);
+        },
+
+        preventDefault: function (event) {
+            if (event.preventDefault) {
+                event.preventDefault();
+            } else {
+                event.returnValue = false;
+            }
+        },
+
+        onresize: function () {
+            this.initSlides(true);
+        },
+
+        onmousedown: function (event) {
+            // Trigger on clicks of the left mouse button only
+            // and exclude video elements:
+            if (event.which && event.which === 1 &&
+                    event.target.nodeName !== 'VIDEO') {
+                // Preventing the default mousedown action is required
+                // to make touch emulation work with Firefox:
+                (event.originalEvent || event).touches = [{
+                    pageX: event.pageX,
+                    pageY: event.pageY
+                }];
+                this.ontouchstart(event);
+            }
+        },
+
+        onmousemove: function (event) {
+            if (this.touchStart) {
+                (event.originalEvent || event).touches = [{
+                    pageX: event.pageX,
+                    pageY: event.pageY
+                }];
+                this.ontouchmove(event);
+            }
+        },
+
+        onmouseup: function (event) {
+            if (this.touchStart) {
+                this.ontouchend(event);
+                delete this.touchStart;
+            }
+        },
+
+        onmouseout: function (event) {
+            if (this.touchStart) {
+                var target = event.target,
+                    related = event.relatedTarget;
+                if (!related || (related !== target &&
+                        !$.contains(target, related))) {
+                    this.onmouseup(event);
+                }
+            }
+        },
+
+        ontouchstart: function (event) {
+            // jQuery doesn't copy touch event properties by default,
+            // so we have to access the originalEvent object:
+            var touches = (event.originalEvent || event).touches[0];
+            this.touchStart = {
+                // Remember the initial touch coordinates:
+                x: touches.pageX,
+                y: touches.pageY,
+                // Store the time to determine touch duration:
+                time: Date.now()
+            };
+            // Helper variable to detect scroll movement:
+            this.isScrolling = undefined;
+            // Reset delta values:
+            this.touchDelta = {};
+        },
+
+        ontouchmove: function (event) {
+            // jQuery doesn't copy touch event properties by default,
+            // so we have to access the originalEvent object:
+            var touches = (event.originalEvent || event).touches[0],
+                scale = (event.originalEvent || event).scale,
+                index = this.index,
+                touchDeltaX,
+                indices;
+            // Ensure this is a one touch swipe and not, e.g. a pinch:
+            if (touches.length > 1 || (scale && scale !== 1)) {
+                return;
+            }
+            if (this.options.disableScroll) {
+                event.preventDefault();
+            }
+            // Measure change in x and y coordinates:
+            this.touchDelta = {
+                x: touches.pageX - this.touchStart.x,
+                y: touches.pageY - this.touchStart.y
+            };
+            touchDeltaX = this.touchDelta.x;
+            // Detect if this is a vertical scroll movement (run only once per touch):
+            if (this.isScrolling === undefined) {
+                this.isScrolling = this.isScrolling ||
+                    Math.abs(touchDeltaX) < Math.abs(this.touchDelta.y);
+            }
+            if (!this.isScrolling) {
+                // Always prevent horizontal scroll:
+                event.preventDefault();
+                // Stop the slideshow:
+                window.clearTimeout(this.timeout);
+                if (this.options.continuous) {
+                    indices = [
+                        this.circle(index + 1),
+                        index,
+                        this.circle(index - 1)
+                    ];
+                } else {
+                    // Increase resistance if first slide and sliding left
+                    // or last slide and sliding right:
+                    this.touchDelta.x = touchDeltaX =
+                        touchDeltaX /
+                        (((!index && touchDeltaX > 0) ||
+                            (index === this.num - 1 && touchDeltaX < 0)) ?
+                                (Math.abs(touchDeltaX) / this.slideWidth + 1) : 1);
+                    indices = [index];
+                    if (index) {
+                        indices.push(index - 1);
+                    }
+                    if (index < this.num - 1) {
+                        indices.unshift(index + 1);
+                    }
+                }
+                while (indices.length) {
+                    index = indices.pop();
+                    this.translateX(index, touchDeltaX + this.positions[index], 0);
+                }
+            } else if (this.options.closeOnSwipeUpOrDown) {
+                this.translateY(index, this.touchDelta.y + this.positions[index], 0);
+            }
+        },
+
+        ontouchend: function () {
+            var index = this.index,
+                speed = this.options.transitionSpeed,
+                slideWidth = this.slideWidth,
+                isShortDuration = Number(Date.now() - this.touchStart.time) < 250,
+                // Determine if slide attempt triggers next/prev slide:
+                isValidSlide = (isShortDuration && Math.abs(this.touchDelta.x) > 20) ||
+                    Math.abs(this.touchDelta.x) > slideWidth / 2,
+                // Determine if slide attempt is past start or end:
+                isPastBounds = (!index && this.touchDelta.x > 0) ||
+                        (index === this.num - 1 && this.touchDelta.x < 0),
+                isValidClose = !isValidSlide && this.options.closeOnSwipeUpOrDown &&
+                    ((isShortDuration && Math.abs(this.touchDelta.y) > 20) ||
+                        Math.abs(this.touchDelta.y) > this.slideHeight / 2),
+                direction,
+                indexForward,
+                indexBackward,
+                distanceForward,
+                distanceBackward;
+            if (this.options.continuous) {
+                isPastBounds = false;
+            }
+            // Determine direction of swipe (true: right, false: left):
+            direction = this.touchDelta.x < 0 ? -1 : 1;
+            if (!this.isScrolling) {
+                if (isValidSlide && !isPastBounds) {
+                    indexForward = index + direction;
+                    indexBackward = index - direction;
+                    distanceForward = slideWidth * direction;
+                    distanceBackward = -slideWidth * direction;
+                    if (this.options.continuous) {
+                        this.move(this.circle(indexForward), distanceForward, 0);
+                        this.move(this.circle(index - 2 * direction), distanceBackward, 0);
+                    } else if (indexForward >= 0 &&
+                            indexForward < this.num) {
+                        this.move(indexForward, distanceForward, 0);
+                    }
+                    this.move(index, this.positions[index] + distanceForward, speed);
+                    this.move(
+                        this.circle(indexBackward),
+                        this.positions[this.circle(indexBackward)] + distanceForward,
+                        speed
+                    );
+                    index = this.circle(indexBackward);
+                    this.onslide(index);
+                } else {
+                    // Move back into position
+                    if (this.options.continuous) {
+                        this.move(this.circle(index - 1), -slideWidth, speed);
+                        this.move(index, 0, speed);
+                        this.move(this.circle(index + 1), slideWidth, speed);
+                    } else {
+                        if (index) {
+                            this.move(index - 1, -slideWidth, speed);
+                        }
+                        this.move(index, 0, speed);
+                        if (index < this.num - 1) {
+                            this.move(index + 1, slideWidth, speed);
+                        }
+                    }
+                }
+            } else {
+                if (isValidClose) {
+                    this.close();
+                } else {
+                    // Move back into position
+                    this.translateY(index, 0, speed);
+                }
+            }
+        },
+
+        ontransitionend: function (event) {
+            var slide = this.slides[this.index];
+            if (!event || slide === event.target) {
+                if (this.interval) {
+                    this.play();
+                }
+                this.setTimeout(
+                    this.options.onslideend,
+                    [this.index, slide]
+                );
+            }
+        },
+
+        oncomplete: function (event) {
+            var target = event.target || event.srcElement,
+                parent = target && target.parentNode,
+                index;
+            if (!target || !parent) {
+                return;
+            }
+            index = this.getNodeIndex(parent);
+            $(parent).removeClass(this.options.slideLoadingClass);
+            if (event.type === 'error') {
+                $(parent).addClass(this.options.slideErrorClass);
+                this.elements[index] = 3; // Fail
+            } else {
+                this.elements[index] = 2; // Done
+            }
+            // Fix for IE7's lack of support for percentage max-height:
+            if (target.clientHeight > this.container[0].clientHeight) {
+                target.style.maxHeight = this.container[0].clientHeight;
+            }
+            if (this.interval && this.slides[this.index] === parent) {
+                this.play();
+            }
+            this.setTimeout(
+                this.options.onslidecomplete,
+                [index, parent]
+            );
+        },
+
+        onload: function (event) {
+            this.oncomplete(event);
+        },
+
+        onerror: function (event) {
+            this.oncomplete(event);
+        },
+
+        onkeydown: function (event) {
+            switch (event.which || event.keyCode) {
+            case 13: // Return
+                if (this.options.toggleControlsOnReturn) {
+                    this.preventDefault(event);
+                    this.toggleControls();
+                }
+                break;
+            case 27: // Esc
+                if (this.options.closeOnEscape) {
+                    this.close();
+                }
+                break;
+            case 32: // Space
+                if (this.options.toggleSlideshowOnSpace) {
+                    this.preventDefault(event);
+                    this.toggleSlideshow();
+                }
+                break;
+            case 37: // Left
+                if (this.options.enableKeyboardNavigation) {
+                    this.preventDefault(event);
+                    this.prev();
+                }
+                break;
+            case 39: // Right
+                if (this.options.enableKeyboardNavigation) {
+                    this.preventDefault(event);
+                    this.next();
+                }
+                break;
+            }
+        },
+
+        handleClick: function (event) {
+            var options = this.options,
+                target = event.target || event.srcElement,
+                parent = target.parentNode,
+                isTarget = function (className) {
+                    return $(target).hasClass(className) ||
+                        $(parent).hasClass(className);
+                };
+            if (parent === this.slidesContainer[0]) {
+                // Click on slide background
+                this.preventDefault(event);
+                if (options.closeOnSlideClick) {
+                    this.close();
+                } else {
+                    this.toggleControls();
+                }
+            } else if (parent.parentNode &&
+                    parent.parentNode === this.slidesContainer[0]) {
+                // Click on displayed element
+                this.preventDefault(event);
+                this.toggleControls();
+            } else if (isTarget(options.toggleClass)) {
+                // Click on "toggle" control
+                this.preventDefault(event);
+                this.toggleControls();
+            } else if (isTarget(options.prevClass)) {
+                // Click on "prev" control
+                this.preventDefault(event);
+                this.prev();
+            } else if (isTarget(options.nextClass)) {
+                // Click on "next" control
+                this.preventDefault(event);
+                this.next();
+            } else if (isTarget(options.closeClass)) {
+                // Click on "close" control
+                this.preventDefault(event);
+                this.close();
+            } else if (isTarget(options.playPauseClass)) {
+                // Click on "play-pause" control
+                this.preventDefault(event);
+                this.toggleSlideshow();
+            }
+        },
+
+        onclick: function (event) {
+            if (this.options.emulateTouchEvents &&
+                    this.touchDelta && (Math.abs(this.touchDelta.x) > 20 ||
+                        Math.abs(this.touchDelta.y) > 20)) {
+                delete this.touchDelta;
+                return;
+            }
+            return this.handleClick(event);
+        },
+
+        updateEdgeClasses: function (index) {
+            if (!index) {
+                this.container.addClass(this.options.leftEdgeClass);
+            } else {
+                this.container.removeClass(this.options.leftEdgeClass);
+            }
+            if (index === this.num - 1) {
+                this.container.addClass(this.options.rightEdgeClass);
+            } else {
+                this.container.removeClass(this.options.rightEdgeClass);
+            }
+        },
+
+        handleSlide: function (index) {
+            if (!this.options.continuous) {
+                this.updateEdgeClasses(index);
+            }
+            this.loadElements(index);
+            if (this.options.unloadElements) {
+                this.unloadElements(index);
+            }
+            this.setTitle(index);
+        },
+
+        onslide: function (index) {
+            this.index = index;
+            this.handleSlide(index);
+            this.setTimeout(this.options.onslide, [index, this.slides[index]]);
+        },
+
+        setTitle: function (index) {
+            var text = this.slides[index].firstChild.title,
+                titleElement = this.titleElement;
+            if (titleElement.length) {
+                this.titleElement.empty();
+                if (text) {
+                    titleElement[0].appendChild(document.createTextNode(text));
+                }
+            }
+        },
+
+        setTimeout: function (func, args, wait) {
+            var that = this;
+            return func && window.setTimeout(function () {
+                func.apply(that, args || []);
+            }, wait || 0);
+        },
+
+        imageFactory: function (obj, callback) {
+            var that = this,
+                img = this.imagePrototype.cloneNode(false),
+                url = obj,
+                backgroundSize = this.options.stretchImages,
+                called,
+                element,
+                callbackWrapper = function (event) {
+                    if (!called) {
+                        event = {
+                            type: event.type,
+                            target: element
+                        };
+                        if (!element.parentNode) {
+                            // Fix for IE7 firing the load event for
+                            // cached images before the element could
+                            // be added to the DOM:
+                            return that.setTimeout(callbackWrapper, [event]);
+                        }
+                        called = true;
+                        $(img).off('load error', callbackWrapper);
+                        if (backgroundSize) {
+                            if (event.type === 'load') {
+                                element.style.background = 'url("' + url +
+                                    '") center no-repeat';
+                                element.style.backgroundSize = backgroundSize;
+                            }
+                        }
+                        callback(event);
+                    }
+                },
+                title;
+            if (typeof url !== 'string') {
+                url = this.getItemProperty(obj, this.options.urlProperty);
+                title = this.getItemProperty(obj, this.options.titleProperty);
+            }
+            if (backgroundSize === true) {
+                backgroundSize = 'contain';
+            }
+            backgroundSize = this.support.backgroundSize &&
+                this.support.backgroundSize[backgroundSize] && backgroundSize;
+            if (backgroundSize) {
+                element = this.elementPrototype.cloneNode(false);
+            } else {
+                element = img;
+                img.draggable = false;
+            }
+            if (title) {
+                element.title = title;
+            }
+            $(img).on('load error', callbackWrapper);
+            img.src = url;
+            return element;
+        },
+
+        createElement: function (obj, callback) {
+            var type = obj && this.getItemProperty(obj, this.options.typeProperty),
+                factory = (type && this[type.split('/')[0] + 'Factory']) ||
+                    this.imageFactory,
+                element = obj && factory.call(this, obj, callback);
+            if (!element) {
+                element = this.elementPrototype.cloneNode(false);
+                this.setTimeout(callback, [{
+                    type: 'error',
+                    target: element
+                }]);
+            }
+            $(element).addClass(this.options.slideContentClass);
+            return element;
+        },
+
+        loadElement: function (index) {
+            if (!this.elements[index]) {
+                if (this.slides[index].firstChild) {
+                    this.elements[index] = $(this.slides[index])
+                        .hasClass(this.options.slideErrorClass) ? 3 : 2;
+                } else {
+                    this.elements[index] = 1; // Loading
+                    $(this.slides[index]).addClass(this.options.slideLoadingClass);
+                    this.slides[index].appendChild(this.createElement(
+                        this.list[index],
+                        this.proxyListener
+                    ));
+                }
+            }
+        },
+
+        loadElements: function (index) {
+            var limit = Math.min(this.num, this.options.preloadRange * 2 + 1),
+                j = index,
+                i;
+            for (i = 0; i < limit; i += 1) {
+                // First load the current slide element (0),
+                // then the next one (+1),
+                // then the previous one (-2),
+                // then the next after next (+2), etc.:
+                j += i * (i % 2 === 0 ? -1 : 1);
+                // Connect the ends of the list to load slide elements for
+                // continuous navigation:
+                j = this.circle(j);
+                this.loadElement(j);
+            }
+        },
+
+        unloadElements: function (index) {
+            var i,
+                slide,
+                diff;
+            for (i in this.elements) {
+                if (this.elements.hasOwnProperty(i)) {
+                    diff = Math.abs(index - i);
+                    if (diff > this.options.preloadRange &&
+                            diff + this.options.preloadRange < this.num) {
+                        slide = this.slides[i];
+                        slide.removeChild(slide.firstChild);
+                        delete this.elements[i];
+                    }
+                }
+            }
+        },
+
+        addSlide: function (index) {
+            var slide = this.slidePrototype.cloneNode(false);
+            slide.setAttribute('data-index', index);
+            this.slidesContainer[0].appendChild(slide);
+            this.slides.push(slide);
+        },
+
+        positionSlide: function (index) {
+            var slide = this.slides[index];
+            slide.style.width = this.slideWidth + 'px';
+            if (this.support.transition) {
+                slide.style.left = (index * -this.slideWidth) + 'px';
+                this.move(index, this.index > index ? -this.slideWidth :
+                        (this.index < index ? this.slideWidth : 0), 0);
+            }
+        },
+
+        initSlides: function (reload) {
+            var clearSlides,
+                i;
+            if (!reload) {
+                this.positions = [];
+                this.positions.length = this.num;
+                this.elements = {};
+                this.imagePrototype = document.createElement('img');
+                this.elementPrototype = document.createElement('div');
+                this.slidePrototype = document.createElement('div');
+                $(this.slidePrototype).addClass(this.options.slideClass);
+                this.slides = this.slidesContainer[0].children;
+                clearSlides = this.options.clearSlides ||
+                    this.slides.length !== this.num;
+            }
+            this.slideWidth = this.container[0].offsetWidth;
+            this.slideHeight = this.container[0].offsetHeight;
+            this.slidesContainer[0].style.width =
+                (this.num * this.slideWidth) + 'px';
+            if (clearSlides) {
+                this.resetSlides();
+            }
+            for (i = 0; i < this.num; i += 1) {
+                if (clearSlides) {
+                    this.addSlide(i);
+                }
+                this.positionSlide(i);
+            }
+            // Reposition the slides before and after the given index:
+            if (this.options.continuous && this.support.transition) {
+                this.move(this.circle(this.index - 1), -this.slideWidth, 0);
+                this.move(this.circle(this.index + 1), this.slideWidth, 0);
+            }
+            if (!this.support.transition) {
+                this.slidesContainer[0].style.left =
+                    (this.index * -this.slideWidth) + 'px';
+            }
+        },
+
+        toggleControls: function () {
+            var controlsClass = this.options.controlsClass;
+            if (this.container.hasClass(controlsClass)) {
+                this.container.removeClass(controlsClass);
+            } else {
+                this.container.addClass(controlsClass);
+            }
+        },
+
+        toggleSlideshow: function () {
+            if (!this.interval) {
+                this.play();
+            } else {
+                this.pause();
+            }
+        },
+
+        getNodeIndex: function (element) {
+            return parseInt(element.getAttribute('data-index'), 10);
+        },
+
+        getNestedProperty: function (obj, property) {
+            property.replace(
+                // Matches native JavaScript notation in a String,
+                // e.g. '["doubleQuoteProp"].dotProp[2]'
+                /\[(?:'([^']+)'|"([^"]+)"|(\d+))\]|(?:(?:^|\.)([^\.\[]+))/g,
+                function (str, singleQuoteProp, doubleQuoteProp, arrayIndex, dotProp) {
+                    var prop = dotProp || singleQuoteProp || doubleQuoteProp ||
+                            (arrayIndex && parseInt(arrayIndex, 10));
+                    if (str && obj) {
+                        obj = obj[prop];
+                    }
+                }
+            );
+            return obj;
+        },
+
+        getDataProperty: function (obj, property) {
+            if (obj.getAttribute) {
+                var prop = obj.getAttribute('data-' +
+                        property.replace(/([A-Z])/g, '-$1').toLowerCase());
+                if (typeof prop === 'string') {
+                    if (/^(true|false|null|-?\d+(\.\d+)?|\{[\s\S]*\}|\[[\s\S]*\])$/
+                            .test(prop)) {
+                        try {
+                            return $.parseJSON(prop);
+                        } catch (ignore) {}
+                    }
+                    return prop;
+                }
+            }
+        },
+
+        getItemProperty: function (obj, property) {
+            var prop = obj[property];
+            if (prop === undefined) {
+                prop = this.getDataProperty(obj, property);
+                if (prop === undefined) {
+                    prop = this.getNestedProperty(obj, property);
+                }
+            }
+            return prop;
+        },
+
+        initStartIndex: function () {
+            var index = this.options.index,
+                urlProperty = this.options.urlProperty,
+                i;
+            // Check if the index is given as a list object:
+            if (index && typeof index !== 'number') {
+                for (i = 0; i < this.num; i += 1) {
+                    if (this.list[i] === index ||
+                            this.getItemProperty(this.list[i], urlProperty) ===
+                                this.getItemProperty(index, urlProperty)) {
+                        index  = i;
+                        break;
+                    }
+                }
+            }
+            // Make sure the index is in the list range:
+            this.index = this.circle(parseInt(index, 10) || 0);
+        },
+
+        initEventListeners: function () {
+            var that = this,
+                slidesContainer = this.slidesContainer,
+                proxyListener = function (event) {
+                    var type = that.support.transition &&
+                            that.support.transition.end === event.type ?
+                                    'transitionend' : event.type;
+                    that['on' + type](event);
+                };
+            $(window).on('resize', proxyListener);
+            $(document.body).on('keydown', proxyListener);
+            this.container.on('click', proxyListener);
+            if (this.support.touch) {
+                slidesContainer
+                    .on('touchstart touchmove touchend', proxyListener);
+            } else if (this.options.emulateTouchEvents &&
+                    this.support.transition) {
+                slidesContainer
+                    .on('mousedown mousemove mouseup mouseout', proxyListener);
+            }
+            if (this.support.transition) {
+                slidesContainer.on(
+                    this.support.transition.end,
+                    proxyListener
+                );
+            }
+            this.proxyListener = proxyListener;
+        },
+
+        destroyEventListeners: function () {
+            var slidesContainer = this.slidesContainer,
+                proxyListener = this.proxyListener;
+            $(window).off('resize', proxyListener);
+            $(document.body).off('keydown', proxyListener);
+            this.container.off('click', proxyListener);
+            if (this.support.touch) {
+                slidesContainer
+                    .off('touchstart touchmove touchend', proxyListener);
+            } else if (this.options.emulateTouchEvents &&
+                    this.support.transition) {
+                slidesContainer
+                    .off('mousedown mousemove mouseup mouseout', proxyListener);
+            }
+            if (this.support.transition) {
+                slidesContainer.off(
+                    this.support.transition.end,
+                    proxyListener
+                );
+            }
+        },
+
+        handleOpen: function () {
+            if (this.options.onopened) {
+                this.options.onopened.call(this);
+            }
+        },
+
+        initWidget: function () {
+            var that = this,
+                openHandler = function (event) {
+                    if (event.target === that.container[0]) {
+                        that.container.off(
+                            that.support.transition.end,
+                            openHandler
+                        );
+                        that.handleOpen();
+                    }
+                };
+            this.container = $(this.options.container);
+            if (!this.container.length) {
+                return false;
+            }
+            this.slidesContainer = this.container.find(
+                this.options.slidesContainer
+            ).first();
+            if (!this.slidesContainer.length) {
+                return false;
+            }
+            this.titleElement = this.container.find(
+                this.options.titleElement
+            ).first();
+            if (this.num === 1) {
+                this.container.addClass(this.options.singleClass);
+            }
+            if (this.options.onopen) {
+                this.options.onopen.call(this);
+            }
+            if (this.support.transition && this.options.displayTransition) {
+                this.container.on(
+                    this.support.transition.end,
+                    openHandler
+                );
+            } else {
+                this.handleOpen();
+            }
+            if (this.options.hidePageScrollbars) {
+                // Hide the page scrollbars:
+                this.bodyOverflowStyle = document.body.style.overflow;
+                document.body.style.overflow = 'hidden';
+            }
+            this.container[0].style.display = 'block';
+            this.initSlides();
+            this.container.addClass(this.options.displayClass);
+        },
+
+        initOptions: function (options) {
+            // Create a copy of the prototype options:
+            this.options = $.extend({}, this.options);
+            // Check if carousel mode is enabled:
+            if ((options && options.carousel) ||
+                    (this.options.carousel && (!options || options.carousel !== false))) {
+                $.extend(this.options, this.carouselOptions);
+            }
+            // Override any given options:
+            $.extend(this.options, options);
+            if (this.num < 3) {
+                // 1 or 2 slides cannot be displayed continuous,
+                // remember the original option by setting to null instead of false:
+                this.options.continuous = this.options.continuous ? null : false;
+            }
+            if (!this.support.transition) {
+                this.options.emulateTouchEvents = false;
+            }
+            if (this.options.event) {
+                this.preventDefault(this.options.event);
+            }
+        }
+
+    });
+
+    return Gallery;
+}));
+
+/*
+ * blueimp Gallery Fullscreen JS 1.1.0
+ * https://github.com/blueimp/Gallery
+ *
+ * Copyright 2013, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ */
+
+/*global define, window, document */
+
+(function (factory) {
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        // Register as an anonymous AMD module:
+        define([
+            './blueimp-helper',
+            './blueimp-gallery'
+        ], factory);
+    } else {
+        // Browser globals:
+        factory(
+            window.blueimp.helper || window.jQuery,
+            window.blueimp.Gallery
+        );
+    }
+}(function ($, Gallery) {
+    'use strict';
+
+    $.extend(Gallery.prototype.options, {
+        // Defines if the gallery should open in fullscreen mode:
+        fullScreen: false
+    });
+
+    var initialize = Gallery.prototype.initialize,
+        handleClose = Gallery.prototype.handleClose;
+
+    $.extend(Gallery.prototype, {
+
+        getFullScreenElement: function () {
+            return document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement;
+        },
+
+        requestFullScreen: function (element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else if (element.mozRequestFullScreen) {
+                element.mozRequestFullScreen();
+            }
+        },
+
+        exitFullScreen: function () {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitCancelFullScreen) {
+                document.webkitCancelFullScreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            }
+        },
+
+        initialize: function () {
+            initialize.call(this);
+            if (this.options.fullScreen && !this.getFullScreenElement()) {
+                this.requestFullScreen(this.container[0]);
+            }
+        },
+
+        handleClose: function () {
+            if (this.getFullScreenElement() === this.container[0]) {
+                this.exitFullScreen();
+            }
+            handleClose.call(this);
+        }
+
+    });
+
+    return Gallery;
+}));
+
+/*
+ * blueimp Gallery Indicator JS 1.1.0
+ * https://github.com/blueimp/Gallery
+ *
+ * Copyright 2013, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ */
+
+/*global define, window, document */
+
+(function (factory) {
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        // Register as an anonymous AMD module:
+        define([
+            './blueimp-helper',
+            './blueimp-gallery'
+        ], factory);
+    } else {
+        // Browser globals:
+        factory(
+            window.blueimp.helper || window.jQuery,
+            window.blueimp.Gallery
+        );
+    }
+}(function ($, Gallery) {
+    'use strict';
+
+    $.extend(Gallery.prototype.options, {
+        // The tag name, Id, element or querySelector of the indicator container:
+        indicatorContainer: 'ol',
+        // The class for the active indicator:
+        activeIndicatorClass: 'active',
+        // The list object property (or data attribute) with the thumbnail URL,
+        // used as alternative to a thumbnail child element:
+        thumbnailProperty: 'thumbnail',
+        // Defines if the gallery indicators should display a thumbnail:
+        thumbnailIndicators: true
+    });
+
+    var initSlides = Gallery.prototype.initSlides,
+        addSlide = Gallery.prototype.addSlide,
+        resetSlides = Gallery.prototype.resetSlides,
+        handleClick = Gallery.prototype.handleClick,
+        handleSlide = Gallery.prototype.handleSlide,
+        handleClose = Gallery.prototype.handleClose;
+
+    $.extend(Gallery.prototype, {
+
+        createIndicator: function (obj) {
+            var indicator = this.indicatorPrototype.cloneNode(false),
+                title = this.getItemProperty(obj, this.options.titleProperty),
+                thumbnailProperty = this.options.thumbnailProperty,
+                thumbnailUrl,
+                thumbnail;
+            if (this.options.thumbnailIndicators) {
+                thumbnail = obj.getElementsByTagName && $(obj).find('img')[0];
+                if (thumbnail) {
+                    thumbnailUrl = thumbnail.src;
+                } else if (thumbnailProperty) {
+                    thumbnailUrl = this.getItemProperty(obj, thumbnailProperty);
+                }
+                if (thumbnailUrl) {
+                    indicator.style.backgroundImage = 'url("' + thumbnailUrl + '")';
+                }
+            }
+            if (title) {
+                indicator.title = title;
+            }
+            return indicator;
+        },
+
+        addIndicator: function (index) {
+            if (this.indicatorContainer.length) {
+                var indicator = this.createIndicator(this.list[index]);
+                indicator.setAttribute('data-index', index);
+                this.indicatorContainer[0].appendChild(indicator);
+                this.indicators.push(indicator);
+            }
+        },
+
+        setActiveIndicator: function (index) {
+            if (this.indicators) {
+                if (this.activeIndicator) {
+                    this.activeIndicator
+                        .removeClass(this.options.activeIndicatorClass);
+                }
+                this.activeIndicator = $(this.indicators[index]);
+                this.activeIndicator
+                    .addClass(this.options.activeIndicatorClass);
+            }
+        },
+
+        initSlides: function (reload) {
+            if (!reload) {
+                this.indicatorContainer = this.container.find(
+                    this.options.indicatorContainer
+                );
+                if (this.indicatorContainer.length) {
+                    this.indicatorPrototype = document.createElement('li');
+                    this.indicators = this.indicatorContainer[0].children;
+                }
+            }
+            initSlides.call(this, reload);
+        },
+
+        addSlide: function (index) {
+            addSlide.call(this, index);
+            this.addIndicator(index);
+        },
+
+        resetSlides: function () {
+            resetSlides.call(this);
+            this.indicatorContainer.empty();
+            this.indicators = [];
+        },
+
+        handleClick: function (event) {
+            var target = event.target || event.srcElement,
+                parent = target.parentNode;
+            if (parent === this.indicatorContainer[0]) {
+                // Click on indicator element
+                this.preventDefault(event);
+                this.slide(this.getNodeIndex(target));
+            } else if (parent.parentNode === this.indicatorContainer[0]) {
+                // Click on indicator child element
+                this.preventDefault(event);
+                this.slide(this.getNodeIndex(parent));
+            } else {
+                return handleClick.call(this, event);
+            }
+        },
+
+        handleSlide: function (index) {
+            handleSlide.call(this, index);
+            this.setActiveIndicator(index);
+        },
+
+        handleClose: function () {
+            if (this.activeIndicator) {
+                this.activeIndicator
+                    .removeClass(this.options.activeIndicatorClass);
+            }
+            handleClose.call(this);
+        }
+
+    });
+
+    return Gallery;
+}));
+
+/*
+ * blueimp helper JS 1.2.0
+ * https://github.com/blueimp/Gallery
+ *
+ * Copyright 2013, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ */
+
+/*global define, window, document */
+
+(function () {
+    'use strict';
+
+    function extend(obj1, obj2) {
+        var prop;
+        for (prop in obj2) {
+            if (obj2.hasOwnProperty(prop)) {
+                obj1[prop] = obj2[prop];
+            }
+        }
+        return obj1;
+    }
+
+    function Helper(query) {
+        if (!this || this.find !== Helper.prototype.find) {
+            // Called as function instead of as constructor,
+            // so we simply return a new instance:
+            return new Helper(query);
+        }
+        this.length = 0;
+        if (query) {
+            if (typeof query === 'string') {
+                query = this.find(query);
+            }
+            if (query.nodeType || query === query.window) {
+                // Single HTML element
+                this.length = 1;
+                this[0] = query;
+            } else {
+                // HTML element collection
+                var i = query.length;
+                this.length = i;
+                while (i) {
+                    i -= 1;
+                    this[i] = query[i];
+                }
+            }
+        }
+    }
+
+    Helper.extend = extend;
+
+    Helper.contains = function (container, element) {
+        do {
+            element = element.parentNode;
+            if (element === container) {
+                return true;
+            }
+        } while (element);
+        return false;
+    };
+
+    Helper.parseJSON = function (string) {
+        return window.JSON && JSON.parse(string);
+    };
+
+    extend(Helper.prototype, {
+
+        find: function (query) {
+            var container = this[0] || document;
+            if (typeof query === 'string') {
+                if (container.querySelectorAll) {
+                    query = container.querySelectorAll(query);
+                } else if (query.charAt(0) === '#') {
+                    query = container.getElementById(query.slice(1));
+                } else {
+                    query = container.getElementsByTagName(query);
+                }
+            }
+            return new Helper(query);
+        },
+
+        hasClass: function (className) {
+            if (!this[0]) {
+                return false;
+            }
+            return new RegExp('(^|\\s+)' + className +
+                '(\\s+|$)').test(this[0].className);
+        },
+
+        addClass: function (className) {
+            var i = this.length,
+                element;
+            while (i) {
+                i -= 1;
+                element = this[i];
+                if (!element.className) {
+                    element.className = className;
+                    return this;
+                }
+                if (this.hasClass(className)) {
+                    return this;
+                }
+                element.className += ' ' + className;
+            }
+            return this;
+        },
+
+        removeClass: function (className) {
+            var regexp = new RegExp('(^|\\s+)' + className + '(\\s+|$)'),
+                i = this.length,
+                element;
+            while (i) {
+                i -= 1;
+                element = this[i];
+                element.className = element.className.replace(regexp, ' ');
+            }
+            return this;
+        },
+
+        on: function (eventName, handler) {
+            var eventNames = eventName.split(/\s+/),
+                i,
+                element;
+            while (eventNames.length) {
+                eventName = eventNames.shift();
+                i = this.length;
+                while (i) {
+                    i -= 1;
+                    element = this[i];
+                    if (element.addEventListener) {
+                        element.addEventListener(eventName, handler, false);
+                    } else if (element.attachEvent) {
+                        element.attachEvent('on' + eventName, handler);
+                    }
+                }
+            }
+            return this;
+        },
+
+        off: function (eventName, handler) {
+            var eventNames = eventName.split(/\s+/),
+                i,
+                element;
+            while (eventNames.length) {
+                eventName = eventNames.shift();
+                i = this.length;
+                while (i) {
+                    i -= 1;
+                    element = this[i];
+                    if (element.removeEventListener) {
+                        element.removeEventListener(eventName, handler, false);
+                    } else if (element.detachEvent) {
+                        element.detachEvent('on' + eventName, handler);
+                    }
+                }
+            }
+            return this;
+        },
+
+        empty: function () {
+            var i = this.length,
+                element;
+            while (i) {
+                i -= 1;
+                element = this[i];
+                while (element.hasChildNodes()) {
+                    element.removeChild(element.lastChild);
+                }
+            }
+            return this;
+        },
+
+        first: function () {
+            return new Helper(this[0]);
+        }
+
+    });
+
+    if (typeof define === 'function' && define.amd) {
+        define(function () {
+            return Helper;
+        });
+    } else {
+        window.blueimp = window.blueimp || {};
+        window.blueimp.helper = Helper;
+    }
+}());
+
+/*
+ * Bootstrap Image Gallery 3.0.1
+ * https://github.com/blueimp/Bootstrap-Image-Gallery
+ *
+ * Copyright 2013, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ */
+
+/*global define, window */
+
+(function (factory) {
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        define([
+            'jquery',
+            './blueimp-gallery'
+        ], factory);
+    } else {
+        factory(
+            window.jQuery,
+            window.blueimp.Gallery
+        );
+    }
+}(function ($, Gallery) {
+    'use strict';
+
+    $.extend(Gallery.prototype.options, {
+        useBootstrapModal: true
+    });
+
+    var close = Gallery.prototype.close,
+        imageFactory = Gallery.prototype.imageFactory,
+        videoFactory = Gallery.prototype.videoFactory,
+        textFactory = Gallery.prototype.textFactory;
+
+    $.extend(Gallery.prototype, {
+
+        modalFactory: function (obj, callback, factoryInterface, factory) {
+            if (!this.options.useBootstrapModal || factoryInterface) {
+                return factory.call(this, obj, callback, factoryInterface);
+            }
+            var that = this,
+                modalTemplate = this.container.children('.modal'),
+                modal = modalTemplate.clone().show()
+                    .on('click', function (event) {
+                        // Close modal if click is outside of modal-content:
+                        if (event.target === modal[0] ||
+                                event.target === modal.children()[0]) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            that.close();
+                        }
+                    }),
+                element = factory.call(this, obj, function (event) {
+                    callback({
+                        type: event.type,
+                        target: modal[0]
+                    });
+                    modal.addClass('in');
+                }, factoryInterface);
+            modal.find('.modal-title').text(element.title || String.fromCharCode(160));
+            modal.find('.modal-body').append(element);
+            return modal[0];
+        },
+
+        imageFactory: function (obj, callback, factoryInterface) {
+            return this.modalFactory(obj, callback, factoryInterface, imageFactory);
+        },
+
+        videoFactory: function (obj, callback, factoryInterface) {
+            return this.modalFactory(obj, callback, factoryInterface, videoFactory);
+        },
+
+        textFactory: function (obj, callback, factoryInterface) {
+            return this.modalFactory(obj, callback, factoryInterface, textFactory);
+        },
+
+        close: function () {
+            this.container.find('.modal').removeClass('in');
+            close.call(this);
+        }
+
+    });
+
+}));
+
 (function ( window, angular, undefined ) {
 
 (function () {
@@ -61123,8 +62941,16 @@ ol.tilegrid.XYZOptions;
     'diffService',
     function ($scope, diffService) {
       function assignScopeVariables() {
-        $scope.hasDifferences = diffService.hasDifferences();
         $scope.title = diffService.title;
+        $scope.diffService = diffService;
+        var count = 0;
+        for (var i = 0; i < diffService.conflicts.length; i++) {
+          var obj = diffService.conflicts[i];
+          if (!obj.resolved) {
+            count += 1;
+          }
+        }
+        $scope.numConflicts = count;
       }
       function updateScopeVariables() {
         if (!$scope.$$phase) {
@@ -61136,6 +62962,8 @@ ol.tilegrid.XYZOptions;
         }
       }
       assignScopeVariables();
+      $scope.$watch('diffService.title', updateScopeVariables);
+      $scope.$watch('diffService.conflicts', updateScopeVariables, true);
       $scope.$on('diff_performed', updateScopeVariables);
       $scope.$on('diff_cleared', updateScopeVariables);
     }
@@ -61157,7 +62985,10 @@ ol.tilegrid.XYZOptions;
     'loom_pulldown',
     'loom_pulldown_controller',
     'loom_feature_info_box',
-    'loom_utils'
+    'loom_utils',
+    'loom_merge',
+    'loom_sync',
+    'loom_legend'
   ]);
 }());
 (function () {
@@ -61165,14 +62996,17 @@ ol.tilegrid.XYZOptions;
   module.controller('LoomPulldownController', [
     '$scope',
     'pulldownService',
-    function ($scope, pulldownService) {
+    'geogitService',
+    'diffService',
+    function ($scope, pulldownService, geogitService, diffService) {
       $('#pulldown-content').on('show.bs.collapse', function (e) {
         $('#pulldown-content .in').not($(e.target).parents()).collapse('hide');
       });
       function assignScopeVariables() {
-        $scope.diffPanel = pulldownService.diffPanel;
-        $scope.notificationsPanel = pulldownService.notificationsPanel;
-        $scope.layersPanel = pulldownService.layersPanel;
+        $scope.diffPanel = pulldownService.diffPanel.getVisible();
+        $scope.notificationsPanel = pulldownService.notificationsPanel.getVisible();
+        $scope.layersPanel = pulldownService.layersPanel.getVisible();
+        $scope.syncPanel = pulldownService.syncPanel.getVisible();
       }
       function updateScopeVariables() {
         if (!$scope.$$phase) {
@@ -61185,6 +63019,18 @@ ol.tilegrid.XYZOptions;
       }
       assignScopeVariables();
       $scope.$on('refresh-pulldown', updateScopeVariables);
+      var syncPanelEnabled = function () {
+        pulldownService.syncPanel.enabled = geogitService.repos.length > 0;
+        updateScopeVariables();
+      };
+      $scope.$on('repoAdded', syncPanelEnabled);
+      $scope.$on('repoRemoved', syncPanelEnabled);
+      var diffPanelEnabled = function () {
+        pulldownService.diffPanel.enabled = diffService.hasDifferences();
+        updateScopeVariables();
+      };
+      $scope.$on('diff_performed', diffPanelEnabled);
+      $scope.$on('diff_cleared', diffPanelEnabled);
     }
   ]);
 }());
@@ -61214,6 +63060,7 @@ ol.tilegrid.XYZOptions;
           $scope.pageTitle = toState.data.pageTitle + ' | ngBoilerplate';
         }
       });
+      $scope.mapService = mapService;
       $translate.uses('en');
     }
   ]);
@@ -61362,8 +63209,8 @@ ol.tilegrid.XYZOptions;
         link: function (scope) {
           scope.serverService = serverService;
           scope.type = 'WMS';
-          scope.name = 'Server';
-          scope.url = 'http://url/wms';
+          scope.name = null;
+          scope.url = null;
         }
       };
     }
@@ -61433,11 +63280,14 @@ var SERVER_SERVICE_USE_PROXY = true;
         xhr.open('GET', url, true);
         xhr.onload = function () {
           if (xhr.status == 200) {
-            server.layers = parser.read(xhr.response).capability.layers;
-            for (var index = 0; index < server.layers.length; index += 1) {
-              server.layers[index].added = false;
+            var response = parser.read(xhr.response);
+            if (goog.isDefAndNotNull(response.capability) && goog.isDefAndNotNull(response.capability.layers)) {
+              server.layers = response.capability.layers;
+              for (var index = 0; index < server.layers.length; index += 1) {
+                server.layers[index].added = false;
+              }
+              rootScope.$broadcast('layers-loaded');
             }
-            rootScope.$broadcast('layers-loaded');
           } else {
             alert('Failed to get capabilities: ' + xhr.status.toString() + ' ' + xhr.statusText);
           }
@@ -61450,32 +63300,38 @@ var SERVER_SERVICE_USE_PROXY = true;
       var server = servers[index];
       if (goog.isDefAndNotNull(server.layers)) {
         var parser = new ol.parser.ogc.WMSCapabilities();
-        var url = '/proxy/?url=' + encodeURIComponent(server.url + '?SERVICE=WMS&REQUEST=GetCapabilities');
+        var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
+        if (SERVER_SERVICE_USE_PROXY) {
+          url = '/proxy/?url=' + encodeURIComponent(url);
+        }
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url, true);
         xhr.onload = function () {
           if (xhr.status == 200) {
-            var serverLayers = [];
-            var index;
-            for (index = 0; index < server.layers.length; index += 1) {
-              if (server.layers[index].added) {
-                serverLayers.push(server.layers[index]);
-              }
-            }
-            var layers = parser.read(xhr.responseXML).capability.layers;
-            for (index = 0; index < layers.length; index += 1) {
-              for (var subIndex = 0; subIndex < serverLayers.length; subIndex += 1) {
-                if (serverLayers[subIndex].title === layers[index].title) {
-                  layers[index].added = true;
-                  break;
+            var response = parser.read(xhr.responseXML);
+            if (goog.isDefAndNotNull(response.capability) && goog.isDefAndNotNull(response.capability.layers)) {
+              var serverLayers = [];
+              var index;
+              for (index = 0; index < server.layers.length; index += 1) {
+                if (server.layers[index].added) {
+                  serverLayers.push(server.layers[index]);
                 }
               }
-              if (!goog.isDefAndNotNull(layers[index].added)) {
-                layers[index].added = false;
+              var layers = response.capability.layers;
+              for (index = 0; index < layers.length; index += 1) {
+                for (var subIndex = 0; subIndex < serverLayers.length; subIndex += 1) {
+                  if (serverLayers[subIndex].title === layers[index].title) {
+                    layers[index].added = true;
+                    break;
+                  }
+                }
+                if (!goog.isDefAndNotNull(layers[index].added)) {
+                  layers[index].added = false;
+                }
               }
+              server.layers = layers;
+              rootScope.$broadcast('layers-loaded');
             }
-            server.layers = layers;
-            rootScope.$broadcast('layers-loaded');
           } else {
             alert('Failed to get capabilities: ' + xhr.status.toString() + ' ' + xhr.statusText);
           }
@@ -61557,7 +63413,8 @@ var SERVER_SERVICE_USE_PROXY = true;
           modifyList: '=',
           deleteList: '=',
           conflictList: '=',
-          mergeList: '='
+          mergeList: '=',
+          clickCallback: '='
         }
       };
     }
@@ -61567,7 +63424,12 @@ var SERVER_SERVICE_USE_PROXY = true;
   angular.module('loom_diff', [
     'loom_diff_list_directive',
     'loom_diff_service',
-    'loom_diff_panel_directive'
+    'loom_diff_panel_directive',
+    'loom_feature_diff_directive',
+    'loom_feature_diff_service',
+    'loom_feature_diff_controller',
+    'loom_feature_panel_directive',
+    'loom_panel_separator_directive'
   ]);
 }());
 (function () {
@@ -61575,33 +63437,68 @@ var SERVER_SERVICE_USE_PROXY = true;
   module.directive('loomDiffPanel', [
     '$rootScope',
     'diffService',
-    function ($rootScope, diffService) {
+    'conflictService',
+    'pulldownService',
+    'dialogService',
+    function ($rootScope, diffService, conflictService, pulldownService, dialogService) {
       return {
         restrict: 'C',
         replace: true,
         templateUrl: 'diff/partial/diffpanel.tpl.html',
         link: function (scope) {
-          scope.adds = diffService.adds;
-          scope.modifies = diffService.modifies;
-          scope.deletes = diffService.deletes;
-          scope.conflicts = diffService.conflicts;
-          scope.merges = diffService.merges;
-          scope.diffService = diffService;
-          scope.$watch('diffService.adds', function () {
+          function updateVariables() {
             scope.adds = diffService.adds;
-          });
-          scope.$watch('diffService.modifies', function () {
             scope.modifies = diffService.modifies;
-          });
-          scope.$watch('diffService.deletes', function () {
             scope.deletes = diffService.deletes;
-          });
-          scope.$watch('diffService.merges', function () {
-            scope.merges = diffService.merges;
-          });
-          scope.$watch('diffService.conflicts', function () {
             scope.conflicts = diffService.conflicts;
-          });
+            scope.merges = diffService.merges;
+            scope.diffService = diffService;
+            scope.featureClicked = diffService.clickCallback;
+            scope.mergeButtons = true;
+            scope.conflictsText = 'Complete the merge';
+            if (scope.numConflicts === 1) {
+              scope.conflictsText = '1 conflict remains';
+            } else if (scope.numConflicts > 1) {
+              scope.conflictsText = scope.numConflicts + ' conflicts remain';
+            }
+          }
+          updateVariables();
+          scope.$watch('diffService.adds', updateVariables, true);
+          scope.$watch('diffService.modifies', updateVariables, true);
+          scope.$watch('diffService.deletes', updateVariables, true);
+          scope.$watch('diffService.merges', updateVariables, true);
+          scope.$watch('diffService.conflicts', updateVariables, true);
+          scope.$watch('diffService.clickCallback', updateVariables);
+          scope.cancel = function () {
+            dialogService.warn('Cancel Merge', 'Are you sure you want to cancel the merge process?', [
+              'Yes',
+              'No'
+            ], false).then(function (button) {
+              switch (button) {
+              case 'Yes':
+                diffService.clearDiff();
+                conflictService.abort();
+                pulldownService.defaultMode();
+                break;
+              case 'No':
+                break;
+              }
+            });
+          };
+          scope.done = function () {
+            dialogService.open('Commit Merge', 'Are you sure you want to finalize and commit the merge?', [
+              'Yes',
+              'No'
+            ], false).then(function (button) {
+              switch (button) {
+              case 'Yes':
+                conflictService.commit();
+                break;
+              case 'No':
+                break;
+              }
+            });
+          };
         }
       };
     }
@@ -61610,6 +63507,9 @@ var SERVER_SERVICE_USE_PROXY = true;
 (function () {
   var module = angular.module('loom_diff_service', []);
   var rootScope = null;
+  var service_ = null;
+  var difflayer_ = null;
+  var mapService_ = null;
   module.provider('diffService', function () {
     this.adds = [];
     this.modifies = [];
@@ -61617,13 +63517,135 @@ var SERVER_SERVICE_USE_PROXY = true;
     this.conflicts = [];
     this.merges = [];
     this.title = 'Diffs';
+    this.clickCallback = null;
+    this.oldName = null;
+    this.newName = null;
     this.$get = [
       '$rootScope',
-      function ($rootScope) {
+      'mapService',
+      function ($rootScope, mapService) {
         rootScope = $rootScope;
+        service_ = this;
+        difflayer_ = new ol.layer.Vector({
+          label: 'Differences',
+          source: new ol.source.Vector({ parser: null }),
+          style: new ol.style.Style({
+            rules: [
+              new ol.style.Rule({
+                filter: 'change == "ADDED"',
+                symbolizers: [
+                  new ol.style.Fill({
+                    color: '#00FF00',
+                    opacity: 0.5
+                  }),
+                  new ol.style.Stroke({ color: '#006600' })
+                ]
+              }),
+              new ol.style.Rule({
+                filter: 'change == "REMOVED"',
+                symbolizers: [
+                  new ol.style.Fill({
+                    color: '#FF0000',
+                    opacity: 0.5
+                  }),
+                  new ol.style.Stroke({ color: '#660000' })
+                ]
+              }),
+              new ol.style.Rule({
+                filter: 'change == "MODIFIED"',
+                symbolizers: [
+                  new ol.style.Fill({
+                    color: '#FFFF00',
+                    opacity: 0.5
+                  }),
+                  new ol.style.Stroke({ color: '#666600' })
+                ]
+              }),
+              new ol.style.Rule({
+                filter: 'change == "CONFLICT"',
+                symbolizers: [
+                  new ol.style.Fill({
+                    color: '#F87531',
+                    opacity: 0.5
+                  }),
+                  new ol.style.Stroke({ color: '#964514' })
+                ]
+              }),
+              new ol.style.Rule({
+                filter: 'change == "MERGED"',
+                symbolizers: [
+                  new ol.style.Fill({
+                    color: '#0000FF',
+                    opacity: 0.5
+                  }),
+                  new ol.style.Stroke({ color: '#000066' })
+                ]
+              })
+            ]
+          })
+        });
+        mapService_ = mapService;
         return this;
       }
     ];
+    this.resolveFeature = function (_feature) {
+      var splitFeature = _feature.id.split('/');
+      for (var i = 0; i < service_.conflicts.length; i++) {
+        var obj = service_.conflicts[i];
+        if (obj.layer === splitFeature[0] && obj.feature === splitFeature[1]) {
+          obj.resolved = _feature.resolved;
+          obj.ours = _feature.ours;
+        }
+      }
+    };
+    this.populate = function (_changeList, _repo, oldName, newName) {
+      service_.adds = [];
+      service_.modifies = [];
+      service_.deletes = [];
+      service_.conflicts = [];
+      service_.merges = [];
+      service_.oldName = oldName;
+      service_.newName = newName;
+      difflayer_.clear();
+      mapService_.map.removeLayer(difflayer_);
+      mapService_.map.addLayer(difflayer_);
+      if (goog.isDefAndNotNull(_changeList) && goog.isArray(_changeList)) {
+        goog.array.forEach(_changeList, function (change) {
+          var geom = ol.parser.WKT.read(change.geometry);
+          var transform = ol.proj.getTransform('EPSG:4326', mapService_.map.getView().getView2D().getProjection());
+          geom.transform(transform);
+          var olFeature = new ol.Feature();
+          olFeature.set('change', change.change);
+          olFeature.setGeometry(geom);
+          difflayer_.addFeatures([olFeature]);
+          change.olFeature = olFeature;
+          var splitFeature = change.id.split('/');
+          var feature = {
+              repo: _repo,
+              layer: splitFeature[0],
+              feature: splitFeature[1]
+            };
+          switch (change.change) {
+          case 'ADDED':
+            service_.adds.push(feature);
+            break;
+          case 'REMOVED':
+            service_.deletes.push(feature);
+            break;
+          case 'MODIFIED':
+            service_.modifies.push(feature);
+            break;
+          case 'CONFLICT':
+            service_.conflicts.push(feature);
+            break;
+          case 'MERGED':
+            service_.merges.push(feature);
+            break;
+          }
+        });
+      }
+      rootScope.$broadcast('diff_performed', _repo);
+    };
     this.performDiff = function (repo, from, to) {
       this.adds = [{
           repo: 'repo1',
@@ -61664,6 +63686,8 @@ var SERVER_SERVICE_USE_PROXY = true;
       this.modifies = [];
       this.deletes = [];
       this.conflicts = [];
+      this.merges = [];
+      mapService_.map.removeLayer(difflayer_);
       rootScope.$broadcast('diff_cleared');
     };
     this.hasDifferences = function () {
@@ -61675,19 +63699,542 @@ var SERVER_SERVICE_USE_PROXY = true;
   });
 }());
 (function () {
+  var module = angular.module('loom_feature_diff_controller', []);
+  module.controller('LoomFeatureDiffController', [
+    '$scope',
+    '$rootScope',
+    'featureDiffService',
+    function ($scope, $rootScope, featureDiffService) {
+      function assignScopeVariables() {
+        $scope.title = featureDiffService.title;
+        $scope.featureDiffService = featureDiffService;
+      }
+      function updateScopeVariables() {
+        if (!$scope.$$phase && !$rootScope.$$phase) {
+          $scope.$apply(function () {
+            assignScopeVariables();
+          });
+        } else {
+          assignScopeVariables();
+        }
+      }
+      assignScopeVariables();
+      $scope.$watch('featureDiffService.title', updateScopeVariables);
+    }
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_feature_diff_directive', []);
+  module.directive('loomFeatureDiff', [
+    'featureDiffService',
+    'diffService',
+    'conflictService',
+    function (featureDiffService, diffService, conflictService) {
+      return {
+        restrict: 'C',
+        templateUrl: 'diff/partial/featurediff.tpl.html',
+        link: function (scope, element) {
+          function updateVariables() {
+            scope.featureDiffService = featureDiffService;
+            scope.editable = false;
+            switch (featureDiffService.change) {
+            case 'ADDED':
+              scope.rightTitle = 'New Feature';
+              break;
+            case 'REMOVED':
+              scope.rightTitle = 'Removed Feature';
+              break;
+            case 'MODIFIED':
+              scope.leftTitle = 'Original Feature';
+              scope.rightTitle = 'Changed Feature';
+              break;
+            case 'MERGED':
+              scope.leftTitle = diffService.oldName;
+              scope.mergedTitle = 'Merged Feature';
+              scope.rightTitle = diffService.newName;
+              break;
+            case 'CONFLICT':
+              scope.editable = true;
+              scope.leftTitle = diffService.oldName;
+              scope.mergedTitle = 'Merged Feature';
+              scope.rightTitle = diffService.newName;
+              break;
+            }
+            var width = 80 + getScrollbarWidth();
+            var numPanels = 0;
+            scope.leftPanel = false;
+            scope.mergePanel = false;
+            scope.rightPanel = false;
+            scope.leftSeparator = false;
+            scope.rightSeparator = false;
+            if (featureDiffService.left.active) {
+              width += 230;
+              numPanels += 1;
+              scope.leftPanel = true;
+            }
+            if (featureDiffService.merged.active) {
+              width += 230;
+              numPanels += 1;
+              scope.mergePanel = true;
+            }
+            if (featureDiffService.right.active) {
+              width += 230;
+              numPanels += 1;
+              scope.rightPanel = true;
+            }
+            if (numPanels > 1) {
+              scope.leftSeparator = true;
+              if (numPanels > 2) {
+                scope.rightSeparator = true;
+              }
+            }
+            width += (numPanels - 1) * 36;
+            element.closest('.modal-dialog').css('width', width);
+          }
+          scope.leftSeparatorClick = function () {
+            if (featureDiffService.change === 'CONFLICT') {
+              featureDiffService.choose(featureDiffService.left);
+              scope.ours = true;
+            }
+            scope.$broadcast('update-merge-feature');
+          };
+          scope.rightSeparatorClick = function () {
+            if (featureDiffService.change === 'CONFLICT') {
+              featureDiffService.choose(featureDiffService.right);
+              scope.ours = false;
+            }
+            scope.$broadcast('update-merge-feature');
+          };
+          scope.cancel = function () {
+            featureDiffService.clear();
+            scope.leftPanel = false;
+            scope.rightPanel = false;
+            scope.mergePanel = false;
+            scope.leftSeparator = false;
+            scope.rightSeparator = false;
+            scope.ours = null;
+            element.closest('.modal').modal('hide');
+          };
+          scope.save = function () {
+            if (!goog.isDefAndNotNull(scope.ours)) {
+              scope.ours = true;
+            }
+            featureDiffService.feature.olFeature.setGeometry(featureDiffService.merged.olGeometry);
+            featureDiffService.feature.olFeature.set('change', 'MERGED');
+            conflictService.resolveConflict(scope.ours);
+            featureDiffService.clear();
+            scope.leftPanel = false;
+            scope.rightPanel = false;
+            scope.mergePanel = false;
+            scope.leftSeparator = false;
+            scope.rightSeparator = false;
+            scope.ours = null;
+            element.closest('.modal').modal('hide');
+          };
+          function onResize() {
+            var height = $(window).height();
+            element.children('.modal-body').css('max-height', (height - 200).toString() + 'px');
+          }
+          onResize();
+          $(window).resize(onResize);
+          scope.$on('feature-diff-feature-set', updateVariables);
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_feature_diff_service', []);
+  var service_ = null;
+  var rootScope_ = null;
+  var mapService_ = null;
+  var geogitService_ = null;
+  var dialogService_ = null;
+  var ours_ = null;
+  var theirs_ = null;
+  var ancestor_ = null;
+  var repoId_ = null;
+  var diffsNeeded_ = null;
+  var diffsInError_ = 0;
+  var FeaturePanel = function () {
+    this.map = null;
+    this.featureLayer = null;
+    this.attributes = [];
+    this.bounds = null;
+    this.active = false;
+    this.geometry = null;
+    this.olGeometry = null;
+    this.clearFeature = function () {
+      this.attributes = [];
+      this.bounds = null;
+      this.active = false;
+      this.geometry = null;
+      this.olGeometry = null;
+      this.featureLayer.clear();
+    };
+    this.getGeometry = function () {
+      if (goog.isDefAndNotNull(this.geometry)) {
+        return goog.isDefAndNotNull(this.geometry.newvalue) ? this.geometry.newvalue : this.geometry.oldvalue;
+      }
+      return null;
+    };
+    this.replaceLayers = function (newLayers) {
+      var featurePanel = this;
+      var layers = this.map.getLayers();
+      layers.forEach(function (layer) {
+        featurePanel.map.removeLayer(layer);
+      });
+      newLayers.forEach(function (layer) {
+        if (layer.get('label') !== 'Differences') {
+          featurePanel.map.addLayer(layer);
+        }
+      });
+      this.map.addLayer(this.featureLayer);
+    };
+  };
+  module.provider('featureDiffService', function () {
+    this.title = 'Diffs';
+    this.feature = null;
+    this.left = new FeaturePanel();
+    this.right = new FeaturePanel();
+    this.merged = new FeaturePanel();
+    this.change = null;
+    this.$get = [
+      '$rootScope',
+      'mapService',
+      'geogitService',
+      'dialogService',
+      function ($rootScope, mapService, geogitService, dialogService) {
+        service_ = this;
+        rootScope_ = $rootScope;
+        mapService_ = mapService;
+        geogitService_ = geogitService;
+        dialogService_ = dialogService;
+        var createMap = function (panel) {
+          panel.map = new ol.Map({
+            renderer: ol.RendererHint.CANVAS,
+            view: new ol.View2D({
+              center: ol.proj.transform([
+                -87.2011,
+                14.1
+              ], 'EPSG:4326', 'EPSG:3857'),
+              zoom: 14
+            })
+          });
+          var controls = panel.map.getControls();
+          controls.forEach(function (control) {
+            if (control instanceof ol.control.Attribution) {
+              panel.map.removeControl(control);
+            }
+          });
+          panel.featureLayer = makeFeatureLayer();
+        };
+        createMap(this.left);
+        createMap(this.right);
+        createMap(this.merged);
+        this.merged.map.bindTo('view', service_.left.map);
+        this.right.map.bindTo('view', service_.left.map);
+        return this;
+      }
+    ];
+    this.setTitle = function (title) {
+      service_.title = title;
+    };
+    this.clear = function () {
+      ours_ = null;
+      theirs_ = null;
+      ancestor_ = null;
+      repoId_ = null;
+      service_.feature = null;
+      service_.change = null;
+      service_.left.clearFeature();
+      service_.right.clearFeature();
+      service_.merged.clearFeature();
+    };
+    this.choose = function (panel) {
+      this.merged.geometry = panel.geometry;
+      this.merged.attributes = panel.attributes;
+      this.merged.bounds = panel.bounds;
+      this.merged.olGeometry = panel.olGeometry;
+      this.merged.replaceLayers(panel.map.getLayers());
+      this.merged.map.removeLayer(this.merged.featureLayer);
+    };
+    this.setFeature = function (feature, ours, theirs, ancestor, repoId) {
+      service_.change = feature.change;
+      service_.left.clearFeature();
+      service_.right.clearFeature();
+      service_.merged.clearFeature();
+      ours_ = ours;
+      theirs_ = theirs;
+      ancestor_ = ancestor;
+      repoId_ = repoId;
+      var layers = mapService_.map.getLayers();
+      service_.feature = feature;
+      service_.left.replaceLayers(layers);
+      service_.right.replaceLayers(layers);
+      service_.merged.replaceLayers(layers);
+      diffsInError_ = 0;
+      switch (feature.change) {
+      case 'ADDED':
+        diffsNeeded_ = 1;
+        service_.performFeatureDiff(feature, theirs_, ancestor_, service_.right);
+        break;
+      case 'REMOVED':
+        diffsNeeded_ = 1;
+        service_.performFeatureDiff(feature, theirs_, ancestor_, service_.right);
+        break;
+      case 'MODIFIED':
+        diffsNeeded_ = 2;
+        service_.performFeatureDiff(feature, ours_, ancestor_, service_.left);
+        service_.performFeatureDiff(feature, theirs_, ancestor_, service_.right);
+        break;
+      case 'CONFLICT':
+        diffsNeeded_ = 2;
+        service_.merged.active = true;
+        service_.performFeatureDiff(feature, ours_, ancestor_, service_.left);
+        service_.performFeatureDiff(feature, theirs_, ancestor_, service_.right);
+        break;
+      case 'MERGED':
+        diffsNeeded_ = 3;
+        service_.performFeatureDiff(feature, ours_, ancestor_, service_.left);
+        service_.performFeatureDiff(feature, theirs_, ancestor_, service_.right);
+        service_.performFeatureDiff(feature, ours_, ancestor_, service_.merged);
+        break;
+      }
+      var geom = ol.parser.WKT.read(feature.geometry);
+      var transform = ol.proj.getTransform('EPSG:4326', mapService_.map.getView().getView2D().getProjection());
+      geom.transform(transform);
+      var newBounds = geom.getBounds();
+      var x = newBounds[2] - newBounds[0];
+      var y = newBounds[3] - newBounds[1];
+      x *= 0.5;
+      y *= 0.5;
+      newBounds[0] -= x;
+      newBounds[2] += x;
+      newBounds[1] -= y;
+      newBounds[3] += y;
+      mapService_.zoomToExtent(newBounds);
+      service_.title = feature.id;
+      rootScope_.$broadcast('feature-diff-feature-set');
+    };
+    this.performFeatureDiff = function (feature, newCommit, oldCommit, panel) {
+      var diffOptions = new GeoGitFeatureDiffOptions();
+      diffOptions.all = true;
+      diffOptions.newCommitId = newCommit;
+      diffOptions.oldCommitId = oldCommit;
+      diffOptions.path = feature.id;
+      panel.active = true;
+      geogitService_.command(repoId_, 'featurediff', diffOptions).then(function (response) {
+        forEachArrayish(response.diff, function (item) {
+          if (item.geometry !== true) {
+            panel.attributes.push(item);
+          } else {
+            panel.geometry = item;
+          }
+        });
+        panel.attributes = panel.attributes.sort(function (a, b) {
+          if (a.attributename > b.attributename) {
+            return 1;
+          }
+          if (a.attributename < b.attributename) {
+            return -1;
+          }
+          return 0;
+        });
+        var geom = ol.parser.WKT.read(goog.isDefAndNotNull(panel.geometry.newvalue) ? panel.geometry.newvalue : panel.geometry.oldvalue);
+        var transform = ol.proj.getTransform('EPSG:4326', panel.map.getView().getView2D().getProjection());
+        geom.transform(transform);
+        var olFeature = new ol.Feature();
+        olFeature.set('change', panel.geometry.changetype);
+        olFeature.setGeometry(geom);
+        panel.featureLayer.addFeatures([olFeature]);
+        panel.olGeometry = geom;
+        var newBounds = geom.getBounds();
+        var x = newBounds[2] - newBounds[0];
+        var y = newBounds[3] - newBounds[1];
+        x *= 0.1;
+        y *= 0.1;
+        newBounds[0] -= x;
+        newBounds[2] += x;
+        newBounds[1] -= y;
+        newBounds[3] += y;
+        panel.bounds = newBounds;
+        diffsNeeded_ -= 1;
+        if (diffsNeeded_ === 0) {
+          if (diffsInError_ > 0) {
+            dialogService_.error('Error', 'Unable to retrieve all the differences for the layer.  Check network connection and try again.');
+          } else {
+            if (feature.change == 'CONFLICT') {
+              if (goog.isDefAndNotNull(feature.ours) && feature.ours === false) {
+                service_.choose(service_.right);
+              } else {
+                service_.choose(service_.left);
+              }
+            }
+            rootScope_.$broadcast('feature-diff-performed');
+          }
+        }
+      }, function (reject) {
+        diffsNeeded_ -= 1;
+        diffsInError_ += 1;
+        if (diffsNeeded_ === 0) {
+          dialogService_.error('Error', 'Unable to retrieve all the differences for the layer.  Check network connection and try again.');
+        }
+        console.log('Feature diff failed: ', panel, reject);
+      });
+    };
+  });
+  function makeFeatureLayer() {
+    return new ol.layer.Vector({
+      source: new ol.source.Vector({ parser: null }),
+      style: new ol.style.Style({
+        rules: [
+          new ol.style.Rule({
+            filter: 'change == "ADDED"',
+            symbolizers: [
+              new ol.style.Fill({
+                color: '#00FF00',
+                opacity: 0.5
+              }),
+              new ol.style.Stroke({ color: '#006600' })
+            ]
+          }),
+          new ol.style.Rule({
+            filter: 'change == "REMOVED"',
+            symbolizers: [
+              new ol.style.Fill({
+                color: '#FF0000',
+                opacity: 0.5
+              }),
+              new ol.style.Stroke({ color: '#660000' })
+            ]
+          }),
+          new ol.style.Rule({
+            filter: 'change == "MODIFIED"',
+            symbolizers: [
+              new ol.style.Fill({
+                color: '#FFFF00',
+                opacity: 0.5
+              }),
+              new ol.style.Stroke({ color: '#666600' })
+            ]
+          }),
+          new ol.style.Rule({
+            filter: 'change == "NO_CHANGE"',
+            symbolizers: [
+              new ol.style.Fill({
+                color: '#FFFFFF',
+                opacity: 0.5
+              }),
+              new ol.style.Stroke({ color: '#333333' })
+            ]
+          })
+        ]
+      })
+    });
+  }
+}());
+(function () {
+  var module = angular.module('loom_feature_panel_directive', []);
+  module.directive('loomFeaturePanel', [
+    'mapService',
+    '$timeout',
+    'geogitService',
+    function (mapService, $timeout, geogitService) {
+      return {
+        restrict: 'C',
+        scope: {
+          panel: '=',
+          title: '=panelTitle'
+        },
+        templateUrl: 'diff/partial/featurepanel.tpl.html',
+        link: function (scope, element, attrs) {
+          scope.mapid = attrs.mapid;
+          var target = 'preview-map-' + scope.mapid;
+          var loadingtarget = '#loading-' + scope.mapid;
+          function updateVariables(event, panel) {
+            $timeout(function () {
+              scope.panel.map.setTarget(target);
+              mapService.zoomToExtent(scope.panel.bounds, false, scope.panel.map);
+              $timeout(function () {
+                $(loadingtarget).fadeOut();
+              }, 500);
+            }, 500);
+          }
+          scope.$on('feature-diff-performed', updateVariables);
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_panel_separator_directive', []);
+  var attributesEqual = function (attr1, attr2) {
+    return attr1.attributename == attr2.attributename && attr1.changetype == attr2.changetype && attr1.newvalue == attr2.newvalue && attr1.oldvalue == attr2.oldvalue;
+  };
+  module.directive('loomPanelSeparator', [
+    'featureDiffService',
+    function (featureDiffService) {
+      return {
+        restrict: 'C',
+        templateUrl: 'diff/partial/panelseparator.tpl.html',
+        scope: {
+          icon: '@icon',
+          clickfunction: '=',
+          panel: '=',
+          hover: '='
+        },
+        link: function (scope, element) {
+          function updateVariables(event, panel) {
+            if (scope.hover) {
+              element.closest('.loom-panel-separator').addClass('hoverable');
+            }
+            scope.arrows = [];
+            var i, attr;
+            if (featureDiffService.change == 'MODIFIED') {
+              scope.geometryChanged = featureDiffService.right.geometry.changetype !== 'NO_CHANGE';
+              for (i = 0; i < featureDiffService.right.attributes.length; i++) {
+                attr = featureDiffService.right.attributes[i];
+                if (attr.changetype !== 'NO_CHANGE') {
+                  scope.arrows.push({ active: true });
+                } else {
+                  scope.arrows.push({ active: false });
+                }
+              }
+            } else {
+              for (i = 0; i < scope.panel.attributes.length; i++) {
+                scope.geometryChanged = scope.panel.getGeometry() === featureDiffService.merged.getGeometry();
+                attr = scope.panel.attributes[i];
+                if (attributesEqual(attr, featureDiffService.merged.attributes[i]) && attr.changetype !== 'NO_CHANGE') {
+                  scope.arrows.push({ active: true });
+                } else {
+                  scope.arrows.push({ active: false });
+                }
+              }
+            }
+          }
+          scope.$on('feature-diff-performed', updateVariables);
+          scope.$on('update-merge-feature', updateVariables);
+        }
+      };
+    }
+  ]);
+}());
+(function () {
   var module = angular.module('loom_feature_info_box_directive', []);
   module.directive('loomFeatureInfoBox', [
     'featureInfoBoxService',
-    'mapService',
-    function (featureInfoBoxService, mapService) {
+    function (featureInfoBoxService) {
       return {
         replace: false,
         restrict: 'A',
         templateUrl: 'featureinfobox/partial/featureinfobox.tpl.html',
         link: function (scope, element, attrs) {
           scope.featureInfoBoxService = featureInfoBoxService;
-          scope.$watch('featureInfoBoxService.getMode()', function () {
-            scope.featureInfoBoxService = featureInfoBoxService;
+          scope.$on('feature-info-click', function () {
+            scope.$apply(function () {
+              scope.featureInfoBoxService = featureInfoBoxService;
+            });
           });
         }
       };
@@ -61707,6 +64254,8 @@ var SERVER_SERVICE_USE_PROXY = true;
   var rootScope_ = null;
   var state_ = '';
   var selectedItem_ = null;
+  var selectedItemPics_ = null;
+  var selectedItemProperties_ = null;
   var featureInfoPerLayer_ = [];
   var containerInstance_ = null;
   var overlay_ = null;
@@ -61735,11 +64284,19 @@ var SERVER_SERVICE_USE_PROXY = true;
     this.getSelectedItem = function () {
       return selectedItem_;
     };
+    this.getSelectedItemPics = function () {
+      return selectedItemPics_;
+    };
+    this.getSelectedItemProperties = function () {
+      return selectedItemProperties_;
+    };
     this.getPosition = function () {
       return position_;
     };
     this.hide = function () {
       selectedItem_ = null;
+      selectedItemPics_ = null;
+      selectedItemProperties_ = null;
       state_ = null;
       featureInfoPerLayer_ = [];
     };
@@ -61747,6 +64304,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       if (!goog.isDefAndNotNull(item)) {
         return false;
       }
+      var selectedItemOld = selectedItem_;
       var type = getItemType(item);
       if (featureInfoPerLayer_.length === 0) {
         if (type === 'feature') {
@@ -61800,6 +64358,34 @@ var SERVER_SERVICE_USE_PROXY = true;
             return this.name + ': ' + this.message;
           }
         };
+      }
+      if (selectedItem_ !== selectedItemOld) {
+        var pics = null;
+        if (getItemType(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) && goog.isDefAndNotNull(selectedItem_.properties) && goog.isDefAndNotNull(selectedItem_.properties.fotos)) {
+          pics = JSON.parse(selectedItem_.properties.fotos);
+          if (goog.isDefAndNotNull(pics) && pics.length === 0) {
+            pics = null;
+          }
+        }
+        selectedItemPics_ = pics;
+        if (selectedItemPics_ !== null) {
+          goog.array.forEach(selectedItemPics_, function (item, index) {
+            selectedItemPics_[index] = '/file-service/' + item;
+          });
+        }
+        var props = null;
+        if (getItemType(selectedItem_) === 'feature') {
+          props = [];
+          goog.object.forEach(selectedItem_.properties, function (v, k) {
+            if (k !== 'fotos' && k !== 'photos') {
+              props.push([
+                k,
+                v
+              ]);
+            }
+          });
+        }
+        selectedItemProperties_ = props;
       }
       if (goog.isDefAndNotNull(position)) {
         position_ = position;
@@ -61858,6 +64444,16 @@ var SERVER_SERVICE_USE_PROXY = true;
       }
       return '';
     };
+    this.showPics = function (activeIndex) {
+      if (goog.isDefAndNotNull(selectedItemPics_)) {
+        $('#blueimp-gallery').toggleClass('blueimp-gallery-controls', true);
+        var options = { useBootstrapModal: false };
+        if (goog.isDefAndNotNull(activeIndex)) {
+          options.index = activeIndex;
+        }
+        blueimp.Gallery(selectedItemPics_, options);
+      }
+    };
   });
   function registerOnMapClick($rootScope, $compile) {
     mapService_.map.on('click', function (evt) {
@@ -61884,7 +64480,7 @@ var SERVER_SERVICE_USE_PROXY = true;
           } else {
             service_.hide();
           }
-          rootScope_.$digest();
+          rootScope_.$broadcast('feature-info-click');
         },
         error: function () {
           console.log('====[ ERROR: loomFeatureInfoBox.map.getFeatureInfo.error');
@@ -61902,76 +64498,27 @@ var SERVER_SERVICE_USE_PROXY = true;
   }
   function getItemType(item) {
     var type = '';
-    if (item.properties) {
-      type = 'feature';
-    } else if (item.features) {
-      type = 'layer';
-    } else if (item.length && item[0].features) {
-      type = 'layers';
+    if (goog.isDefAndNotNull(item)) {
+      if (item.properties) {
+        type = 'feature';
+      } else if (item.features) {
+        type = 'layer';
+      } else if (item.length && item[0].features) {
+        type = 'layers';
+      }
     }
     return type;
   }
 }());
 (function () {
-  var module = angular.module('loom_geogit_conflict_service', []);
-  var rootScope_, geogitService_, diffService_, dialogService_;
-  var service_ = null;
-  module.provider('geogitConflictService', function () {
-    this.ours = null;
-    this.theirs = null;
-    this.ancestor = null;
-    this.numConflicts = null;
-    this.features = null;
-    this.$get = [
-      '$rootScope',
-      'geogitService',
-      'diffService',
-      'dialogService',
-      function ($rootScope, geogitService, diffService, dialogService) {
-        service_ = this;
-        rootScope_ = $rootScope;
-        geogitService_ = geogitService;
-        diffService_ = diffService;
-        dialogService_ = dialogService;
-        if (rootScope_ && geogitService_ && diffService_) {
-        }
-        return this;
-      }
-    ];
-    this.beginConflictResolution = function (mergeReport) {
-      service_.ours = mergeReport.ours;
-      service_.theirs = mergeReport.theirs;
-      service_.ancestor = mergeReport.ancestor;
-      service_.numConflicts = mergeReport.conflicts;
-      service_.features = mergeReport.Feature;
-      goog.array.forEach(features, function (element) {
-        switch (element.type) {
-        case 'ADD':
-          break;
-        case 'MODIFY':
-          break;
-        case 'DELETE':
-          break;
-        case 'MERGED':
-          break;
-        case 'CONFLICT':
-          break;
-        }
-      });
-      dialogService_.warn('Conflicts', 'There are' + service_.numConflicts + 'conflicts that need to be resolved before continuing.');
-    };
-  });
-}());
-(function () {
-  angular.module('loom_geogit', [
-    'loom_geogit_conflict_service',
-    'loom_geogit_service'
-  ]);
+  angular.module('loom_geogit', ['loom_geogit_service']);
 }());
 var GeoGitRepo = function (_url, _branch, _name) {
   this.url = _url;
   this.branch = _branch;
   this.name = _name;
+  this.branches = [];
+  this.remotes = [];
   this.isEqual = function (repo) {
     return this.url === repo.url && this.branch === repo.branch && this.name === repo.name;
   };
@@ -62107,8 +64654,7 @@ var GeoGitLogOptions = function () {
     http.jsonp(URL).then(function (response) {
       if (!goog.isDef(response.data.response.success) || response.data.response.success === true) {
         if (goog.isDef(response.data.response.Merge) && goog.isDef(response.data.response.Merge.conflicts)) {
-          rootScope.$broadcast('geogit-merge-conflicts', response.data.response.Merge);
-          deferredResponse.reject('CONFLICTS');
+          deferredResponse.reject(response.data.response.Merge);
         } else {
           deferredResponse.resolve(response.data.response);
         }
@@ -62134,10 +64680,18 @@ var GeoGitLogOptions = function () {
         http = $http;
         rootScope = $rootScope;
         dialogService_ = dialogService;
-        rootScope.$on('layerRemoved', service_.removeRepo);
+        rootScope.$on('layerRemoved', service_.removedLayer);
         return service_;
       }
     ];
+    this.getRepoById = function (repoId) {
+      for (var index = 0; index < service_.repos.length; index++) {
+        if (service_.repos[index].id == repoId) {
+          return service_.repos[index];
+        }
+      }
+      return null;
+    };
     this.beginTransaction = function (repoId) {
       var deferredResponse = q.defer();
       service_.command(repoId, 'beginTransaction').then(function (response) {
@@ -62156,12 +64710,13 @@ var GeoGitLogOptions = function () {
     };
     this.command = function (repoId, command, options) {
       var deferredResponse = q.defer();
-      var repo = service_.repos[repoId];
+      var repo = service_.getRepoById(repoId);
       if (goog.isDefAndNotNull(repo)) {
         var URL = repo.url + '/' + command + '?output_format=JSON&callback=JSON_CALLBACK';
+        URL += '&_dc=' + new Date().getTime();
         if (goog.isDefAndNotNull(options)) {
           for (var property in options) {
-            if (property !== null && options.hasOwnProperty(property)) {
+            if (property !== null && options.hasOwnProperty(property) && options[property] !== null) {
               var underscore = property.indexOf('_');
               var trimmed;
               if (underscore > 0) {
@@ -62185,29 +64740,106 @@ var GeoGitLogOptions = function () {
       return deferredResponse.promise;
     };
     this.addRepo = function (newRepo) {
-      for (var repoId in service_.repos) {
-        if (service_.repos.hasOwnProperty(repoId)) {
-          var repo = service_.repos[repoId];
-          if (repo.isEqual(newRepo)) {
-            repo.refCount++;
-            return repo.id;
-          }
+      var result = q.defer();
+      for (var index = 0; index < service_.repos.length; index++) {
+        var repo = service_.repos[index];
+        if (repo.isEqual(newRepo)) {
+          repo.refCount++;
+          result.resolve(repo.id);
+          return result.promise;
         }
       }
       newRepo.refCount = 1;
       newRepo.id = nextRepoId;
       nextRepoId = nextRepoId + 1;
-      service_.repos[newRepo.id] = newRepo;
-      rootScope.$broadcast('repoAdded', newRepo);
-      return newRepo.id;
+      service_.repos.push(newRepo);
+      service_.loadRemotesAndBranches(newRepo, result);
+      return result.promise;
     };
-    this.removeRepo = function (event, removedLayer) {
-      var repoId = removedLayer.get('metadata').repoId;
-      var repo = service_.repos[repoId];
-      repo.refCount--;
-      if (repo.refCount <= 0) {
-        rootScope.$broadcast('repoRemoved', repo);
-        service_.repos.splice(repoId, 1);
+    this.loadRemotesAndBranches = function (repo, result) {
+      if (repo.remotes.length > 0) {
+        goog.array.clear(repo.remotes);
+      }
+      if (repo.branches.length > 0) {
+        goog.array.clear(repo.branches);
+      }
+      var remoteOptions = new GeoGitRemoteOptions();
+      remoteOptions.list = true;
+      service_.command(repo.id, 'remote', remoteOptions).then(function (response) {
+        if (goog.isDefAndNotNull(response.Remote)) {
+          var remoteId = 0;
+          forEachArrayish(response.Remote, function (remote) {
+            repo.remotes.push({
+              name: remote.name,
+              branches: [],
+              id: remoteId,
+              active: false
+            });
+            remoteId++;
+          });
+        }
+        var branchOptions = new GeoGitBranchOptions();
+        branchOptions.list = true;
+        branchOptions.remotes = true;
+        service_.command(repo.id, 'branch', branchOptions).then(function (response) {
+          var index;
+          var remoteIndex;
+          if (goog.isDefAndNotNull(response.Local.Branch)) {
+            forEachArrayish(response.Local.Branch, function (branch) {
+              repo.branches.push(branch.name);
+            });
+          } else {
+            console.log('Repository had no local branches: ', repo, response);
+            service_.removeRepo(repo.id);
+            result.reject('Repository had no local branches.');
+            return;
+          }
+          if (goog.isDefAndNotNull(response.Remote.Branch)) {
+            if (goog.isDefAndNotNull(response.Remote.Branch.length)) {
+              for (index = 0; index < response.Remote.Branch.length; index++) {
+                if (response.Remote.Branch[index].name === 'HEAD') {
+                  continue;
+                }
+                for (remoteIndex = 0; remoteIndex < repo.remotes.length; remoteIndex++) {
+                  if (repo.remotes[remoteIndex].name === response.Remote.Branch[index].remoteName) {
+                    repo.remotes[remoteIndex].branches.push(response.Remote.Branch[index].name);
+                  }
+                }
+              }
+            }
+          }
+          result.resolve(repo);
+        }, function (reject) {
+          console.log('Unable to get the repository\'s branches:', repo, reject);
+          service_.removeRepo(repo.id);
+          result.reject('Unable to get the repository\'s branches. Try re-adding the layer.');
+        });
+      }, function (reject) {
+        console.log('Unable to get the repository\'s remotes:', repo, reject);
+        service_.removeRepo(repo.id);
+        result.reject('Unable to get the repository\'s remotes. Try re-adding the layer.');
+      });
+    };
+    this.removeRepo = function (id) {
+      var index = -1, i;
+      for (i = 0; i < service_.repos.length; i = i + 1) {
+        if (service_.repos[i].id === id) {
+          index = i;
+        }
+      }
+      if (index > -1) {
+        service_.repos.splice(index, 1);
+      }
+    };
+    this.removedLayer = function (event, removedLayer) {
+      if (removedLayer.get('metadata').isGeoGit) {
+        var repoId = removedLayer.get('metadata').repoId;
+        var repo = service_.getRepoById(repoId);
+        repo.refCount--;
+        if (repo.refCount <= 0) {
+          service_.removeRepo(repoId);
+          rootScope.$broadcast('repoRemoved', repo);
+        }
       }
     };
     this.parseWorkspaceRoute = function (featureType) {
@@ -62297,13 +64929,22 @@ var GeoGitLogOptions = function () {
                   service_.getFeatureType(layer, dataStore).then(function (featureType) {
                     var repoName = dataStore.connectionParameters.entry[0].$;
                     repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
-                    var id = service_.addRepo(new GeoGitRepo(metadata.url + '/geogit/' + featureType.workspace + ':' + dataStore.name, dataStore.connectionParameters.entry[1].$, repoName));
+                    var promise = service_.addRepo(new GeoGitRepo(metadata.url + '/geogit/' + featureType.workspace + ':' + dataStore.name, dataStore.connectionParameters.entry[1].$, repoName));
+                    promise.then(function (repo) {
+                      if (goog.isDef(repo.id)) {
+                        rootScope.$broadcast('repoAdded', repo);
+                        metadata.repoId = repo.id;
+                      } else {
+                        metadata.repoId = repo;
+                      }
+                    }, function (reject) {
+                      dialogService_.error('Error', 'Unable to add the GeoGit remote: ' + reject);
+                    });
                     metadata.projection = featureType.srs;
                     metadata.isGeoGit = true;
                     metadata.workspace = featureType.workspace;
                     metadata.geogitStore = dataStore.name;
                     metadata.nativeName = featureType.nativeName;
-                    metadata.repoId = id;
                   }, function (rejected) {
                     dialogService_.error('Error', 'Unable to get feature type of GeoGit data store. (' + rejected.status + ')');
                   });
@@ -62357,6 +64998,44 @@ var GeoGitLogOptions = function () {
   angular.module('loom_layers', ['loom_layers_directive']);
 }());
 (function () {
+  var module = angular.module('loom_legend_directive', []);
+  var legendOpen = true;
+  module.directive('loomLegend', [
+    '$rootScope',
+    'mapService',
+    'serverService',
+    function ($rootScope, mapService, serverService) {
+      return {
+        restrict: 'C',
+        replace: true,
+        templateUrl: 'legend/partial/legend.tpl.html',
+        link: function (scope, element) {
+          scope.mapService = mapService;
+          scope.serverService = serverService;
+          scope.expandLegend = function () {
+            if (legendOpen === false) {
+              if (angular.element('.legend-item').length > 0) {
+                angular.element('#legend-container')[0].style.visibility = 'visible';
+                angular.element('#legend-panel').collapse('show');
+                legendOpen = true;
+              }
+            } else {
+              angular.element('#legend-panel').collapse('hide');
+              legendOpen = false;
+              setTimeout(function () {
+                angular.element('#legend-container')[0].style.visibility = 'hidden';
+              }, 350);
+            }
+          };
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  angular.module('loom_legend', ['loom_legend_directive']);
+}());
+(function () {
   angular.module('loom_map', ['loom_map_service']);
 }());
 (function () {
@@ -62384,12 +65063,37 @@ var GeoGitLogOptions = function () {
       this.map.getInteractions().getArray()[index].condition_ = ol.interaction.condition.always;
       dragZoomActive = true;
     };
-    this.zoomToExtent = function (extent) {
-      var view = this.map.getView().getView2D();
+    this.dumpTileCache = function () {
+      var layers = this.getFeatureLayers();
+      forEachArrayish(layers, function (layer) {
+        if (goog.isDefAndNotNull(layer.getTileSource)) {
+          var tileSource = layer.getTileSource();
+          if (goog.isDefAndNotNull(tileSource)) {
+            if (goog.isDefAndNotNull(tileSource.updateParams)) {
+              tileSource.updateParams({ _dc: new Date().getTime() });
+            }
+          }
+        }
+      });
+      this.map.render();
+    };
+    this.zoomToExtent = function (extent, animate, map) {
+      if (!goog.isDefAndNotNull(animate)) {
+        animate = true;
+      }
+      if (!goog.isDefAndNotNull(map)) {
+        map = this.map;
+      }
+      var view = map.getView().getView2D();
       if (extent === undefined) {
         extent = view.getProjection().getExtent();
       }
-      view.fitExtent(extent, this.map.getSize());
+      if (animate) {
+        var zoom = ol.animation.zoom({ resolution: map.getView().getResolution() });
+        var pan = ol.animation.pan({ source: map.getView().getCenter() });
+        map.beforeRender(pan, zoom);
+      }
+      view.fitExtent(extent, map.getSize());
     };
     this.getFeatureLayers = function () {
       var layers = [];
@@ -63115,6 +65819,290 @@ var GeoGitLogOptions = function () {
   }
 }());
 (function () {
+  var module = angular.module('loom_conflict_service', []);
+  var featureDiffService_ = null;
+  var diffService_ = null;
+  var pulldownService_ = null;
+  var service_ = null;
+  var mapService_ = null;
+  var dialogService_ = null;
+  module.provider('conflictService', function () {
+    this.features = null;
+    this.ours = null;
+    this.theirs = null;
+    this.ancestor = null;
+    this.repoId = null;
+    this.currentFeature = null;
+    this.ourName = null;
+    this.theirName = null;
+    this.transaction = null;
+    this.$get = [
+      '$rootScope',
+      '$location',
+      'diffService',
+      'pulldownService',
+      'featureDiffService',
+      'mapService',
+      'dialogService',
+      function ($rootScope, $location, diffService, pulldownService, featureDiffService, mapService, dialogService) {
+        diffService_ = diffService;
+        pulldownService_ = pulldownService;
+        featureDiffService_ = featureDiffService;
+        mapService_ = mapService;
+        dialogService_ = dialogService;
+        service_ = this;
+        return this;
+      }
+    ];
+    this.abort = function () {
+      if (goog.isDefAndNotNull(this.transaction)) {
+        this.transaction.abort();
+        this.transaction = null;
+      }
+      this.features = null;
+      this.ours = null;
+      this.ancestor = null;
+      this.repoId = null;
+      this.currentFeature = null;
+      this.ourName = null;
+      this.theirName = null;
+    };
+    this.selectFeature = function (index) {
+      this.currentFeature = this.features[index];
+    };
+    this.resolveConflict = function (ours) {
+      this.currentFeature.resolved = true;
+      this.currentFeature.ours = ours;
+      diffService_.resolveFeature(this.currentFeature);
+    };
+    this.beginResolution = function () {
+      diffService_.setTitle('Merge Results');
+      diffService_.clickCallback = featureClicked;
+      diffService_.populate(service_.features, null, service_.ourName, service_.theirName);
+      pulldownService_.conflictsMode();
+    };
+    this.commit = function () {
+      var conflicts = [];
+      var i;
+      for (i = 0; i < service_.features.length; i++) {
+        var feature = service_.features[i];
+        if (feature.change === 'CONFLICT') {
+          conflicts.push(feature);
+        }
+      }
+      var conflictsInError = 0;
+      commitInternal(conflicts, conflictsInError);
+    };
+  });
+  function featureClicked(feature) {
+    var fid = feature.layer + '/' + feature.feature;
+    for (var i = 0; i < service_.features.length; i++) {
+      if (fid === service_.features[i].id) {
+        featureDiffService_.setFeature(service_.features[i], service_.ours, service_.theirs, service_.ancestor, service_.repoId);
+        $('#feature-diff-dialog').modal('show');
+        service_.currentFeature = service_.features[i];
+        break;
+      }
+    }
+  }
+  function commitInternal(conflictList, conflictsInError) {
+    if (conflictList.length === 0) {
+      if (conflictsInError === 0) {
+        var commitOptions = new GeoGitCommitOptions();
+        commitOptions.all = true;
+        commitOptions.message = 'Resolved some conflicts.';
+        service_.transaction.command('commit', commitOptions).then(function () {
+          service_.transaction.finalize().then(function () {
+            diffService_.clearDiff();
+            service_.transaction = null;
+            service_.abort();
+            pulldownService_.defaultMode();
+            mapService_.dumpTileCache();
+          }, function (endTransactionFailure) {
+            if (goog.isObject(endTransactionFailure) && goog.isDefAndNotNull(endTransactionFailure.conflicts)) {
+              handleConflicts(endTransactionFailure);
+            } else {
+              dialogService_.error('Error', 'An unknown error occurred when finalizing the transaction.  Please try again.');
+              console.log('ERROR: EndTransaction failure: ', endTransactionFailure);
+            }
+          });
+        }, function (reject) {
+          dialogService_.error('Error', 'An unknown error occurred when committing the merge.  Please try again.');
+          console.log('ERROR: Failed to commit merge: ', reject);
+        });
+      } else {
+        dialogService_.error('Error', 'Unable to resolve ' + conflictsInError + ' conflicts.  Please try again.');
+        console.log('ERROR: ' + conflictsInError + ' conflicts could not be resolved.');
+      }
+    } else {
+      var conflict = conflictList.pop();
+      var checkoutOptions = new GeoGitCheckoutOptions();
+      checkoutOptions.path = conflict.id;
+      if (conflict.ours) {
+        checkoutOptions.ours = true;
+      } else {
+        checkoutOptions.theirs = true;
+      }
+      service_.transaction.command('checkout', checkoutOptions).then(function () {
+        var addOptions = new GeoGitAddOptions();
+        addOptions.path = conflict.id;
+        service_.transaction.command('add', addOptions).then(function () {
+          commitInternal(conflictList, conflictsInError);
+        }, function (reject) {
+          commitInternal(conflictList, conflictsInError + 1);
+          console.log('ERROR: Failed to add resolved conflicts to the tree: ', conflict, reject);
+        });
+      }, function (reject) {
+        commitInternal(conflictList, conflictsInError + 1);
+        console.log('ERROR: Failed to checkout conflicted feature: ', conflict, reject);
+      });
+    }
+  }
+  function handleConflicts(mergeFailure) {
+    var myDialog = dialogService_.warn('Merge Conflicts', 'Some conflicts were encountered when committing the transaction,' + ' would you like to resolve these or abort the merge?', [
+        'Abort',
+        'Resolve Conflicts'
+      ], false);
+    myDialog.then(function (button) {
+      switch (button) {
+      case 'Abort':
+        service_.transaction.abort();
+        break;
+      case 'Resolve Conflicts':
+        service_.ourName = 'Transaction';
+        service_.theirName = 'Repository';
+        service_.ours = mergeFailure.ours;
+        service_.theirs = mergeFailure.theirs;
+        service_.ancestor = mergeFailure.ancestor;
+        service_.features = mergeFailure.Feature;
+        service_.beginResolution();
+        break;
+      }
+    });
+  }
+}());
+(function () {
+  var module = angular.module('loom_merge_directive', []);
+  module.directive('loomMerge', [
+    'geogitService',
+    'dialogService',
+    'notificationService',
+    'conflictService',
+    'mapService',
+    function (geogitService, dialogService, notificationService, conflictService, mapService) {
+      return {
+        templateUrl: 'merge/partials/merge.tpl.html',
+        link: function (scope, element, attrs) {
+          scope.geogitService = geogitService;
+          scope.listFilter = function (otherItem) {
+            return function (item) {
+              return item !== otherItem;
+            };
+          };
+          scope.mergePossible = function () {
+            return goog.isDefAndNotNull(scope.sourceBranch) && goog.isDefAndNotNull(scope.destinationBranch);
+          };
+          scope.cancel = function () {
+            scope.selectedRepoId = null;
+            scope.sourceBranch = null;
+            scope.destinationBranch = null;
+            element.closest('.modal').modal('hide');
+            $('#loading').addClass('hidden');
+          };
+          scope.onMerge = function () {
+            $('#loading').toggleClass('hidden');
+            geogitService.beginTransaction(scope.selectedRepoId).then(function (transaction) {
+              var checkoutOptions = new GeoGitCheckoutOptions();
+              checkoutOptions.branch = scope.destinationBranch;
+              transaction.command('checkout', checkoutOptions).then(function (checkoutResult) {
+                var mergeOptions = new GeoGitMergeOptions();
+                mergeOptions.commit = scope.sourceBranch;
+                transaction.command('merge', mergeOptions).then(function (mergeResult) {
+                  transaction.finalize().then(function () {
+                    notificationService.addNotification({
+                      text: 'Merge Successful',
+                      read: false,
+                      type: 'loom-update-notification',
+                      emptyMessage: 'The merge resulted in no changes.',
+                      repos: [{
+                          name: 'geogit_repo',
+                          features: mergeResult.Merge.Feature
+                        }],
+                      callback: function (feature) {
+                        console.log(feature.feature + ' was clicked!');
+                      }
+                    });
+                    scope.cancel();
+                    mapService.dumpTileCache();
+                  }, function (endTransactionFailure) {
+                    if (goog.isObject(endTransactionFailure) && goog.isDefAndNotNull(endTransactionFailure.conflicts)) {
+                      handleConflicts(endTransactionFailure, transaction, dialogService, conflictService, scope);
+                    } else {
+                      dialogService.error('Error', 'An unknown error occurred when finalizing the transaction.  Please try again.');
+                      transaction.abort();
+                      console.log('ERROR: EndTransaction failure: ', endTransactionFailure);
+                    }
+                  });
+                }, function (mergeFailure) {
+                  if (goog.isObject(mergeFailure) && goog.isDefAndNotNull(mergeFailure.conflicts)) {
+                    handleConflicts(mergeFailure, transaction, dialogService, conflictService, scope);
+                  } else {
+                    dialogService.error('Error', 'An unknown error occurred when performing the merge.  Please try again.');
+                    transaction.abort();
+                    console.log('ERROR: Merge failure: ', mergeOptions, mergeFailure);
+                  }
+                });
+              }, function (checkoutFailure) {
+                dialogService.error('Error', 'An unknown error occurred when checking out the destination branch.  Please try again.');
+                transaction.abort();
+                console.log('ERROR: Checkout failure: ', checkoutOptions, checkoutFailure);
+              });
+            }, function (beginTransactionFailure) {
+              dialogService.error('Error', 'An unknown error occurred creating the transaction.  Please try again.');
+              console.log('ERROR: Begin transaction failure: ', beginTransactionFailure);
+            });
+          };
+          scope.$watch('selectedRepoId', function () {
+            scope.sourceBranch = null;
+            scope.destinationBranch = null;
+          });
+        }
+      };
+    }
+  ]);
+  function handleConflicts(mergeFailure, transaction, dialogService, conflictService, scope) {
+    var myDialog = dialogService.warn('Merge Conflicts', 'Some conflicts were encountered when performing the merge,' + ' would you like to resolve these or abort the merge?', [
+        'Abort',
+        'Resolve Conflicts'
+      ], false);
+    myDialog.then(function (button) {
+      switch (button) {
+      case 'Abort':
+        transaction.abort();
+        break;
+      case 'Resolve Conflicts':
+        conflictService.ourName = scope.destinationBranch;
+        conflictService.theirName = scope.sourceBranch;
+        conflictService.ours = mergeFailure.ours;
+        conflictService.theirs = mergeFailure.theirs;
+        conflictService.ancestor = mergeFailure.ancestor;
+        conflictService.features = mergeFailure.Feature;
+        conflictService.repoId = scope.selectedRepoId;
+        conflictService.transaction = transaction;
+        conflictService.beginResolution();
+        break;
+      }
+      scope.cancel();
+    });
+  }
+}());
+(function () {
+  angular.module('loom_merge', [
+    'loom_merge_directive',
+    'loom_conflict_service'
+  ]);
+}());
+(function () {
   var module = angular.module('loom_dialog_directive', []);
   module.directive('loomDialog', function () {
     return {
@@ -63196,8 +66184,18 @@ var GeoGitLogOptions = function () {
     return {
       replace: true,
       transclude: true,
-      scope: { title: '@modalTitle' },
-      templateUrl: 'modal/partials/modal.tpl.html'
+      scope: {
+        title: '@modalTitle',
+        closeButton: '@closeButton'
+      },
+      templateUrl: 'modal/partials/modal.tpl.html',
+      link: function (scope, element, attrs) {
+        attrs.$observe('closeButton', function (val) {
+          if (!angular.isDefined(val)) {
+            scope.closeButton = true;
+          }
+        });
+      }
     };
   });
 }());
@@ -63222,7 +66220,7 @@ var GeoGitLogOptions = function () {
       return {
         restrict: 'C',
         replace: true,
-        template: '<div class="panel flat">' + '  <div class="btn-group">' + '    <button type="button" ng-click="addNotification()"' + '      class="btn btn-default">Post Notification</button>' + '    <button type="button" ng-click="performDiff()"' + '      class="btn btn-default">Perform Diff</button>' + '    <button type="button" ng-click="clearDiff()"' + '      class="btn btn-default">Clear Diff</button>' + '    <button type="button" ng-click="mapService.zoomToExtent()"' + '      class="btn btn-default">Zoom to World Extent</button>' + '    <button type="button" ng-click="mapService.activateDragZoom()"' + '      class="btn btn-default">Drag Zoom</button>' + '    <button type="button" ng-click="addModal()"' + '      class="btn btn-default">Modal</button>' + '  </div>' + '</div>',
+        template: '<div class="panel flat">' + '  <div class="btn-group">' + '    <button type="button" ng-click="addNotification()"' + '      class="btn btn-default">Post Notification</button>' + '    <button type="button" ng-click="performDiff()"' + '      class="btn btn-default">Perform Diff</button>' + '    <button type="button" ng-click="clearDiff()"' + '      class="btn btn-default">Clear Diff</button>' + '    <button type="button" ng-click="mapService.activateDragZoom()"' + '      class="btn btn-default">Drag Zoom</button>' + '    <button type="button" ng-click="addModal()"' + '      class="btn btn-default">Modal</button>' + '  </div>' + '</div>',
         link: function (scope) {
           scope.mapService = mapService;
           function addNotification() {
@@ -63232,32 +66230,42 @@ var GeoGitLogOptions = function () {
               type: 'loom-update-notification',
               repos: [{
                   name: 'geogit_repo',
-                  layers: [
+                  features: [
                     {
-                      name: 'layer1',
-                      adds: [],
-                      modifies: ['feature3'],
-                      deletes: ['feature5']
+                      change: 'MODIFIED',
+                      geometry: 'blah',
+                      id: 'layer1/feature3'
                     },
                     {
-                      name: 'layer2',
-                      adds: ['feature6'],
-                      modifies: [
-                        'feature2',
-                        'feature4'
-                      ],
-                      deletes: []
+                      change: 'REMOVED',
+                      geometry: 'blah',
+                      id: 'layer1/feature5'
+                    },
+                    {
+                      change: 'MODIFIED',
+                      geometry: 'blah',
+                      id: 'layer2/feature2'
+                    },
+                    {
+                      change: 'MODIFIED',
+                      geometry: 'blah',
+                      id: 'layer2/feature4'
+                    },
+                    {
+                      change: 'ADDED',
+                      geometry: 'blah',
+                      id: 'layer2/feature6'
                     }
                   ]
                 }],
               callback: function (feature) {
-                alert(feature.feature + ' was clicked!');
+                console.log(feature.feature + ' was clicked!');
               }
             });
           }
           scope.addNotification = addNotification;
           function performDiff() {
-            diffService.setTitle('Merge Results (1 Conflict Remaining)');
+            diffService.setTitle('Merge Results');
             diffService.performDiff('repo', 'from', 'to');
             pulldownService.conflictsMode();
           }
@@ -63413,10 +66421,18 @@ var GeoGitLogOptions = function () {
   var module = angular.module('loom_pulldown_service', []);
   var rootScope_ = null;
   var timeout_ = null;
+  var PulldownPanel = function (visible, enabled) {
+    this.visible = visible;
+    this.enabled = enabled;
+    this.getVisible = function () {
+      return this.visible && this.enabled;
+    };
+  };
   module.provider('pulldownService', function () {
-    this.diffPanel = false;
-    this.notificationsPanel = true;
-    this.layersPanel = true;
+    this.diffPanel = new PulldownPanel(false, false);
+    this.notificationsPanel = new PulldownPanel(true, true);
+    this.layersPanel = new PulldownPanel(true, true);
+    this.syncPanel = new PulldownPanel(true, false);
     this.$get = [
       '$rootScope',
       '$timeout',
@@ -63430,22 +66446,395 @@ var GeoGitLogOptions = function () {
       rootScope_.$broadcast('refresh-pulldown');
     };
     this.conflictsMode = function () {
-      this.diffPanel = true;
-      this.notificationsPanel = false;
-      this.layersPanel = true;
+      this.diffPanel.visible = true;
+      this.notificationsPanel.visible = false;
+      this.layersPanel.visible = true;
+      this.syncPanel.visible = false;
       this.apply();
       timeout_(function () {
         $('#diff-panel').collapse('show');
       }, 1);
     };
     this.defaultMode = function () {
-      this.diffPanel = false;
-      this.notificationsPanel = true;
-      this.layersPanel = true;
+      this.diffPanel.visible = true;
+      this.notificationsPanel.visible = true;
+      this.layersPanel.visible = true;
+      this.syncPanel.visible = true;
       this.apply();
       timeout_(function () {
         $('#layer-manager-panel').collapse('show');
       }, 1);
+    };
+  });
+}());
+(function () {
+  var module = angular.module('loom_addsync_directive', []);
+  module.directive('loomAddsync', [
+    'synchronizationService',
+    'geogitService',
+    function (synchronizationService, geogitService) {
+      return {
+        templateUrl: 'sync/partials/addsync.tpl.html',
+        link: function (scope) {
+          scope.geogitService = geogitService;
+          scope.name = 'Link';
+          scope.createLink = function (name, repo, remote, localBranch, remoteBranch) {
+            synchronizationService.addLink(new SynchronizationLink(name, repo, localBranch, remote, remoteBranch));
+          };
+          var reset = function () {
+            scope.name = 'Link';
+            scope.selectedRepo = null;
+            scope.selectedRemote = null;
+            scope.localBranch = null;
+            scope.remoteBranch = null;
+          };
+          scope.$on('repoRemoved', reset);
+          scope.$on('loadLink', function (event, link) {
+            $('#addSyncWindow').modal('toggle');
+            scope.name = link.name;
+            scope.selectedRepo = link.getRepo();
+            scope.selectedRemote = link.getRemote();
+            scope.localBranch = link.getLocalBranch();
+            scope.remoteBranch = link.getRemoteBranch();
+          });
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  angular.module('loom_sync', [
+    'loom_addsync_directive',
+    'loom_syncconfig_directive',
+    'loom_synclinks_directive',
+    'loom_sync_service'
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_syncconfig_directive', []);
+  module.directive('loomSyncconfig', [
+    '$q',
+    'geogitService',
+    function ($q, geogitService) {
+      return {
+        templateUrl: 'sync/partials/syncconfig.tpl.html',
+        link: function (scope) {
+          scope.geogitService = geogitService;
+          var reset = function () {
+            scope.selectedRepo = null;
+            scope.selectedRemote = null;
+            scope.selectedText = '*New Remote';
+            scope.remoteName = null;
+            scope.remoteURL = null;
+            scope.remoteUsername = '';
+            scope.remotePassword = '';
+          };
+          reset();
+          scope.selectRemote = function (remote) {
+            if (remote === null) {
+              scope.selectedText = '*New Remote';
+            } else {
+              scope.selectedText = remote.name;
+            }
+            scope.selectedRemote = remote;
+          };
+          scope.addRemote = function (name, url, username, password) {
+            var index = url.lastIndexOf('/') + 1;
+            var info = url.slice(index);
+            var splitinfo = info.split(':');
+            var temp = encodeURIComponent(encodeURIComponent(splitinfo[0])) + ':' + encodeURIComponent(encodeURIComponent(splitinfo[1]));
+            url = url.replace(info, temp);
+            var options = new GeoGitRemoteOptions();
+            options.remoteName = name;
+            options.remoteURL = url;
+            if (username !== '') {
+              options.username = username;
+            }
+            if (password !== '') {
+              options.password = password;
+            }
+            var result = $q.defer();
+            geogitService.command(scope.selectedRepo.id, 'remote', options).then(function () {
+              var fetchOptions = new GeoGitFetchOptions();
+              fetchOptions.remote = name;
+              geogitService.command(scope.selectedRepo.id, 'fetch', fetchOptions).then(function () {
+                geogitService.loadRemotesAndBranches(scope.selectedRepo, result);
+                result.promise.then(function (repo) {
+                  for (var index = 0; index < repo.remotes.length; index++) {
+                    if (repo.remotes[index].name === name) {
+                      repo.remotes[index].active = true;
+                      scope.$broadcast('remoteAdded', repo);
+                    }
+                  }
+                });
+              }, function () {
+                geogitService.loadRemotesAndBranches(scope.selectedRepo, result);
+              });
+            });
+          };
+          scope.removeRemote = function (remote) {
+            var options = new GeoGitRemoteOptions();
+            options.remoteName = remote.name;
+            options.remove = true;
+            var result = $q.defer();
+            geogitService.command(scope.selectedRepo.id, 'remote', options).then(function () {
+              geogitService.loadRemotesAndBranches(scope.selectedRepo, result);
+              scope.selectedRemote = null;
+              scope.selectedText = '*New Remote';
+            });
+          };
+          scope.$on('repoRemoved', reset);
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_synclinks_directive', []);
+  module.directive('loomSynclinks', [
+    'synchronizationService',
+    'geogitService',
+    function (synchronizationService, geogitService) {
+      return {
+        restrict: 'C',
+        replace: true,
+        templateUrl: 'sync/partials/synclinks.tpl.html',
+        link: function (scope) {
+          scope.syncService = synchronizationService;
+          var createDefaultLinks = function (event, repo) {
+            var localMaster = false;
+            var index;
+            for (index = 0; index < repo.branches.length; index++) {
+              if (repo.branches[index] === 'master') {
+                localMaster = true;
+                break;
+              }
+            }
+            for (index = 0; index < repo.remotes.length; index++) {
+              if (repo.remotes[index].branches.length > 0) {
+                for (var branchIndex = 0; branchIndex < repo.remotes[index].branches.length; branchIndex++) {
+                  if (repo.remotes[index].branches[branchIndex] === 'master' && localMaster) {
+                    scope.syncService.addLink(new SynchronizationLink(repo.name + ':' + repo.remotes[index].name, repo, 'master', repo.remotes[index], 'master'));
+                  }
+                }
+              }
+            }
+          };
+          scope.singleSync = function (link) {
+            if (!link.isSyncing && !scope.syncService.getIsSyncing()) {
+              link.isSyncing = true;
+              scope.syncService.sync(link).then(function (syncedLink) {
+                syncedLink.isSyncing = false;
+              }, function (error) {
+                link.isSyncing = false;
+              });
+            }
+          };
+          scope.$on('repoAdded', createDefaultLinks);
+          scope.$on('remoteAdded', createDefaultLinks);
+        }
+      };
+    }
+  ]);
+}());
+var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remoteBranch) {
+  this.name = _name;
+  this.isSyncing = false;
+  this.continuous = false;
+  this.syncInterval = 30000;
+  this.timeStamp = new Date().getTime();
+  this.setContinuous = function (continuous) {
+    this.continuous = continuous;
+  };
+  this.getRepo = function () {
+    return _repo;
+  };
+  this.getRemote = function () {
+    return _remote;
+  };
+  this.getLocalBranch = function () {
+    return _localBranch;
+  };
+  this.getRemoteBranch = function () {
+    return _remoteBranch;
+  };
+  this.getIsActive = function () {
+    return _remote.active;
+  };
+  this.equals = function (link) {
+    return this.getRepo() === link.getRepo() && this.getRemote() === link.getRemote() && this.getLocalBranch() === link.getLocalBranch() && this.getRemoteBranch() === link.getRemoteBranch();
+  };
+};
+(function () {
+  var module = angular.module('loom_sync_service', []);
+  var synchronizationLinks_ = [];
+  var nextLinkId_ = 0;
+  var service_, dialogService_, rootScope_, geogitService_, q_ = null;
+  var syncing = false;
+  var numSyncingLinks = 0;
+  var syncTimeout = null;
+  var statusCheckTimeout = null;
+  var syncInterval = 15000;
+  var autoSync = function () {
+    var time = new Date().getTime();
+    var success = function (syncedLink) {
+      syncedLink.timeStamp = new Date().getTime() + syncedLink.syncInterval;
+      synchronizationLinks_.sort(function (a, b) {
+        return a.timeStamp - b.timeStamp;
+      });
+      if (syncTimeout !== null) {
+        syncTimeout = setTimeout(autoSync, syncInterval);
+      }
+    };
+    var error = function (error) {
+      if (syncTimeout !== null) {
+        syncTimeout = setTimeout(autoSync, syncInterval);
+      }
+    };
+    for (var index = 0; index < synchronizationLinks_.length; index++) {
+      var link = synchronizationLinks_[index];
+      if (link.isSyncing && link.continuous) {
+        if (!syncing) {
+          if (link.timeStamp <= time) {
+            service_.sync(link).then(success, error);
+          } else {
+            syncTimeout = setTimeout(autoSync, syncInterval);
+          }
+        }
+        break;
+      }
+    }
+  };
+  var checkStatus = function (link) {
+    geogitService_.beginTransaction(link.getRepo().id).then(function (transaction) {
+      var fetchOptions = new GeoGitFetchOptions();
+      fetchOptions.remote = link.getRemote().name;
+      transaction.command('fetch', fetchOptions).then(function () {
+        link.getRemote().active = true;
+        transaction.abort();
+      }, function () {
+        link.getRemote().active = false;
+        transaction.abort();
+      });
+    });
+  };
+  var checkStatusAll = function () {
+    for (var index = 0; index < synchronizationLinks_.length; index++) {
+      checkStatus(synchronizationLinks_[index]);
+    }
+    statusCheckTimeout = setTimeout(checkStatusAll, 60000);
+  };
+  module.provider('synchronizationService', function () {
+    this.$get = [
+      '$rootScope',
+      '$q',
+      'dialogService',
+      'geogitService',
+      function ($rootScope, $q, dialogService, geogitService) {
+        dialogService_ = dialogService;
+        service_ = this;
+        rootScope_ = $rootScope;
+        geogitService_ = geogitService;
+        q_ = $q;
+        $rootScope.$on('repoRemoved', function (event, repo) {
+          goog.array.forEach(synchronizationLinks_, function (link) {
+            if (link.getRepo().id === repo.id) {
+              service_.removeLink(link.id);
+            }
+          });
+        });
+        return this;
+      }
+    ];
+    this.getLinks = function () {
+      return synchronizationLinks_;
+    };
+    this.loadLink = function (index) {
+      rootScope_.$broadcast('loadLink', synchronizationLinks_[index]);
+    };
+    this.addLink = function (link) {
+      for (var index = 0; index < synchronizationLinks_.length; index++) {
+        if (synchronizationLinks_[index].equals(link)) {
+          dialogService_.open('Add Sync', 'This link already exists', ['OK'], false);
+          return;
+        }
+      }
+      link.id = nextLinkId_;
+      nextLinkId_++;
+      synchronizationLinks_.push(link);
+      if (!statusCheckTimeout) {
+        statusCheckTimeout = setTimeout(checkStatusAll, 60000);
+      }
+    };
+    this.removeLink = function (id) {
+      var index = -1, i;
+      for (i = 0; i < synchronizationLinks_.length; i = i + 1) {
+        if (synchronizationLinks_[i].id === id) {
+          index = i;
+        }
+      }
+      if (index > -1) {
+        synchronizationLinks_.splice(index, 1);
+        if (synchronizationLinks_.length <= 0) {
+          clearTimeout(statusCheckTimeout);
+          statusCheckTimeout = null;
+        }
+      }
+    };
+    this.getIsSyncing = function () {
+      return syncing;
+    };
+    this.toggleAutoSync = function (link) {
+      link.isSyncing = !link.isSyncing;
+      if (link.isSyncing) {
+        numSyncingLinks++;
+        if (!syncTimeout) {
+          syncTimeout = setTimeout(autoSync, syncInterval);
+        }
+      } else {
+        numSyncingLinks--;
+        if (numSyncingLinks <= 0) {
+          clearTimeout(syncTimeout);
+          syncTimeout = null;
+        }
+      }
+    };
+    this.sync = function (link) {
+      var result = q_.defer();
+      syncing = true;
+      geogitService_.beginTransaction(link.getRepo().id).then(function (transaction) {
+        var pullOptions = new GeoGitPullOptions();
+        pullOptions.ref = link.getRemoteBranch() + ':' + link.getLocalBranch();
+        pullOptions.remoteName = link.getRemote().name;
+        transaction.command('pull', pullOptions).then(function (pullResult) {
+          var pushOptions = new GeoGitPushOptions();
+          pushOptions.ref = link.getLocalBranch() + ':' + link.getRemoteBranch();
+          pushOptions.remoteName = link.getRemote().name;
+          console.log(pushOptions);
+          transaction.command('push', pushOptions).then(function () {
+            transaction.finalize().then(function () {
+              syncing = false;
+              result.resolve(link);
+            }, function (endTransactionFailed) {
+              syncing = false;
+              result.reject(endTransactionFailed);
+              transaction.abort();
+            });
+          }, function (pushFailed) {
+            syncing = false;
+            result.reject(pushFailed);
+            transaction.abort();
+          });
+        }, function (pullFailed) {
+          syncing = false;
+          result.reject(pullFailed);
+          transaction.abort();
+        });
+      }, function (beginTransactionFailed) {
+        syncing = false;
+        result.reject(beginTransactionFailed);
+      });
+      return result.promise;
     };
   });
 }());
@@ -63468,43 +66857,48 @@ var GeoGitLogOptions = function () {
         var adds = [];
         var modifies = [];
         var deletes = [];
+        var merges = [];
+        var conflicts = [];
         var i, j, k;
         for (i = 0; i < repos.length; i += 1) {
-          var layers = repos[i].layers;
-          for (j = 0; j < layers.length; j += 1) {
-            var layer = layers[j];
-            if (layer.adds) {
-              for (k = 0; k < layer.adds.length; k += 1) {
-                adds.push({
+          var features = repos[i].features;
+          if (goog.isDefAndNotNull(features)) {
+            scope.noFeatures = false;
+            for (j = 0; j < features.length; j += 1) {
+              var splitFeature = features[j].id.split('/');
+              var feature = {
                   repo: repos[i].name,
-                  layer: layer.name,
-                  feature: layer.adds[k]
-                });
+                  layer: splitFeature[0],
+                  feature: splitFeature[1]
+                };
+              switch (features[j].change) {
+              case 'ADDED':
+                adds.push(feature);
+                break;
+              case 'MODIFIED':
+                modifies.push(feature);
+                break;
+              case 'REMOVED':
+                deletes.push(feature);
+                break;
+              case 'MERGED':
+                merges.push(feature);
+                break;
+              case 'CONFLICT':
+                conflicts.push(feature);
+                break;
               }
             }
-            if (layer.modifies) {
-              for (k = 0; k < layer.modifies.length; k += 1) {
-                modifies.push({
-                  repo: repos[i].name,
-                  layer: layer.name,
-                  feature: layer.modifies[k]
-                });
-              }
-            }
-            if (layer.deletes) {
-              for (k = 0; k < layer.deletes.length; k += 1) {
-                deletes.push({
-                  repo: repos[i].name,
-                  layer: layer.name,
-                  feature: layer.deletes[k]
-                });
-              }
-            }
+          } else {
+            scope.noFeatures = true;
+            scope.message = scope.notification.emptyMessage;
           }
         }
         scope.adds = adds;
         scope.modifies = modifies;
         scope.deletes = deletes;
+        scope.merges = merges;
+        scope.conflicts = conflicts;
       }
     };
   });
@@ -63512,6 +66906,23 @@ var GeoGitLogOptions = function () {
 (function () {
   angular.module('loom_update_notification', ['loom_update_notification_directive']);
 }());
+var forEachArrayish = function (arrayish, funct) {
+  if (goog.isArray(arrayish)) {
+    goog.array.forEach(arrayish, funct);
+  } else {
+    funct(arrayish);
+  }
+};
+var getScrollbarWidth = function () {
+  var parent, child, width;
+  if (width === undefined) {
+    parent = $('<div style="width:50px;height:50px;overflow:auto"><div/></div>').appendTo('body');
+    child = parent.children();
+    width = child.innerWidth() - child.height(99).innerWidth();
+    parent.remove();
+  }
+  return width;
+};
 (function () {
   var module = angular.module('loom_utils', []);
   module.directive('stopEvent', function () {
@@ -63528,6 +66939,14 @@ var GeoGitLogOptions = function () {
       }
     };
   });
+  module.controller('modalToggle', [
+    '$scope',
+    function ($scope) {
+      $scope.toggleModal = function (id) {
+        $(id).modal('toggle');
+      };
+    }
+  ]);
   module.filter('reverse', function () {
     return function (items) {
       if (goog.isDefAndNotNull(items)) {
@@ -63541,7 +66960,7 @@ var GeoGitLogOptions = function () {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'featureinfobox/partial/featureinfobox.tpl.html', 'layers/partials/layers.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featureinfobox/partial/featureinfobox.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -63554,7 +66973,7 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "            <span class=\"pull-left\"> {{serverService.getServer(currentServerIndex).name}} </span>\n" +
     "            <span class=\"caret right-and-center\"></span>\n" +
     "          </button>\n" +
-    "          <ul class=\"dropdown-menu server-list col-md-12\">\n" +
+    "          <ul id=\"server-list\" class=\"dropdown-menu col-md-12\">\n" +
     "            <li ng-repeat=\"server in servers = serverService.getServers()\"><a ng-click=\"selectServer($index)\">{{server.name}}</a></li>\n" +
     "            <li class=\"divider\"></li>\n" +
     "            <li><a data-target=\"#add-server-dialog\" data-toggle=\"modal\">Add New Server</a></li>\n" +
@@ -63623,7 +67042,7 @@ angular.module("addlayers/partials/addserver.tpl.html", []).run(["$templateCache
     "        <label class=\"control-label\">URL: </label>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-10\">\n" +
-    "      <input name=\"serverurl\" ng-model=\"url\" type=\"url\" class=\"form-control\" placeholder=\"URL\" required ng-pattern=\"//wms$/\">\n" +
+    "      <input name=\"serverurl\" ng-model=\"url\" type=\"url\" class=\"form-control\" placeholder=\"http://url/wms\" required ng-pattern=\"//wms$/\">\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </form>\n" +
@@ -63639,20 +67058,21 @@ angular.module("diff/partial/difflist.tpl.html", []).run(["$templateCache", func
   $templateCache.put("diff/partial/difflist.tpl.html",
     "<div class=\"difflist\">\n" +
     "  <ul class=\"list-group\">\n" +
-    "    <li class=\"list-group-item conflict\" ng-click=\"clickCallback({{conflict}})\" ng-repeat=\"conflict in conflictList\">\n" +
+    "    <li class=\"list-group-item conflict\" ng-click=\"clickCallback(conflict,'conflict')\" ng-repeat=\"conflict in conflictList\">\n" +
     "      <span class=\"glyphicon glyphicon-warning-sign\"/> '{{conflict.feature}}' in {{conflict.layer}}\n" +
-    "      <span class=\"badge conflict-badge\">CONFLICT</span>\n" +
+    "      <span ng-if=\"!conflict.resolved\" class=\"badge conflict-badge\">CONFLICT</span>\n" +
+    "      <span ng-if=\"conflict.resolved\" class=\"badge resolved-badge\">FIXED</span>\n" +
     "    </li>\n" +
-    "    <li class=\"list-group-item merged\" ng-click=\"clickCallback({{merged}})\" ng-repeat=\"merged in mergeList\">\n" +
+    "    <li class=\"list-group-item merged\" ng-click=\"clickCallback(merged,'merge')\" ng-repeat=\"merged in mergeList\">\n" +
     "      <span class=\"glyphicon glyphicon-random\"/> '{{merged.feature}}' in {{merged.layer}}\n" +
     "    </li>\n" +
-    "    <li class=\"list-group-item add\" ng-click=\"clickCallback({{add}})\" ng-repeat=\"add in addList\">\n" +
+    "    <li class=\"list-group-item add\" ng-click=\"clickCallback(add,'add')\" ng-repeat=\"add in addList\">\n" +
     "      <span class=\"glyphicon glyphicon-plus-sign\"/> '{{add.feature}}' to {{add.layer}}\n" +
     "    </li>\n" +
-    "    <li class=\"list-group-item modify\" ng-click=\"clickCallback({{modify}})\" ng-repeat=\"modify in modifyList\">\n" +
+    "    <li class=\"list-group-item modify\" ng-click=\"clickCallback(modify,'modify')\" ng-repeat=\"modify in modifyList\">\n" +
     "      <span class=\"glyphicon glyphicon-edit\"/> '{{modify.feature}}' in {{modify.layer}}\n" +
     "    </li>\n" +
-    "    <li class=\"list-group-item delete\" ng-click=\"clickCallback({{delete}})\" ng-repeat=\"delete in deleteList\">\n" +
+    "    <li class=\"list-group-item delete\" ng-click=\"clickCallback(delete,'delete')\" ng-repeat=\"delete in deleteList\">\n" +
     "      <span class=\"glyphicon glyphicon-minus-sign\"/> '{{delete.feature}}' from {{delete.layer}}\n" +
     "    </li>\n" +
     "  </ul>\n" +
@@ -63662,8 +67082,93 @@ angular.module("diff/partial/difflist.tpl.html", []).run(["$templateCache", func
 angular.module("diff/partial/diffpanel.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("diff/partial/diffpanel.tpl.html",
     "<div>\n" +
+    "  <div ng-if=\"mergeButtons\">\n" +
+    "    <div class=\"merge-button-wrap\" tooltip-placement=\"top\" tooltip=\"Cancel the merge\">\n" +
+    "      <button class=\"merge-button btn btn-default\" type=\"button\" ng-click=\"cancel()\">\n" +
+    "        Cancel\n" +
+    "      </button>\n" +
+    "    </div>\n" +
+    "    <div class=\"merge-button-wrap\" tooltip-placement=\"top\" tooltip=\"{{conflictsText}}\">\n" +
+    "      <button class=\"merge-button btn btn-default\" ng-class=\"{disabled:numConflicts>0}\" type=\"button\" ng-click=\"done()\">\n" +
+    "        Done\n" +
+    "      </button>\n" +
+    "    </div\n" +
+    "  </div>\n" +
     "  <div class=\"loom-diff-list\" add-list=\"adds\" modify-list=\"modifies\" delete-list=\"deletes\" conflict-list=\"conflicts\"\n" +
-    "       merge-list=\"merges\"/>\n" +
+    "       merge-list=\"merges\" click-callback=\"featureClicked\"/>\n" +
+    "</div>");
+}]);
+
+angular.module("diff/partial/featurediff.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("diff/partial/featurediff.tpl.html",
+    "<div class=\"modal-body\" align=\"center\">\n" +
+    "\n" +
+    "  <div class=\"panelContainer\">\n" +
+    "    <div class=\"panelRow\">\n" +
+    "      <div ng-if=\"leftPanel\" class=\"loom-feature-panel\" mapid=\"0\" panel=\"featureDiffService.left\"\n" +
+    "           panel-title=\"leftTitle\"></div>\n" +
+    "      <div ng-if=\"leftSeparator\" class=\"loom-panel-separator\" icon=\"glyphicon-chevron-right\"\n" +
+    "           hover=\"editable\" clickfunction=\"leftSeparatorClick\"\n" +
+    "           panel=\"featureDiffService.left\"></div>\n" +
+    "      <div ng-if=\"mergePanel\" class=\"loom-feature-panel\" mapid=\"1\" panel=\"featureDiffService.merged\"\n" +
+    "           panel-title=\"mergedTitle\"></div>\n" +
+    "      <div ng-if=\"rightSeparator\" class=\"loom-panel-separator\" icon=\"glyphicon-chevron-left\"\n" +
+    "           hover=\"editable\" clickfunction=\"rightSeparatorClick\"\n" +
+    "           panel=\"featureDiffService.right\"></div>\n" +
+    "      <div ng-if=\"rightPanel\" class=\"loom-feature-panel\" mapid=\"2\" panel=\"featureDiffService.right\"\n" +
+    "           panel-title=\"rightTitle\"></div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "  <button type=\"button\" class=\"btn btn-default\" ng-click=\"cancel()\">Cancel</button>\n" +
+    "  <button ng-if=\"editable\" type=\"button\" class=\"btn btn-primary\" ng-click=\"save()\">Save</button>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("diff/partial/featurepanel.tpl.html",
+    "<div class=\"feature-panel\">\n" +
+    "  {{title}}\n" +
+    "  <div id=\"loading-{{mapid}}\" class=\"map-loading\">\n" +
+    "    <div class=\"loading\">\n" +
+    "      <!-- We make this div spin -->\n" +
+    "      <div class=\"spinner\">\n" +
+    "        <!-- Mask of the quarter of circle -->\n" +
+    "        <div class=\"mask\">\n" +
+    "          <!-- Inner masked circle -->\n" +
+    "          <div class=\"maskedCircle\"></div>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "  <div id=\"preview-map-{{mapid}}\" class=\"preview-map map\"></div>\n" +
+    "  <span ng-repeat=\"attribute in panel.attributes\" class=\"\">\n" +
+    "    <span class=\"info-box-attribute\">{{attribute.attributename}}</span>\n" +
+    "    <span class=\"info-box-attribute-value\"\n" +
+    "          ng-class=\"{\n" +
+    "                      'attr-added': attribute.changetype == 'ADDED',\n" +
+    "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
+    "                      'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
+    "                    }\">{{attribute.newvalue ? attribute.newvalue : (attribute.oldvalue ? attribute.oldvalue : '&nbsp;')}}</span>\n" +
+    "  </span>\n" +
+    "</div>");
+}]);
+
+angular.module("diff/partial/panelseparator.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("diff/partial/panelseparator.tpl.html",
+    "<div ng-click=\"clickfunction()\">\n" +
+    "  &nbsp;\n" +
+    "  <div class=\"map-arrow\">\n" +
+    "    <span class=\"map-arrow-inner glyphicon {{icon}}\" ng-class=\"{'arrow-inactive':!geometryChanged}\"/>\n" +
+    "  </div>\n" +
+    "  <div id=\"preview-map-{{mapid}}\" class=\"preview-map map\"></div>\n" +
+    "  <span ng-repeat=\"attribute in arrows\" class=\"\">\n" +
+    "    <div class=\"attribute-arrow\">\n" +
+    "      <span class=\"attribute-arrow-inner glyphicon {{icon}}\" ng-class=\"{'arrow-inactive':!attribute.active}\"/>\n" +
+    "    </div>\n" +
+    "  </span>\n" +
     "</div>");
 }]);
 
@@ -63680,33 +67185,49 @@ angular.module("featureinfobox/partial/featureinfobox.tpl.html", []).run(["$temp
     "  </div>\n" +
     "  <div class=\"animate-switch-container\">\n" +
     "    <div ng-if=\"featureInfoBoxService.getState() == 'layers'\">\n" +
-    "      <ul class=\"list-group feature-list-info-box\">\n" +
+    "      <ul class=\"list-group list-group-info-box\">\n" +
     "        <li ng-repeat=\"layerInfo in featureInfoBoxService.getSelectedItem()\" class=\"list-group-item-info-box\" ng-click=\"featureInfoBoxService.show(layerInfo)\">\n" +
     "          <div>{{layerInfo.layer.source_.params_.LAYERS}}</div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
     "    <div ng-if=\"featureInfoBoxService.getState() == 'layer'\">\n" +
-    "      <ul class=\"list-group feature-list-info-box\">\n" +
+    "      <ul class=\"list-group list-group-info-box\">\n" +
     "        <li ng-repeat=\"feature in featureInfoBoxService.getSelectedItem().features\" class=\"list-group-item-info-box\" ng-click=\"featureInfoBoxService.show(feature)\">\n" +
     "          <div>{{feature.id}}</div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
     "  </div>\n" +
+    "\n" +
     "  <div ng-if=\"featureInfoBoxService.getState() == 'feature'\">\n" +
-    "    <div class=\"feature-list-info-box\">\n" +
-    "      <span ng-repeat=\"(key, value) in featureInfoBoxService.getSelectedItem().properties\" class=\"\">\n" +
-    "        <span class=\"info-box-attribute\">{{key}}</span>\n" +
-    "        <span class=\"info-box-attribute-value\">{{value}}</span>\n" +
+    "    <div id=\"pic-carousel-container\" ng-if=\"featureInfoBoxService.getSelectedItemPics()\">\n" +
+    "      <carousel id=\"feature-info-box-carousel\" interval=\"2000\">\n" +
+    "        <slide ng-repeat=\"pic in featureInfoBoxService.getSelectedItemPics()\">\n" +
+    "          <img ng-src=\"{{pic}}\" style=\"margin: auto\" ng-click=\"featureInfoBoxService.showPics($index)\">\n" +
+    "        </slide>\n" +
+    "      </carousel>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"feature-info-box\">\n" +
+    "      <span ng-if=\"featureInfoBoxService.getSelectedItem().geometry.type == 'Point'\">\n" +
+    "        <span class=\"info-box-attribute\">Location ( lon, lat )</span>\n" +
+    "        <span class=\"info-box-attribute-value\">({{featureInfoBoxService.getSelectedItem().geometry.coordinates[0]}},{{featureInfoBoxService.getSelectedItem().geometry.coordinates[1]}})</span>\n" +
+    "      </span>\n" +
+    "      <span ng-repeat=\"prop in featureInfoBoxService.getSelectedItemProperties()\">\n" +
+    "        <span class=\"info-box-attribute\">{{prop[0]}}</span>\n" +
+    "        <span class=\"info-box-attribute-value\">{{prop[1]}}</span>\n" +
     "      </span>\n" +
     "    </div>\n" +
+    "\n" +
     "    <div id=\"feature-info-box-bottom\">\n" +
     "      <div id=\"feature-info-box-button-group\" class=\"btn-group pull-right\">\n" +
+    "        <button type=\"button\" data-toggle=\"tooltip\" title=\"Show Pics\" class=\"btn btn-sm btn-default glyphicon glyphicon-camera\"></button>\n" +
     "        <button type=\"button\" data-toggle=\"tooltip\" title=\"Edit attributes\" class=\"btn btn-sm btn-default glyphicon glyphicon-list\"></button>\n" +
     "        <button type=\"button\" data-toggle=\"tooltip\" title=\"Edit geometry\" class=\"btn btn-sm btn-default glyphicon glyphicon-edit\"></button>\n" +
     "        <button type=\"button\" data-toggle=\"tooltip\" title=\"Delete\" class=\"btn btn-sm btn-default glyphicon glyphicon-trash\"></button>\n" +
     "      </div>\n" +
+    "    </div>\n" +
     "  </div>\n" +
     "</div>\n" +
     "");
@@ -63721,7 +67242,7 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "    <div class=\"panel-heading layer-heading\" data-toggle=\"collapse\"\n" +
     "         data-parent=\"#layerpanel-group\" data-target=\"#{{layer.get('label')}}\">\n" +
     "      <div class=\"row\">\n" +
-    "        <div class=\"layer-title\">\n" +
+    "        <div class=\"layer-title ellipsis\">\n" +
     "          {{layer.get('label')}}\n" +
     "        </div>\n" +
     "        <div>\n" +
@@ -63749,13 +67270,78 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "");
 }]);
 
+angular.module("legend/partial/legend.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("legend/partial/legend.tpl.html",
+    "<div>\n" +
+    "    <div id=\"legend-btn-border\" class=\"map-btn-border\">\n" +
+    "        <div id=\"legend-btn\" ng-click=\"expandLegend()\">\n" +
+    "            <i class=\"glyphicon glyphicon-list-alt\"></i>\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "    <div id=\"legend-container\" class=\"panel\">\n" +
+    "        <!--<div id=\"legend-panel-heading\" class=\"panel-heading\">Legend</div>-->\n" +
+    "        <div id=\"legend-panel\" class=\"panel in legend-panel-body\">\n" +
+    "            <div class=\"panel in legend-panel-body\" ng-repeat=\"layer in mapService.getFeatureLayers()\">\n" +
+    "                <div class=\"panel-heading legend-item-header\" data-toggle=\"collapse\"\n" +
+    "                    data-target=\"{{'#' + layer.get('label') + 'legend'}}\">{{layer.get('label')}}\n" +
+    "                </div>\n" +
+    "                <div class=\"panel-collapse legend-item in legend-panel-body\" id=\"{{layer.get('label') + 'legend'}}\">\n" +
+    "                    <img ng-src=\"{{serverService.getServer(layer.get('metadata').serverId).url}}?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer={{layer.getSource().getParams().LAYERS}}&transparent=true&legend_options=fontColor:0xFFFFFF;fontAntiAliasing:true;fontSize:14;fontStyle:bold;\">\n" +
+    "                </div>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "</div>");
+}]);
+
+angular.module("merge/partials/merge.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("merge/partials/merge.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "  <div id=\"loading\" class=\"hidden\">\n" +
+    "    <div class=\"loading\">\n" +
+    "      <!-- We make this div spin -->\n" +
+    "      <div class=\"spinner\">\n" +
+    "        <!-- Mask of the quarter of circle -->\n" +
+    "        <div class=\"mask\">\n" +
+    "          <!-- Inner masked circle -->\n" +
+    "          <div class=\"maskedCircle\"></div>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "  <form class=\"form-horizontal\">\n" +
+    "    <div class=\"form-group\">\n" +
+    "      <div class=\"col-md-4\">\n" +
+    "        <select class=\"form-control\" ng-model=\"selectedRepoId\">\n" +
+    "          <option ng-repeat=\"repo in geogitService.repos\" value=\"{{repo.id}}\" ng-selected=\"\">{{repo.name}}</option>\n" +
+    "        </select>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-3\" ng-hide=\"!selectedRepoId\">\n" +
+    "        <select class=\"form-control\" ng-model=\"sourceBranch\" ng-options=\"branch for branch in geogitService.getRepoById(selectedRepoId).branches\">\n" +
+    "        </select>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-2\" ng-hide=\"!selectedRepoId\">\n" +
+    "        <p class=\"form-control-static text-center\">into</p>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-3\" ng-hide=\"!selectedRepoId\">\n" +
+    "        <select class=\"form-control\" ng-model=\"destinationBranch\" ng-options=\"branch for branch in geogitService.getRepoById(selectedRepoId).branches | filter:listFilter(sourceBranch)\">\n" +
+    "        </select>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </form>\n" +
+    "  <div class=\"modal-footer\">\n" +
+    "    <button type=\"button\" class=\"btn btn-default\" ng-click=\"cancel()\">Cancel</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-primary\" ng-class=\"{'disabled':!mergePossible()}\" ng-click=\"onMerge()\">Merge</button>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
 angular.module("modal/partials/dialog.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("modal/partials/dialog.tpl.html",
     "<div class=\"loom-dialog {{type}}\" ng-style=\"{'margin-left':{{modalOffset}},'margin-top':{{modalOffset}}}\">\n" +
     "  <div class=\"modal-header\">\n" +
-    "    <button ng-if=\"closeButton\" type=\"button\" class=\"close\" ng-click=\"$close()\">\n" +
-    "      <i class=\"glyphicon glyphicon-remove\"></i>\n" +
-    "    </button>\n" +
+    "    <i ng-if=\"closeButton\" ng-click=\"$close()\" class=\"close glyphicon glyphicon-remove\"></i>\n" +
     "    <h4 class=\"modal-title\">{{dialogTitle}}</h4>\n" +
     "  </div>\n" +
     "  <div class=\"modal-body\">\n" +
@@ -63773,13 +67359,11 @@ angular.module("modal/partials/dialog.tpl.html", []).run(["$templateCache", func
 
 angular.module("modal/partials/modal.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("modal/partials/modal.tpl.html",
-    "<div class=\"modal fade custom\">\n" +
+    "<div class=\"modal fade custom\" data-backdrop=\"static\">\n" +
     "  <div class=\"modal-dialog\">\n" +
     "    <div class=\"modal-content\">\n" +
     "      <div class=\"modal-header\">\n" +
-    "        <button type=\"button\" class=\"close\" data-dismiss=\"modal\">\n" +
-    "          <i class=\"glyphicon glyphicon-remove\"></i>\n" +
-    "        </button>\n" +
+    "          <i ng-if=\"closeButton\" data-dismiss=\"modal\" class=\"close glyphicon glyphicon-remove\"></i>\n" +
     "        <h4 class=\"modal-title\">{{title}}</h4>\n" +
     "      </div>\n" +
     "      <div ng-transclude>\n" +
@@ -63824,11 +67408,186 @@ angular.module("notifications/partial/notifications.tpl.html", []).run(["$templa
     "</div>");
 }]);
 
+angular.module("sync/partials/addsync.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("sync/partials/addsync.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "  <form name=\"syncform\" class=\"form-horizontal\">\n" +
+    "    <div class=\"form-group\" ng-class=\"{'has-error': !syncform.syncname.$valid}\">\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label>Name: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-10\">\n" +
+    "        <input name=\"syncname\" ng-minlength=\"1\" ng-model=\"name\" type=\"text\" class=\"form-control\" placeholder=\"Name\" required>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"form-group\">\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label>Repo: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-5\">\n" +
+    "        <select class=\"form-control\" ng-model=\"selectedRepo\" required ng-options=\"repo.name for repo in geogitService.repos\">\n" +
+    "        </select>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-5\">\n" +
+    "        <select class=\"form-control\" ng-show=\"selectedRepo\" ng-model=\"localBranch\" required ng-options=\"branch for branch in geogitService.getRepoById(selectedRepo.id).branches\">\n" +
+    "        </select>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"form-group\">\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label>Remote: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-5\">\n" +
+    "        <select class=\"form-control\" ng-show=\"selectedRepo\" ng-model=\"selectedRemote\" required ng-options=\"remote.name for remote in geogitService.getRepoById(selectedRepo.id).remotes\">\n" +
+    "        </select>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-5\">\n" +
+    "        <select class=\"form-control\" ng-show=\"selectedRemote\" ng-model=\"remoteBranch\" required ng-options=\"branch for branch in geogitService.getRepoById(selectedRepo.id).remotes[selectedRemote.id].branches\">\n" +
+    "        </select>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </form>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" ng-click=\"createLink(name, selectedRepo, selectedRemote, localBranch, remoteBranch)\" ng-class=\"{'disabled': !syncform.$valid}\">Add</button>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("sync/partials/syncconfig.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("sync/partials/syncconfig.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "  <form name=\"remoteform\" class=\"form-horizontal\">\n" +
+    "    <div class=\"form-group\">\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label>Repo: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-10\">\n" +
+    "        <select class=\"form-control\" ng-model=\"selectedRepo\" required ng-options=\"repo.name for repo in geogitService.repos\">\n" +
+    "        </select>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"form-group\" ng-show=\"selectedRepo\">\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label>Remote: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-5\">\n" +
+    "        <div class=\"btn-group custom-width-100\">\n" +
+    "          <button type=\"button\" class=\"btn btn-default dropdown-toggle custom-width-100\" data-toggle=\"dropdown\">\n" +
+    "            <span class=\"pull-left\"> {{selectedText}} </span>\n" +
+    "            <span class=\"caret right-and-center\"></span>\n" +
+    "          </button>\n" +
+    "          <ul class=\"dropdown-menu server-list col-md-12\">\n" +
+    "            <li ng-repeat=\"remote in selectedRepo.remotes\"><a ng-click=\"selectRemote(remote)\">{{remote.name}}</a></li>\n" +
+    "            <li class=\"divider\"></li>\n" +
+    "            <li><a ng-click=\"selectRemote(null)\">Add Remote</a></li>\n" +
+    "          </ul>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-5\">\n" +
+    "        <button type=\"button\" ng-hide=\"selectedRemote\" ng-class=\"{'disabled': !remoteform.$valid}\" class=\"btn btn-default\" ng-click=\"addRemote(remoteName, remoteURL, remoteUsername, remotePassword)\" >Add</button>\n" +
+    "        <button type=\"button\" ng-show=\"selectedRemote\" class=\"btn btn-danger\" ng-click=\"removeRemote(selectedRemote)\">Remove</button>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"form-group\" ng-show=\"selectedRepo && !selectedRemote\" ng-class=\"{'has-error': !remoteform.remotename.$valid}\">\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label class=\"control-label\">Name: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-10\">\n" +
+    "        <input name=\"remotename\" ng-model=\"remoteName\" ng-minlength=\"1\" type=\"text\" class=\"form-control\" placeholder=\"Name\" required>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"form-group\" ng-show=\"selectedRepo && !selectedRemote\" ng-class=\"{'has-error': !remoteform.remoteurl.$valid}\">\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label class=\"control-label\">URL: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-10\">\n" +
+    "        <input name=\"remoteurl\" ng-model=\"remoteURL\" type=\"url\" class=\"form-control\" placeholder=\"http://url/geoserver/geogit/workspace:datastore\" required>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"form-group\" ng-show=\"selectedRepo && !selectedRemote\">\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label class=\"control-label\">Username: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-4\">\n" +
+    "        <input id=\"remoteUsername\" type=\"text\" class=\"form-control\" placeholder=\"Username\">\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-2\">\n" +
+    "        <label class=\"control-label\">Password: </label>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-4\">\n" +
+    "        <input id=\"remotePassword\" type=\"password\" class=\"form-control\" placeholder=\"Password\">\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </form>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Done</button>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("sync/partials/synclinks.tpl.html",
+    "<div class=\"row\" id=\"SyncRow\">\n" +
+    "  <ul id=\"SyncList\" class=\"list-group col-md-12\">\n" +
+    "    <li id=\"buttonRow\" class=\"list-group-item col-md-12\">\n" +
+    "      <div class=\"btn-group btn-group-justified\">\n" +
+    "        <a id=\"AddSyncButton\" class=\"btn sync-list-button\" data-target=\"#addSyncWindow\"\n" +
+    "           data-toggle=\"modal\">\n" +
+    "          <i class=\"glyphicon glyphicon-plus-sign\"></i>\n" +
+    "          Add Sync\n" +
+    "        </a>\n" +
+    "        <a id=\"MergeButton\" class=\"btn sync-list-button\" data-target=\"#mergeWindow\"\n" +
+    "           data-toggle=\"modal\">\n" +
+    "          <i class=\"glyphicon glyphicon-resize-small\"></i>\n" +
+    "          Merge\n" +
+    "        </a>\n" +
+    "      </div>\n" +
+    "    </li>\n" +
+    "    <li ng-repeat=\"link in syncService.getLinks()\" class=\"list-group-item\" ng-controller=\"modalToggle\"\n" +
+    "        ng-click=\"syncService.loadLink($index)\">\n" +
+    "      <div class=\"row\">\n" +
+    "        <div class=\"col-md-8 ellipsis\">{{link.name}}</div>\n" +
+    "        <div class=\"col-md-4\">\n" +
+    "          <div class=\"btn-group pull-left\" stop-event=\"click\">\n" +
+    "            <button ng-hide=\"link.continuous\" ng-click=\"singleSync(link)\" data-toggle=\"button\" class=\"btn btn-xs btn-default\">\n" +
+    "              <i class=\"glyphicon glyphicon-sort\"></i>\n" +
+    "            </button>\n" +
+    "            <div ng-show=\"link.continuous\" ng-click=\"syncService.toggleAutoSync(link)\" stop-event=\"click mousedown\"\n" +
+    "                 class=\"btn btn-xs btn-default auto-sync-button\" ng-class=\"{'sync-on': link.isSyncing}\">\n" +
+    "              <i class=\"glyphicon glyphicon-retweet\"></i>\n" +
+    "            </div>\n" +
+    "            <button type=\"button\" class=\"btn btn-xs btn-default dropdown-toggle\" ng-class=\"{'disabled': link.isSyncing}\" data-toggle=\"dropdown\">\n" +
+    "              <span class=\"caret\"></span>\n" +
+    "            </button>\n" +
+    "            <ul class=\"dropdown-menu\">\n" +
+    "              <li class=\"dropdown-header\">Synchronize</li>\n" +
+    "              <li><a ng-click=\"link.setContinuous(false)\"><i ng-hide=\"link.continuous\" class=\"glyphicon glyphicon-check pull-right\"></i> Single</a></li>\n" +
+    "              <li><a ng-click=\"link.setContinuous(true)\"><i ng-show=\"link.continuous\" class=\"glyphicon glyphicon-check pull-right\"></i> Continuous</a></li>\n" +
+    "            </ul>\n" +
+    "          </div>\n" +
+    "          <i ng-class=\"{'remote-up': link.getIsActive()}\" class=\"glyphicon glyphicon-certificate remote pull-right\"></i>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </li>\n" +
+    "  </ul>\n" +
+    "</div>");
+}]);
+
 angular.module("updatenotification/partial/updatenotification.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("updatenotification/partial/updatenotification.tpl.html",
     "<div class=\"notification-description panel-collapse collapse\">\n" +
-    "  <div class=\"loom-diff-list\" add-list=\"adds\" modify-list=\"modifies\" delete-list=\"deletes\"\n" +
-    "       click-callback=\"notification.callback\"></div>\n" +
+    "  <div ng-if=\"noFeatures\">\n" +
+    "    <ul class=\"list-group\">\n" +
+    "      <li class=\"list-group-item\">\n" +
+    "        {{message}}\n" +
+    "      </li>\n" +
+    "    </ul>\n" +
+    "  </div>\n" +
+    "  <div ng-if=\"!noFeatures\" class=\"loom-diff-list\" add-list=\"adds\" modify-list=\"modifies\" delete-list=\"deletes\"\n" +
+    "       merge-list=\"merges\" conflict-list=\"conflicts\" click-callback=\"notification.callback\"></div>\n" +
     "</div>");
 }]);
 
