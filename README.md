@@ -16,8 +16,8 @@ Project Configuration
 Once installed you can configure your project to use 
 django-maploom with the following steps.
 
-Add ``maploom` to ``INSTALLED_APPS`` in your project's
-``settings`` module::
+Add ``maploom`` to ``INSTALLED_APPS`` in your project's
+``settings`` module:
 
     INSTALLED_APPS = (
         # other apps
@@ -37,7 +37,7 @@ In the <head> section of your html section add the MapLoom js files:
 
     {% maploom_js %}
 
-Then add a map loom map to your page by placing the following tag anywhere in the <body> tags.:
+Then add a map loom map to your page by placing the following tag anywhere in the <body> tags:
 
 	{% maploom_html %}
 
