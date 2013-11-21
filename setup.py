@@ -13,7 +13,6 @@ setup(
     description="Use MapLoom in your django projects",
     long_description=open(os.path.join(here, 'README.md')).read(),
     license='See LICENSE file.',
-    install_requires=['Django'],
     packages=find_packages(),
     include_package_data = True,
     zip_safe = False,
