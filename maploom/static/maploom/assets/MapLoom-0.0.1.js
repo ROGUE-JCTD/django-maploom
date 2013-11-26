@@ -65604,14 +65604,14 @@ var GeoGitLogOptions = function () {
           serverService_.addServer('WMS', serverInfo.name, serverInfo.url);
         });
         goog.array.forEach(this.configuration.map.layers, function (layerInfo, index, obj) {
-          if (serverService_.getServer(layerInfo.source).name === 'OpenStreetMap') {
-            layers.push(service_.addBaseLayer(layerInfo.name, true));
-          } else {
-            if (goog.isDefAndNotNull(layerInfo.name)) {
-              layers.push(service_.addWMSLayer(layerInfo, true));
+          if (goog.isDefAndNotNull(layerInfo.name)) {
+            if (serverService_.getServer(layerInfo.source).name === 'OpenStreetMap') {
+              layers.push(service_.addBaseLayer(layerInfo.name, true));
             } else {
-              console.log('====[ Error: cannot add a layer without a name');
+              layers.push(service_.addWMSLayer(layerInfo, true));
             }
+          } else {
+            console.log('====[ Error: cannot add a layer without a name: ', layerInfo);
           }
         });
       } else {
