@@ -21530,6 +21530,40 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
 }(window.jQuery);
 
+//! moment.js
+//! version : 2.4.0
+//! authors : Tim Wood, Iskren Chernev, Moment.js contributors
+//! license : MIT
+//! momentjs.com
+(function(a){function b(a,b){return function(c){return i(a.call(this,c),b)}}function c(a,b){return function(c){return this.lang().ordinal(a.call(this,c),b)}}function d(){}function e(a){u(a),g(this,a)}function f(a){var b=o(a),c=b.year||0,d=b.month||0,e=b.week||0,f=b.day||0,g=b.hour||0,h=b.minute||0,i=b.second||0,j=b.millisecond||0;this._input=a,this._milliseconds=+j+1e3*i+6e4*h+36e5*g,this._days=+f+7*e,this._months=+d+12*c,this._data={},this._bubble()}function g(a,b){for(var c in b)b.hasOwnProperty(c)&&(a[c]=b[c]);return b.hasOwnProperty("toString")&&(a.toString=b.toString),b.hasOwnProperty("valueOf")&&(a.valueOf=b.valueOf),a}function h(a){return 0>a?Math.ceil(a):Math.floor(a)}function i(a,b){for(var c=a+"";c.length<b;)c="0"+c;return c}function j(a,b,c,d){var e,f,g=b._milliseconds,h=b._days,i=b._months;g&&a._d.setTime(+a._d+g*c),(h||i)&&(e=a.minute(),f=a.hour()),h&&a.date(a.date()+h*c),i&&a.month(a.month()+i*c),g&&!d&&bb.updateOffset(a),(h||i)&&(a.minute(e),a.hour(f))}function k(a){return"[object Array]"===Object.prototype.toString.call(a)}function l(a){return"[object Date]"===Object.prototype.toString.call(a)||a instanceof Date}function m(a,b,c){var d,e=Math.min(a.length,b.length),f=Math.abs(a.length-b.length),g=0;for(d=0;e>d;d++)(c&&a[d]!==b[d]||!c&&q(a[d])!==q(b[d]))&&g++;return g+f}function n(a){if(a){var b=a.toLowerCase().replace(/(.)s$/,"$1");a=Kb[a]||Lb[b]||b}return a}function o(a){var b,c,d={};for(c in a)a.hasOwnProperty(c)&&(b=n(c),b&&(d[b]=a[c]));return d}function p(b){var c,d;if(0===b.indexOf("week"))c=7,d="day";else{if(0!==b.indexOf("month"))return;c=12,d="month"}bb[b]=function(e,f){var g,h,i=bb.fn._lang[b],j=[];if("number"==typeof e&&(f=e,e=a),h=function(a){var b=bb().utc().set(d,a);return i.call(bb.fn._lang,b,e||"")},null!=f)return h(f);for(g=0;c>g;g++)j.push(h(g));return j}}function q(a){var b=+a,c=0;return 0!==b&&isFinite(b)&&(c=b>=0?Math.floor(b):Math.ceil(b)),c}function r(a,b){return new Date(Date.UTC(a,b+1,0)).getUTCDate()}function s(a){return t(a)?366:365}function t(a){return 0===a%4&&0!==a%100||0===a%400}function u(a){var b;a._a&&-2===a._pf.overflow&&(b=a._a[gb]<0||a._a[gb]>11?gb:a._a[hb]<1||a._a[hb]>r(a._a[fb],a._a[gb])?hb:a._a[ib]<0||a._a[ib]>23?ib:a._a[jb]<0||a._a[jb]>59?jb:a._a[kb]<0||a._a[kb]>59?kb:a._a[lb]<0||a._a[lb]>999?lb:-1,a._pf._overflowDayOfYear&&(fb>b||b>hb)&&(b=hb),a._pf.overflow=b)}function v(a){a._pf={empty:!1,unusedTokens:[],unusedInput:[],overflow:-2,charsLeftOver:0,nullInput:!1,invalidMonth:null,invalidFormat:!1,userInvalidated:!1,iso:!1}}function w(a){return null==a._isValid&&(a._isValid=!isNaN(a._d.getTime())&&a._pf.overflow<0&&!a._pf.empty&&!a._pf.invalidMonth&&!a._pf.nullInput&&!a._pf.invalidFormat&&!a._pf.userInvalidated,a._strict&&(a._isValid=a._isValid&&0===a._pf.charsLeftOver&&0===a._pf.unusedTokens.length)),a._isValid}function x(a){return a?a.toLowerCase().replace("_","-"):a}function y(a,b){return b.abbr=a,mb[a]||(mb[a]=new d),mb[a].set(b),mb[a]}function z(a){delete mb[a]}function A(a){var b,c,d,e,f=0,g=function(a){if(!mb[a]&&nb)try{require("./lang/"+a)}catch(b){}return mb[a]};if(!a)return bb.fn._lang;if(!k(a)){if(c=g(a))return c;a=[a]}for(;f<a.length;){for(e=x(a[f]).split("-"),b=e.length,d=x(a[f+1]),d=d?d.split("-"):null;b>0;){if(c=g(e.slice(0,b).join("-")))return c;if(d&&d.length>=b&&m(e,d,!0)>=b-1)break;b--}f++}return bb.fn._lang}function B(a){return a.match(/\[[\s\S]/)?a.replace(/^\[|\]$/g,""):a.replace(/\\/g,"")}function C(a){var b,c,d=a.match(rb);for(b=0,c=d.length;c>b;b++)d[b]=Pb[d[b]]?Pb[d[b]]:B(d[b]);return function(e){var f="";for(b=0;c>b;b++)f+=d[b]instanceof Function?d[b].call(e,a):d[b];return f}}function D(a,b){return a.isValid()?(b=E(b,a.lang()),Mb[b]||(Mb[b]=C(b)),Mb[b](a)):a.lang().invalidDate()}function E(a,b){function c(a){return b.longDateFormat(a)||a}var d=5;for(sb.lastIndex=0;d>=0&&sb.test(a);)a=a.replace(sb,c),sb.lastIndex=0,d-=1;return a}function F(a,b){var c;switch(a){case"DDDD":return vb;case"YYYY":case"GGGG":case"gggg":return wb;case"YYYYY":case"GGGGG":case"ggggg":return xb;case"S":case"SS":case"SSS":case"DDD":return ub;case"MMM":case"MMMM":case"dd":case"ddd":case"dddd":return zb;case"a":case"A":return A(b._l)._meridiemParse;case"X":return Cb;case"Z":case"ZZ":return Ab;case"T":return Bb;case"SSSS":return yb;case"MM":case"DD":case"YY":case"GG":case"gg":case"HH":case"hh":case"mm":case"ss":case"M":case"D":case"d":case"H":case"h":case"m":case"s":case"w":case"ww":case"W":case"WW":case"e":case"E":return tb;default:return c=new RegExp(N(M(a.replace("\\","")),"i"))}}function G(a){var b=(Ab.exec(a)||[])[0],c=(b+"").match(Hb)||["-",0,0],d=+(60*c[1])+q(c[2]);return"+"===c[0]?-d:d}function H(a,b,c){var d,e=c._a;switch(a){case"M":case"MM":null!=b&&(e[gb]=q(b)-1);break;case"MMM":case"MMMM":d=A(c._l).monthsParse(b),null!=d?e[gb]=d:c._pf.invalidMonth=b;break;case"D":case"DD":null!=b&&(e[hb]=q(b));break;case"DDD":case"DDDD":null!=b&&(c._dayOfYear=q(b));break;case"YY":e[fb]=q(b)+(q(b)>68?1900:2e3);break;case"YYYY":case"YYYYY":e[fb]=q(b);break;case"a":case"A":c._isPm=A(c._l).isPM(b);break;case"H":case"HH":case"h":case"hh":e[ib]=q(b);break;case"m":case"mm":e[jb]=q(b);break;case"s":case"ss":e[kb]=q(b);break;case"S":case"SS":case"SSS":case"SSSS":e[lb]=q(1e3*("0."+b));break;case"X":c._d=new Date(1e3*parseFloat(b));break;case"Z":case"ZZ":c._useUTC=!0,c._tzm=G(b);break;case"w":case"ww":case"W":case"WW":case"d":case"dd":case"ddd":case"dddd":case"e":case"E":a=a.substr(0,1);case"gg":case"gggg":case"GG":case"GGGG":case"GGGGG":a=a.substr(0,2),b&&(c._w=c._w||{},c._w[a]=b)}}function I(a){var b,c,d,e,f,g,h,i,j,k,l=[];if(!a._d){for(d=K(a),a._w&&null==a._a[hb]&&null==a._a[gb]&&(f=function(b){return b?b.length<3?parseInt(b,10)>68?"19"+b:"20"+b:b:null==a._a[fb]?bb().weekYear():a._a[fb]},g=a._w,null!=g.GG||null!=g.W||null!=g.E?h=X(f(g.GG),g.W||1,g.E,4,1):(i=A(a._l),j=null!=g.d?T(g.d,i):null!=g.e?parseInt(g.e,10)+i._week.dow:0,k=parseInt(g.w,10)||1,null!=g.d&&j<i._week.dow&&k++,h=X(f(g.gg),k,j,i._week.doy,i._week.dow)),a._a[fb]=h.year,a._dayOfYear=h.dayOfYear),a._dayOfYear&&(e=null==a._a[fb]?d[fb]:a._a[fb],a._dayOfYear>s(e)&&(a._pf._overflowDayOfYear=!0),c=S(e,0,a._dayOfYear),a._a[gb]=c.getUTCMonth(),a._a[hb]=c.getUTCDate()),b=0;3>b&&null==a._a[b];++b)a._a[b]=l[b]=d[b];for(;7>b;b++)a._a[b]=l[b]=null==a._a[b]?2===b?1:0:a._a[b];l[ib]+=q((a._tzm||0)/60),l[jb]+=q((a._tzm||0)%60),a._d=(a._useUTC?S:R).apply(null,l)}}function J(a){var b;a._d||(b=o(a._i),a._a=[b.year,b.month,b.day,b.hour,b.minute,b.second,b.millisecond],I(a))}function K(a){var b=new Date;return a._useUTC?[b.getUTCFullYear(),b.getUTCMonth(),b.getUTCDate()]:[b.getFullYear(),b.getMonth(),b.getDate()]}function L(a){a._a=[],a._pf.empty=!0;var b,c,d,e,f,g=A(a._l),h=""+a._i,i=h.length,j=0;for(d=E(a._f,g).match(rb)||[],b=0;b<d.length;b++)e=d[b],c=(F(e,a).exec(h)||[])[0],c&&(f=h.substr(0,h.indexOf(c)),f.length>0&&a._pf.unusedInput.push(f),h=h.slice(h.indexOf(c)+c.length),j+=c.length),Pb[e]?(c?a._pf.empty=!1:a._pf.unusedTokens.push(e),H(e,c,a)):a._strict&&!c&&a._pf.unusedTokens.push(e);a._pf.charsLeftOver=i-j,h.length>0&&a._pf.unusedInput.push(h),a._isPm&&a._a[ib]<12&&(a._a[ib]+=12),a._isPm===!1&&12===a._a[ib]&&(a._a[ib]=0),I(a),u(a)}function M(a){return a.replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g,function(a,b,c,d,e){return b||c||d||e})}function N(a){return a.replace(/[-\/\\^$*+?.()|[\]{}]/g,"\\$&")}function O(a){var b,c,d,e,f;if(0===a._f.length)return a._pf.invalidFormat=!0,a._d=new Date(0/0),void 0;for(e=0;e<a._f.length;e++)f=0,b=g({},a),v(b),b._f=a._f[e],L(b),w(b)&&(f+=b._pf.charsLeftOver,f+=10*b._pf.unusedTokens.length,b._pf.score=f,(null==d||d>f)&&(d=f,c=b));g(a,c||b)}function P(a){var b,c=a._i,d=Db.exec(c);if(d){for(a._pf.iso=!0,b=4;b>0;b--)if(d[b]){a._f=Fb[b-1]+(d[6]||" ");break}for(b=0;4>b;b++)if(Gb[b][1].exec(c)){a._f+=Gb[b][0];break}Ab.exec(c)&&(a._f+="Z"),L(a)}else a._d=new Date(c)}function Q(b){var c=b._i,d=ob.exec(c);c===a?b._d=new Date:d?b._d=new Date(+d[1]):"string"==typeof c?P(b):k(c)?(b._a=c.slice(0),I(b)):l(c)?b._d=new Date(+c):"object"==typeof c?J(b):b._d=new Date(c)}function R(a,b,c,d,e,f,g){var h=new Date(a,b,c,d,e,f,g);return 1970>a&&h.setFullYear(a),h}function S(a){var b=new Date(Date.UTC.apply(null,arguments));return 1970>a&&b.setUTCFullYear(a),b}function T(a,b){if("string"==typeof a)if(isNaN(a)){if(a=b.weekdaysParse(a),"number"!=typeof a)return null}else a=parseInt(a,10);return a}function U(a,b,c,d,e){return e.relativeTime(b||1,!!c,a,d)}function V(a,b,c){var d=eb(Math.abs(a)/1e3),e=eb(d/60),f=eb(e/60),g=eb(f/24),h=eb(g/365),i=45>d&&["s",d]||1===e&&["m"]||45>e&&["mm",e]||1===f&&["h"]||22>f&&["hh",f]||1===g&&["d"]||25>=g&&["dd",g]||45>=g&&["M"]||345>g&&["MM",eb(g/30)]||1===h&&["y"]||["yy",h];return i[2]=b,i[3]=a>0,i[4]=c,U.apply({},i)}function W(a,b,c){var d,e=c-b,f=c-a.day();return f>e&&(f-=7),e-7>f&&(f+=7),d=bb(a).add("d",f),{week:Math.ceil(d.dayOfYear()/7),year:d.year()}}function X(a,b,c,d,e){var f,g,h=new Date(Date.UTC(a,0)).getUTCDay();return c=null!=c?c:e,f=e-h+(h>d?7:0),g=7*(b-1)+(c-e)+f+1,{year:g>0?a:a-1,dayOfYear:g>0?g:s(a-1)+g}}function Y(a){var b=a._i,c=a._f;return"undefined"==typeof a._pf&&v(a),null===b?bb.invalid({nullInput:!0}):("string"==typeof b&&(a._i=b=A().preparse(b)),bb.isMoment(b)?(a=g({},b),a._d=new Date(+b._d)):c?k(c)?O(a):L(a):Q(a),new e(a))}function Z(a,b){bb.fn[a]=bb.fn[a+"s"]=function(a){var c=this._isUTC?"UTC":"";return null!=a?(this._d["set"+c+b](a),bb.updateOffset(this),this):this._d["get"+c+b]()}}function $(a){bb.duration.fn[a]=function(){return this._data[a]}}function _(a,b){bb.duration.fn["as"+a]=function(){return+this/b}}function ab(a){var b=!1,c=bb;"undefined"==typeof ender&&(this.moment=a?function(){return!b&&console&&console.warn&&(b=!0,console.warn("Accessing Moment through the global scope is deprecated, and will be removed in an upcoming release.")),c.apply(null,arguments)}:bb)}for(var bb,cb,db="2.4.0",eb=Math.round,fb=0,gb=1,hb=2,ib=3,jb=4,kb=5,lb=6,mb={},nb="undefined"!=typeof module&&module.exports,ob=/^\/?Date\((\-?\d+)/i,pb=/(\-)?(?:(\d*)\.)?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/,qb=/^(-)?P(?:(?:([0-9,.]*)Y)?(?:([0-9,.]*)M)?(?:([0-9,.]*)D)?(?:T(?:([0-9,.]*)H)?(?:([0-9,.]*)M)?(?:([0-9,.]*)S)?)?|([0-9,.]*)W)$/,rb=/(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|X|zz?|ZZ?|.)/g,sb=/(\[[^\[]*\])|(\\)?(LT|LL?L?L?|l{1,4})/g,tb=/\d\d?/,ub=/\d{1,3}/,vb=/\d{3}/,wb=/\d{1,4}/,xb=/[+\-]?\d{1,6}/,yb=/\d+/,zb=/[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i,Ab=/Z|[\+\-]\d\d:?\d\d/i,Bb=/T/i,Cb=/[\+\-]?\d+(\.\d{1,3})?/,Db=/^\s*\d{4}-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d:?\d\d|Z)?)?$/,Eb="YYYY-MM-DDTHH:mm:ssZ",Fb=["YYYY-MM-DD","GGGG-[W]WW","GGGG-[W]WW-E","YYYY-DDD"],Gb=[["HH:mm:ss.SSSS",/(T| )\d\d:\d\d:\d\d\.\d{1,3}/],["HH:mm:ss",/(T| )\d\d:\d\d:\d\d/],["HH:mm",/(T| )\d\d:\d\d/],["HH",/(T| )\d\d/]],Hb=/([\+\-]|\d\d)/gi,Ib="Date|Hours|Minutes|Seconds|Milliseconds".split("|"),Jb={Milliseconds:1,Seconds:1e3,Minutes:6e4,Hours:36e5,Days:864e5,Months:2592e6,Years:31536e6},Kb={ms:"millisecond",s:"second",m:"minute",h:"hour",d:"day",D:"date",w:"week",W:"isoWeek",M:"month",y:"year",DDD:"dayOfYear",e:"weekday",E:"isoWeekday",gg:"weekYear",GG:"isoWeekYear"},Lb={dayofyear:"dayOfYear",isoweekday:"isoWeekday",isoweek:"isoWeek",weekyear:"weekYear",isoweekyear:"isoWeekYear"},Mb={},Nb="DDD w W M D d".split(" "),Ob="M D H h m s w W".split(" "),Pb={M:function(){return this.month()+1},MMM:function(a){return this.lang().monthsShort(this,a)},MMMM:function(a){return this.lang().months(this,a)},D:function(){return this.date()},DDD:function(){return this.dayOfYear()},d:function(){return this.day()},dd:function(a){return this.lang().weekdaysMin(this,a)},ddd:function(a){return this.lang().weekdaysShort(this,a)},dddd:function(a){return this.lang().weekdays(this,a)},w:function(){return this.week()},W:function(){return this.isoWeek()},YY:function(){return i(this.year()%100,2)},YYYY:function(){return i(this.year(),4)},YYYYY:function(){return i(this.year(),5)},gg:function(){return i(this.weekYear()%100,2)},gggg:function(){return this.weekYear()},ggggg:function(){return i(this.weekYear(),5)},GG:function(){return i(this.isoWeekYear()%100,2)},GGGG:function(){return this.isoWeekYear()},GGGGG:function(){return i(this.isoWeekYear(),5)},e:function(){return this.weekday()},E:function(){return this.isoWeekday()},a:function(){return this.lang().meridiem(this.hours(),this.minutes(),!0)},A:function(){return this.lang().meridiem(this.hours(),this.minutes(),!1)},H:function(){return this.hours()},h:function(){return this.hours()%12||12},m:function(){return this.minutes()},s:function(){return this.seconds()},S:function(){return q(this.milliseconds()/100)},SS:function(){return i(q(this.milliseconds()/10),2)},SSS:function(){return i(this.milliseconds(),3)},SSSS:function(){return i(this.milliseconds(),3)},Z:function(){var a=-this.zone(),b="+";return 0>a&&(a=-a,b="-"),b+i(q(a/60),2)+":"+i(q(a)%60,2)},ZZ:function(){var a=-this.zone(),b="+";return 0>a&&(a=-a,b="-"),b+i(q(10*a/6),4)},z:function(){return this.zoneAbbr()},zz:function(){return this.zoneName()},X:function(){return this.unix()}},Qb=["months","monthsShort","weekdays","weekdaysShort","weekdaysMin"];Nb.length;)cb=Nb.pop(),Pb[cb+"o"]=c(Pb[cb],cb);for(;Ob.length;)cb=Ob.pop(),Pb[cb+cb]=b(Pb[cb],2);for(Pb.DDDD=b(Pb.DDD,3),g(d.prototype,{set:function(a){var b,c;for(c in a)b=a[c],"function"==typeof b?this[c]=b:this["_"+c]=b},_months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_"),months:function(a){return this._months[a.month()]},_monthsShort:"Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec".split("_"),monthsShort:function(a){return this._monthsShort[a.month()]},monthsParse:function(a){var b,c,d;for(this._monthsParse||(this._monthsParse=[]),b=0;12>b;b++)if(this._monthsParse[b]||(c=bb.utc([2e3,b]),d="^"+this.months(c,"")+"|^"+this.monthsShort(c,""),this._monthsParse[b]=new RegExp(d.replace(".",""),"i")),this._monthsParse[b].test(a))return b},_weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),weekdays:function(a){return this._weekdays[a.day()]},_weekdaysShort:"Sun_Mon_Tue_Wed_Thu_Fri_Sat".split("_"),weekdaysShort:function(a){return this._weekdaysShort[a.day()]},_weekdaysMin:"Su_Mo_Tu_We_Th_Fr_Sa".split("_"),weekdaysMin:function(a){return this._weekdaysMin[a.day()]},weekdaysParse:function(a){var b,c,d;for(this._weekdaysParse||(this._weekdaysParse=[]),b=0;7>b;b++)if(this._weekdaysParse[b]||(c=bb([2e3,1]).day(b),d="^"+this.weekdays(c,"")+"|^"+this.weekdaysShort(c,"")+"|^"+this.weekdaysMin(c,""),this._weekdaysParse[b]=new RegExp(d.replace(".",""),"i")),this._weekdaysParse[b].test(a))return b},_longDateFormat:{LT:"h:mm A",L:"MM/DD/YYYY",LL:"MMMM D YYYY",LLL:"MMMM D YYYY LT",LLLL:"dddd, MMMM D YYYY LT"},longDateFormat:function(a){var b=this._longDateFormat[a];return!b&&this._longDateFormat[a.toUpperCase()]&&(b=this._longDateFormat[a.toUpperCase()].replace(/MMMM|MM|DD|dddd/g,function(a){return a.slice(1)}),this._longDateFormat[a]=b),b},isPM:function(a){return"p"===(a+"").toLowerCase().charAt(0)},_meridiemParse:/[ap]\.?m?\.?/i,meridiem:function(a,b,c){return a>11?c?"pm":"PM":c?"am":"AM"},_calendar:{sameDay:"[Today at] LT",nextDay:"[Tomorrow at] LT",nextWeek:"dddd [at] LT",lastDay:"[Yesterday at] LT",lastWeek:"[Last] dddd [at] LT",sameElse:"L"},calendar:function(a,b){var c=this._calendar[a];return"function"==typeof c?c.apply(b):c},_relativeTime:{future:"in %s",past:"%s ago",s:"a few seconds",m:"a minute",mm:"%d minutes",h:"an hour",hh:"%d hours",d:"a day",dd:"%d days",M:"a month",MM:"%d months",y:"a year",yy:"%d years"},relativeTime:function(a,b,c,d){var e=this._relativeTime[c];return"function"==typeof e?e(a,b,c,d):e.replace(/%d/i,a)},pastFuture:function(a,b){var c=this._relativeTime[a>0?"future":"past"];return"function"==typeof c?c(b):c.replace(/%s/i,b)},ordinal:function(a){return this._ordinal.replace("%d",a)},_ordinal:"%d",preparse:function(a){return a},postformat:function(a){return a},week:function(a){return W(a,this._week.dow,this._week.doy).week},_week:{dow:0,doy:6},_invalidDate:"Invalid date",invalidDate:function(){return this._invalidDate}}),bb=function(b,c,d,e){return"boolean"==typeof d&&(e=d,d=a),Y({_i:b,_f:c,_l:d,_strict:e,_isUTC:!1})},bb.utc=function(b,c,d,e){var f;return"boolean"==typeof d&&(e=d,d=a),f=Y({_useUTC:!0,_isUTC:!0,_l:d,_i:b,_f:c,_strict:e}).utc()},bb.unix=function(a){return bb(1e3*a)},bb.duration=function(a,b){var c,d,e,g=bb.isDuration(a),h="number"==typeof a,i=g?a._input:h?{}:a,j=null;return h?b?i[b]=a:i.milliseconds=a:(j=pb.exec(a))?(c="-"===j[1]?-1:1,i={y:0,d:q(j[hb])*c,h:q(j[ib])*c,m:q(j[jb])*c,s:q(j[kb])*c,ms:q(j[lb])*c}):(j=qb.exec(a))&&(c="-"===j[1]?-1:1,e=function(a){var b=a&&parseFloat(a.replace(",","."));return(isNaN(b)?0:b)*c},i={y:e(j[2]),M:e(j[3]),d:e(j[4]),h:e(j[5]),m:e(j[6]),s:e(j[7]),w:e(j[8])}),d=new f(i),g&&a.hasOwnProperty("_lang")&&(d._lang=a._lang),d},bb.version=db,bb.defaultFormat=Eb,bb.updateOffset=function(){},bb.lang=function(a,b){var c;return a?(b?y(x(a),b):null===b?(z(a),a="en"):mb[a]||A(a),c=bb.duration.fn._lang=bb.fn._lang=A(a),c._abbr):bb.fn._lang._abbr},bb.langData=function(a){return a&&a._lang&&a._lang._abbr&&(a=a._lang._abbr),A(a)},bb.isMoment=function(a){return a instanceof e},bb.isDuration=function(a){return a instanceof f},cb=Qb.length-1;cb>=0;--cb)p(Qb[cb]);for(bb.normalizeUnits=function(a){return n(a)},bb.invalid=function(a){var b=bb.utc(0/0);return null!=a?g(b._pf,a):b._pf.userInvalidated=!0,b},bb.parseZone=function(a){return bb(a).parseZone()},g(bb.fn=e.prototype,{clone:function(){return bb(this)},valueOf:function(){return+this._d+6e4*(this._offset||0)},unix:function(){return Math.floor(+this/1e3)},toString:function(){return this.clone().lang("en").format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ")},toDate:function(){return this._offset?new Date(+this):this._d},toISOString:function(){return D(bb(this).utc(),"YYYY-MM-DD[T]HH:mm:ss.SSS[Z]")},toArray:function(){var a=this;return[a.year(),a.month(),a.date(),a.hours(),a.minutes(),a.seconds(),a.milliseconds()]},isValid:function(){return w(this)},isDSTShifted:function(){return this._a?this.isValid()&&m(this._a,(this._isUTC?bb.utc(this._a):bb(this._a)).toArray())>0:!1},parsingFlags:function(){return g({},this._pf)},invalidAt:function(){return this._pf.overflow},utc:function(){return this.zone(0)},local:function(){return this.zone(0),this._isUTC=!1,this},format:function(a){var b=D(this,a||bb.defaultFormat);return this.lang().postformat(b)},add:function(a,b){var c;return c="string"==typeof a?bb.duration(+b,a):bb.duration(a,b),j(this,c,1),this},subtract:function(a,b){var c;return c="string"==typeof a?bb.duration(+b,a):bb.duration(a,b),j(this,c,-1),this},diff:function(a,b,c){var d,e,f=this._isUTC?bb(a).zone(this._offset||0):bb(a).local(),g=6e4*(this.zone()-f.zone());return b=n(b),"year"===b||"month"===b?(d=432e5*(this.daysInMonth()+f.daysInMonth()),e=12*(this.year()-f.year())+(this.month()-f.month()),e+=(this-bb(this).startOf("month")-(f-bb(f).startOf("month")))/d,e-=6e4*(this.zone()-bb(this).startOf("month").zone()-(f.zone()-bb(f).startOf("month").zone()))/d,"year"===b&&(e/=12)):(d=this-f,e="second"===b?d/1e3:"minute"===b?d/6e4:"hour"===b?d/36e5:"day"===b?(d-g)/864e5:"week"===b?(d-g)/6048e5:d),c?e:h(e)},from:function(a,b){return bb.duration(this.diff(a)).lang(this.lang()._abbr).humanize(!b)},fromNow:function(a){return this.from(bb(),a)},calendar:function(){var a=this.diff(bb().zone(this.zone()).startOf("day"),"days",!0),b=-6>a?"sameElse":-1>a?"lastWeek":0>a?"lastDay":1>a?"sameDay":2>a?"nextDay":7>a?"nextWeek":"sameElse";return this.format(this.lang().calendar(b,this))},isLeapYear:function(){return t(this.year())},isDST:function(){return this.zone()<this.clone().month(0).zone()||this.zone()<this.clone().month(5).zone()},day:function(a){var b=this._isUTC?this._d.getUTCDay():this._d.getDay();return null!=a?(a=T(a,this.lang()),this.add({d:a-b})):b},month:function(a){var b,c=this._isUTC?"UTC":"";return null!=a?"string"==typeof a&&(a=this.lang().monthsParse(a),"number"!=typeof a)?this:(b=this.date(),this.date(1),this._d["set"+c+"Month"](a),this.date(Math.min(b,this.daysInMonth())),bb.updateOffset(this),this):this._d["get"+c+"Month"]()},startOf:function(a){switch(a=n(a)){case"year":this.month(0);case"month":this.date(1);case"week":case"isoWeek":case"day":this.hours(0);case"hour":this.minutes(0);case"minute":this.seconds(0);case"second":this.milliseconds(0)}return"week"===a?this.weekday(0):"isoWeek"===a&&this.isoWeekday(1),this},endOf:function(a){return a=n(a),this.startOf(a).add("isoWeek"===a?"week":a,1).subtract("ms",1)},isAfter:function(a,b){return b="undefined"!=typeof b?b:"millisecond",+this.clone().startOf(b)>+bb(a).startOf(b)},isBefore:function(a,b){return b="undefined"!=typeof b?b:"millisecond",+this.clone().startOf(b)<+bb(a).startOf(b)},isSame:function(a,b){return b="undefined"!=typeof b?b:"millisecond",+this.clone().startOf(b)===+bb(a).startOf(b)},min:function(a){return a=bb.apply(null,arguments),this>a?this:a},max:function(a){return a=bb.apply(null,arguments),a>this?this:a},zone:function(a){var b=this._offset||0;return null==a?this._isUTC?b:this._d.getTimezoneOffset():("string"==typeof a&&(a=G(a)),Math.abs(a)<16&&(a=60*a),this._offset=a,this._isUTC=!0,b!==a&&j(this,bb.duration(b-a,"m"),1,!0),this)},zoneAbbr:function(){return this._isUTC?"UTC":""},zoneName:function(){return this._isUTC?"Coordinated Universal Time":""},parseZone:function(){return"string"==typeof this._i&&this.zone(this._i),this},hasAlignedHourOffset:function(a){return a=a?bb(a).zone():0,0===(this.zone()-a)%60},daysInMonth:function(){return r(this.year(),this.month())},dayOfYear:function(a){var b=eb((bb(this).startOf("day")-bb(this).startOf("year"))/864e5)+1;return null==a?b:this.add("d",a-b)},weekYear:function(a){var b=W(this,this.lang()._week.dow,this.lang()._week.doy).year;return null==a?b:this.add("y",a-b)},isoWeekYear:function(a){var b=W(this,1,4).year;return null==a?b:this.add("y",a-b)},week:function(a){var b=this.lang().week(this);return null==a?b:this.add("d",7*(a-b))},isoWeek:function(a){var b=W(this,1,4).week;return null==a?b:this.add("d",7*(a-b))},weekday:function(a){var b=(this.day()+7-this.lang()._week.dow)%7;return null==a?b:this.add("d",a-b)},isoWeekday:function(a){return null==a?this.day()||7:this.day(this.day()%7?a:a-7)},get:function(a){return a=n(a),this[a]()},set:function(a,b){return a=n(a),"function"==typeof this[a]&&this[a](b),this},lang:function(b){return b===a?this._lang:(this._lang=A(b),this)}}),cb=0;cb<Ib.length;cb++)Z(Ib[cb].toLowerCase().replace(/s$/,""),Ib[cb]);Z("year","FullYear"),bb.fn.days=bb.fn.day,bb.fn.months=bb.fn.month,bb.fn.weeks=bb.fn.week,bb.fn.isoWeeks=bb.fn.isoWeek,bb.fn.toJSON=bb.fn.toISOString,g(bb.duration.fn=f.prototype,{_bubble:function(){var a,b,c,d,e=this._milliseconds,f=this._days,g=this._months,i=this._data;i.milliseconds=e%1e3,a=h(e/1e3),i.seconds=a%60,b=h(a/60),i.minutes=b%60,c=h(b/60),i.hours=c%24,f+=h(c/24),i.days=f%30,g+=h(f/30),i.months=g%12,d=h(g/12),i.years=d},weeks:function(){return h(this.days()/7)},valueOf:function(){return this._milliseconds+864e5*this._days+2592e6*(this._months%12)+31536e6*q(this._months/12)},humanize:function(a){var b=+this,c=V(b,!a,this.lang());return a&&(c=this.lang().pastFuture(b,c)),this.lang().postformat(c)},add:function(a,b){var c=bb.duration(a,b);return this._milliseconds+=c._milliseconds,this._days+=c._days,this._months+=c._months,this._bubble(),this},subtract:function(a,b){var c=bb.duration(a,b);return this._milliseconds-=c._milliseconds,this._days-=c._days,this._months-=c._months,this._bubble(),this},get:function(a){return a=n(a),this[a.toLowerCase()+"s"]()},as:function(a){return a=n(a),this["as"+a.charAt(0).toUpperCase()+a.slice(1)+"s"]()},lang:bb.fn.lang,toIsoString:function(){var a=Math.abs(this.years()),b=Math.abs(this.months()),c=Math.abs(this.days()),d=Math.abs(this.hours()),e=Math.abs(this.minutes()),f=Math.abs(this.seconds()+this.milliseconds()/1e3);return this.asSeconds()?(this.asSeconds()<0?"-":"")+"P"+(a?a+"Y":"")+(b?b+"M":"")+(c?c+"D":"")+(d||e||f?"T":"")+(d?d+"H":"")+(e?e+"M":"")+(f?f+"S":""):"P0D"}});for(cb in Jb)Jb.hasOwnProperty(cb)&&(_(cb,Jb[cb]),$(cb.toLowerCase()));_("Weeks",6048e5),bb.duration.fn.asMonths=function(){return(+this-31536e6*this.years())/2592e6+12*this.years()},bb.lang("en",{ordinal:function(a){var b=a%10,c=1===q(a%100/10)?"th":1===b?"st":2===b?"nd":3===b?"rd":"th";return a+c}}),nb?(module.exports=bb,ab(!0)):"function"==typeof define&&define.amd?define("moment",function(b,c,d){return d.config().noGlobal!==!0&&ab(d.config().noGlobal===a),bb}):ab()}).call(this);
+/**
+ * version 2.1.11
+ * @license
+ * =========================================================
+ * bootstrap-datetimepicker.js
+ * http://www.eyecon.ro/bootstrap-datepicker
+ * =========================================================
+ * Copyright 2012 Stefan Petre
+ *
+ * Contributions:
+ * - updated for Bootstrap v3 by Jonathan Peterson (@Eonasdan) and (almost)
+ *    completely rewritten to use Momentjs
+ * - based on tarruda's bootstrap-datepicker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =========================================================
+ */
+(function(d){var c=0,a=moment,b=function(g,i){var s={pickDate:true,pickTime:true,startDate:new a({y:1970}),endDate:new a().add(50,"y"),collapse:true,language:"en",defaultDate:"",disabledDates:[],icons:{},useStrict:false},K={time:"glyphicon glyphicon-time",date:"glyphicon glyphicon-calendar",up:"glyphicon glyphicon-chevron-up",down:"glyphicon glyphicon-chevron-down"},q=this,E=function(){var O=false,N,P,M;q.options=d.extend({},s,i);q.options.icons=d.extend({},K,q.options.icons);if(!(q.options.pickTime||q.options.pickDate)){throw new Error("Must choose at least one picker")}q.id=c++;a.lang(q.options.language);q.date=a();q.element=d(g);q.unset=false;q.isInput=q.element.is("input");q.component=false;if(q.element.hasClass("input-group")){if(q.element.find(".datepickerbutton").size()==0){q.component=q.element.find(".input-group-addon")}else{q.component=q.element.find(".datepickerbutton")}}q.format=q.options.format;M=a()._lang._longDateFormat;if(!q.format){if(q.isInput){q.format=q.element.data("format")}else{q.format=q.element.find("input").data("format")}if(!q.format){q.format=(q.options.pickDate?M.L:"");if(q.options.pickDate&&q.options.pickTime){q.format+=" "}q.format+=(q.options.pickTime?M.LT:"")}}q.use24hours=q.format.toLowerCase().indexOf("a")<1;if(q.component){O=q.component.find("span")}if(q.options.pickTime){if(O){O.addClass(q.options.icons.time)}}if(q.options.pickDate){if(O){O.removeClass(q.options.icons.time);O.addClass(q.options.icons.date)}}q.widget=d(I(q.options.pickDate,q.options.pickTime,q.options.collapse)).appendTo("body");q.minViewMode=q.options.minViewMode||q.element.data("date-minviewmode")||0;if(typeof q.minViewMode==="string"){switch(q.minViewMode){case"months":q.minViewMode=1;break;case"years":q.minViewMode=2;break;default:q.minViewMode=0;break}}q.viewMode=q.options.viewMode||q.element.data("date-viewmode")||0;if(typeof q.viewMode==="string"){switch(q.viewMode){case"months":q.viewMode=1;break;case"years":q.viewMode=2;break;default:q.viewMode=0;break}}for(N=0;N<q.options.disabledDates.length;N++){P=q.options.disabledDates[N];P=a(P);if(!P.isValid()){P=a(q.options.startDate).subtract(1,"day")}q.options.disabledDates[N]=P.format("L")}q.startViewMode=q.viewMode;q.setStartDate(q.options.startDate||q.element.data("date-startdate"));q.setEndDate(q.options.endDate||q.element.data("date-enddate"));H();L();l();C();n();f();J();if(q.options.defaultDate!==""){q.setValue(q.options.defaultDate)}},o=function(){var M="absolute",O=q.component?q.component.offset():q.element.offset(),N=d(window);q.width=q.component?q.component.outerWidth():q.element.outerWidth();O.top=O.top+q.element.outerHeight();if(q.options.width!==undefined){q.widget.width(q.options.width)}if(q.options.orientation==="left"){q.widget.addClass("left-oriented");O.left=O.left-q.widget.width()+20}if(A()){M="fixed";O.top-=N.scrollTop();O.left-=N.scrollLeft()}if(N.width()<O.left+q.widget.outerWidth()){O.right=N.width()-O.left-q.width;O.left="auto";q.widget.addClass("pull-right")}else{O.right="auto";q.widget.removeClass("pull-right")}q.widget.css({position:M,top:O.top,left:O.left,right:O.right})},z=function(M){q.element.trigger({type:"change.dp",date:q.getDate(),oldDate:M})},w=function(M){q.element.trigger({type:"error.dp",date:M})},n=function(M){a.lang(q.options.language);var N=M;if(!N){if(q.isInput){N=q.element.val()}else{N=q.element.find("input").val()}if(N){q.date=a(N,q.format,q.options.useStrict)}if(!q.date){q.date=a()}}q.viewDate=a(q.date).startOf("month");h();y()},H=function(){a.lang(q.options.language);var O=d("<tr>"),M=a.weekdaysMin(),N;if(a()._lang._week.dow==0){for(N=0;N<7;N++){O.append('<th class="dow">'+M[N]+"</th>")}}else{for(N=1;N<8;N++){if(N==7){O.append('<th class="dow">'+M[0]+"</th>")}else{O.append('<th class="dow">'+M[N]+"</th>")}}}q.widget.find(".datepicker-days thead").append(O)},L=function(){a.lang(q.options.language);var N="",M=0,O=a.monthsShort();while(M<12){N+='<span class="month">'+O[M++]+"</span>"}q.widget.find(".datepicker-months td").append(N)},h=function(){a.lang(q.options.language);var X=q.viewDate.year(),V=q.viewDate.month(),W=q.options.startDate.year(),Z=q.options.startDate.month(),aa=q.options.endDate.year(),T=q.options.endDate.month(),P,S,R=[],ab,O,Q,Y,N,U,M=a.months();q.widget.find(".datepicker-days").find(".disabled").removeClass("disabled");q.widget.find(".datepicker-months").find(".disabled").removeClass("disabled");q.widget.find(".datepicker-years").find(".disabled").removeClass("disabled");q.widget.find(".datepicker-days th:eq(1)").text(M[V]+" "+X);P=a(q.viewDate).subtract("months",1);Y=P.daysInMonth();P.date(Y).startOf("week");if((X==W&&V<=Z)||X<W){q.widget.find(".datepicker-days th:eq(0)").addClass("disabled")}if((X==aa&&V>=T)||X>aa){q.widget.find(".datepicker-days th:eq(2)").addClass("disabled")}S=a(P).add(42,"d");while(P.isBefore(S)){if(P.weekday()===a().startOf("week").weekday()){ab=d("<tr>");R.push(ab)}O="";if(P.year()<X||(P.year()==X&&P.month()<V)){O+=" old"}else{if(P.year()>X||(P.year()==X&&P.month()>V)){O+=" new"}}if(P.isSame(a({y:q.date.year(),M:q.date.month(),d:q.date.date()}))){O+=" active"}if((a(P).add(1,"d")<=q.options.startDate)||(P>q.options.endDate)||e(P)){O+=" disabled"}ab.append('<td class="day'+O+'">'+P.date()+"</td>");P.add(1,"d")}q.widget.find(".datepicker-days tbody").empty().append(R);U=a().year(),M=q.widget.find(".datepicker-months").find("th:eq(1)").text(X).end().find("span").removeClass("active");if(U===X){M.eq(a().month()).addClass("active")}if(U-1<W){q.widget.find(".datepicker-months th:eq(0)").addClass("disabled")}if(U+1>aa){q.widget.find(".datepicker-months th:eq(2)").addClass("disabled")}for(Q=0;Q<12;Q++){if((X==W&&Z>Q)||(X<W)){d(M[Q]).addClass("disabled")}else{if((X==aa&&T<Q)||(X>aa)){d(M[Q]).addClass("disabled")}}}R="";X=parseInt(X/10,10)*10;N=q.widget.find(".datepicker-years").find("th:eq(1)").text(X+"-"+(X+9)).end().find("td");q.widget.find(".datepicker-years").find("th").removeClass("disabled");if(W>X){q.widget.find(".datepicker-years").find("th:eq(0)").addClass("disabled")}if(aa<X+9){q.widget.find(".datepicker-years").find("th:eq(2)").addClass("disabled")}X-=1;for(Q=-1;Q<11;Q++){R+='<span class="year'+(Q===-1||Q===10?" old":"")+(U===X?" active":"")+((X<W||X>aa)?" disabled":"")+'">'+X+"</span>";X+=1}N.html(R)},l=function(){a.lang(q.options.language);var P=q.widget.find(".timepicker .timepicker-hours table"),O="",Q,N,M;P.parent().hide();if(q.use24hours){Q=0;for(N=0;N<6;N+=1){O+="<tr>";for(M=0;M<4;M+=1){O+='<td class="hour">'+D(Q.toString())+"</td>";Q++}O+="</tr>"}}else{Q=1;for(N=0;N<3;N+=1){O+="<tr>";for(M=0;M<4;M+=1){O+='<td class="hour">'+D(Q.toString())+"</td>";Q++}O+="</tr>"}}P.html(O)},C=function(){var P=q.widget.find(".timepicker .timepicker-minutes table"),O="",Q=0,N,M;P.parent().hide();for(N=0;N<5;N++){O+="<tr>";for(M=0;M<4;M+=1){O+='<td class="minute">'+D(Q.toString())+"</td>";Q+=3}O+="</tr>"}P.html(O)},y=function(){if(!q.date){return}var O=q.widget.find(".timepicker span[data-time-component]"),M=q.date.hours(),N="AM";if(!q.use24hours){if(M>=12){N="PM"}if(M===0){M=12}else{if(M!=12){M=M%12}}q.widget.find(".timepicker [data-action=togglePeriod]").text(N)}O.filter("[data-time-component=hours]").text(D(M));O.filter("[data-time-component=minutes]").text(D(q.date.minutes()))},B=function(S){S.stopPropagation();S.preventDefault();q.unset=false;var R=d(S.target).closest("span, td, th"),Q,O,P,M,N=q.date;if(R.length===1){if(!R.is(".disabled")){switch(R[0].nodeName.toLowerCase()){case"th":switch(R[0].className){case"switch":f(1);break;case"prev":case"next":P=G.modes[q.viewMode].navStep;if(R[0].className==="prev"){P=P*-1}q.viewDate.add(P,G.modes[q.viewMode].navFnc);h();break}break;case"span":if(R.is(".month")){Q=R.parent().find("span").index(R);q.viewDate.month(Q)}else{O=parseInt(R.text(),10)||0;q.viewDate.year(O)}if(q.viewMode!==0){q.date=a({y:q.viewDate.year(),M:q.viewDate.month(),d:q.viewDate.date(),h:q.date.hours(),m:q.date.minutes()});z(N)}f(-1);h();break;case"td":if(R.is(".day")){M=parseInt(R.text(),10)||1;Q=q.viewDate.month();O=q.viewDate.year();if(R.is(".old")){if(Q===0){Q=11;O-=1}else{Q-=1}}else{if(R.is(".new")){if(Q==11){Q=0;O+=1}else{Q+=1}}}q.date=a({y:O,M:Q,d:M,h:q.date.hours(),m:q.date.minutes()});q.viewDate=a({y:O,M:Q,d:Math.min(28,M)});h();x();z(N)}break}}}},r={incrementHours:function(){j("add","hours")},incrementMinutes:function(){j("add","minutes")},decrementHours:function(){j("subtract","hours")},decrementMinutes:function(){j("subtract","minutes")},togglePeriod:function(){var M=q.date.hours();if(M>=12){M-=12}else{M+=12}q.date.hours(M)},showPicker:function(){q.widget.find(".timepicker > div:not(.timepicker-picker)").hide();q.widget.find(".timepicker .timepicker-picker").show()},showHours:function(){q.widget.find(".timepicker .timepicker-picker").hide();q.widget.find(".timepicker .timepicker-hours").show()},showMinutes:function(){q.widget.find(".timepicker .timepicker-picker").hide();q.widget.find(".timepicker .timepicker-minutes").show()},selectHour:function(M){q.date.hours(parseInt(d(M.target).text(),10));r.showPicker.call(q)},selectMinute:function(M){q.date.minutes(parseInt(d(M.target).text(),10));r.showPicker.call(q)}},v=function(O){var N=d(O.currentTarget).data("action"),P=r[N].apply(q,arguments),M=q.date;F(O);if(!q.date){q.date=a({y:1970})}x();y();z(M);return P},F=function(M){M.stopPropagation();M.preventDefault()},u=function(O){a.lang(q.options.language);var M=d(O.target),N=q.date,P=a(M.val(),q.format,q.options.useStrict);if(P.isValid()){n();q.setValue(P);z(N);x()}else{q.viewDate=N;z(N);w(P);q.unset=true;M.val("")}},f=function(M){if(M){q.viewMode=Math.max(q.minViewMode,Math.min(2,q.viewMode+M))}q.widget.find(".datepicker > div").hide().filter(".datepicker-"+G.modes[q.viewMode].clsName).show()},J=function(){var Q,P,N,M,O;q.widget.on("click",".datepicker *",d.proxy(B,this));q.widget.on("click","[data-action]",d.proxy(v,this));q.widget.on("mousedown",d.proxy(F,this));if(q.options.pickDate&&q.options.pickTime){q.widget.on("click.togglePicker",".accordion-toggle",function(R){R.stopPropagation();Q=d(this);P=Q.closest("ul");N=P.find(".in");M=P.find(".collapse:not(.in)");if(N&&N.length){O=N.data("collapse");if(O&&O.transitioning){return}N.collapse("hide");M.collapse("show");Q.find("span").toggleClass(q.options.icons.time+" "+q.options.icons.date);q.element.find(".input-group-addon span").toggleClass(q.options.icons.time+" "+q.options.icons.date)}})}if(q.isInput){q.element.on({focus:d.proxy(q.show,this),change:d.proxy(u,this),blur:d.proxy(q.hide,this)})}else{q.element.on({change:d.proxy(u,this)},"input");if(q.component){q.component.on("click",d.proxy(q.show,this))}else{q.element.on("click",d.proxy(q.show,this))}}},p=function(){d(window).on("resize.datetimepicker"+q.id,d.proxy(o,this));if(!q.isInput){d(document).on("mousedown.datetimepicker"+q.id,d.proxy(q.hide,this))}},t=function(){q.widget.off("click",".datepicker *",q.click);q.widget.off("click","[data-action]");q.widget.off("mousedown",q.stopEvent);if(q.options.pickDate&&q.options.pickTime){q.widget.off("click.togglePicker")}if(q.isInput){q.element.off({focus:q.show,change:q.change})}else{q.element.off({change:q.change},"input");if(q.component){q.component.off("click",q.show)}else{q.element.off("click",q.show)}}},k=function(){d(window).off("resize.datetimepicker"+q.id);if(!q.isInput){d(document).off("mousedown.datetimepicker"+q.id)}},A=function(){if(q.element){var N=q.element.parents(),M=false,O;for(O=0;O<N.length;O++){if(d(N[O]).css("position")=="fixed"){M=true;break}}return M}else{return false}},x=function(){a.lang(q.options.language);var N="",M;if(!q.unset){N=a(q.date).format(q.format)}if(!q.isInput){if(q.component){M=q.element.find("input");M.val(N)}q.element.data("date",N)}else{q.element.val(N)}if(!q.options.pickTime){q.hide()}},j=function(O,N){a.lang(q.options.language);var M;if(O=="add"){M=a(q.date);if(M.hours()==23){M.add(1,N)}M.add(1,N)}else{M=a(q.date).subtract(1,N)}if(M.isAfter(q.options.endDate)||M.subtract(1,N).isBefore(q.options.startDate)||e(M)){w(M.format(q.format));return}if(O=="add"){q.date.add(1,N)}else{q.date.subtract(1,N)}},e=function(M){a.lang(q.options.language);var O=q.options.disabledDates,N;for(N in O){if(O[N]==a(M).format("L")){return true}}return false},D=function(M){M=M.toString();if(M.length>=2){return M}else{return"0"+M}},I=function(N,M,O){if(N&&M){return('<div class="bootstrap-datetimepicker-widget dropdown-menu" style="z-index:9999 !important;"><ul class="list-unstyled"><li'+(O?' class="collapse in"':"")+'><div class="datepicker">'+G.template+'</div></li><li class="picker-switch accordion-toggle"><a class="btn" style="width:100%"><span class="'+q.options.icons.time+'"></span></a></li><li'+(O?' class="collapse"':"")+'><div class="timepicker">'+m.getTemplate()+"</div></li></ul></div>")}else{if(M){return('<div class="bootstrap-datetimepicker-widget dropdown-menu"><div class="timepicker">'+m.getTemplate()+"</div></div>")}else{return('<div class="bootstrap-datetimepicker-widget dropdown-menu"><div class="datepicker">'+G.template+"</div></div>")}}},G={modes:[{clsName:"days",navFnc:"month",navStep:1},{clsName:"months",navFnc:"year",navStep:1},{clsName:"years",navFnc:"year",navStep:10}],headTemplate:'<thead><tr><th class="prev">&lsaquo;</th><th colspan="5" class="switch"></th><th class="next">&rsaquo;</th></tr></thead>',contTemplate:'<tbody><tr><td colspan="7"></td></tr></tbody>'},m={hourTemplate:'<span data-action="showHours" data-time-component="hours" class="timepicker-hour"></span>',minuteTemplate:'<span data-action="showMinutes" data-time-component="minutes" class="timepicker-minute"></span>'};G.template='<div class="datepicker-days"><table class="table-condensed">'+G.headTemplate+'<tbody></tbody></table></div><div class="datepicker-months"><table class="table-condensed">'+G.headTemplate+G.contTemplate+'</table></div><div class="datepicker-years"><table class="table-condensed">'+G.headTemplate+G.contTemplate+"</table></div>";m.getTemplate=function(){return('<div class="timepicker-picker"><table class="table-condensed"><tr><td><a href="#" class="btn" data-action="incrementHours"><span class="'+q.options.icons.up+'"></span></a></td><td class="separator"></td><td><a href="#" class="btn" data-action="incrementMinutes"><span class="'+q.options.icons.up+'"></span></a></td>'+(!q.use24hours?'<td class="separator"></td>':"")+"</tr><tr><td>"+m.hourTemplate+'</td> <td class="separator">:</td><td>'+m.minuteTemplate+"</td> "+(!q.use24hours?'<td class="separator"></td><td><button type="button" class="btn btn-primary" data-action="togglePeriod"></button></td>':"")+'</tr><tr><td><a href="#" class="btn" data-action="decrementHours"><span class="'+q.options.icons.down+'"></span></a></td><td class="separator"></td><td><a href="#" class="btn" data-action="decrementMinutes"><span class="'+q.options.icons.down+'"></span></a></td>'+(!q.use24hours?'<td class="separator"></td>':"")+'</tr></table></div><div class="timepicker-hours" data-action="selectHour"><table class="table-condensed"></table></div><div class="timepicker-minutes" data-action="selectMinute"><table class="table-condensed"></table></div>')};q.destroy=function(){t();k();q.widget.remove();q.element.removeData("DateTimePicker");q.component.removeData("DateTimePicker")};q.show=function(M){q.widget.show();q.height=q.component?q.component.outerHeight():q.element.outerHeight();o();q.element.trigger({type:"show.dp",date:q.date});p();if(M){F(M)}},q.disable=function(){q.element.find("input").prop("disabled",true);t()},q.enable=function(){q.element.find("input").prop("disabled",false);J()},q.hide=function(){var O=q.widget.find(".collapse"),M,N;for(M=0;M<O.length;M++){N=O.eq(M).data("collapse");if(N&&N.transitioning){return}}q.widget.hide();q.viewMode=q.startViewMode;f();q.element.trigger({type:"hide.dp",date:q.date});k()},q.setValue=function(M){a.lang(q.options.language);if(!M){q.unset=true}else{q.unset=false}if(!a.isMoment(M)){M=a(M)}if(M.isValid()){q.date=M;x();q.viewDate=a({y:q.date.year(),M:q.date.month()});h();y()}else{w(M)}},q.getDate=function(){if(q.unset){return null}return q.date},q.setDate=function(M){if(!M){q.setValue(null)}else{q.setValue(M)}},q.setEndDate=function(M){q.options.endDate=a(M);if(!q.options.endDate.isValid()){q.options.endDate=a().add(50,"y")}if(q.viewDate){n()}},q.setStartDate=function(M){q.options.startDate=a(M);if(!q.options.startDate.isValid()){q.options.startDate=a({y:1970})}if(q.viewDate){n()}};E()};d.fn.datetimepicker=function(e){return this.each(function(){var g=d(this),f=g.data("DateTimePicker");if(!f){g.data("DateTimePicker",new b(this,e))}})}})(jQuery);
 /**
  * angular-translate - v1.1.0 - 2013-09-02
  * http://github.com/PascalPrecht/angular-translate
@@ -63382,7 +63416,7 @@ ol.tilegrid.XYZOptions;
     'loom_geogit',
     'loom_pulldown',
     'loom_pulldown_controller',
-    'loom_feature_info_box',
+    'loom_feature_manager',
     'loom_utils',
     'loom_merge',
     'loom_sync',
@@ -63498,7 +63532,7 @@ ol.tilegrid.XYZOptions;
     function (serverService, mapService, geogitService) {
       return {
         templateUrl: 'addlayers/partials/addlayers.tpl.html',
-        link: function (scope) {
+        link: function (scope, element) {
           scope.serverService = serverService;
           scope.currentServerIndex = 0;
           scope.addLayers = function () {
@@ -63630,7 +63664,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       if (!goog.isDefAndNotNull(server)) {
         return [];
       }
-      if (!goog.isDefAndNotNull(server.layers)) {
+      if (!goog.isDefAndNotNull(server.layers) && goog.isDefAndNotNull(server.url)) {
         var parser = new ol.parser.ogc.WMSCapabilities();
         var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
         if (SERVER_SERVICE_USE_PROXY) {
@@ -63649,7 +63683,7 @@ var SERVER_SERVICE_USE_PROXY = true;
               rootScope.$broadcast('layers-loaded');
             }
           } else {
-            alert('Failed to get capabilities: ' + xhr.status.toString() + ' ' + xhr.statusText);
+            console.log('Failed to get capabilities: ', xhr);
           }
         };
         xhr.send();
@@ -63971,9 +64005,25 @@ var SERVER_SERVICE_USE_PROXY = true;
       mapService_.map.addLayer(difflayer_);
       if (goog.isDefAndNotNull(_changeList) && goog.isArray(_changeList)) {
         goog.array.forEach(_changeList, function (change) {
+          var crs = goog.isDefAndNotNull(change.crs) ? change.crs : null;
+          mapService_.map.getLayers().forEach(function (layer) {
+            var metadata = layer.get('metadata');
+            if (goog.isDefAndNotNull(metadata)) {
+              if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === _repo) {
+                var splitFeature = change.id.split('/');
+                if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
+                  if (goog.isDefAndNotNull(metadata.projection)) {
+                    crs = metadata.projection;
+                  }
+                }
+              }
+            }
+          });
           var geom = ol.parser.WKT.read(change.geometry);
-          var transform = ol.proj.getTransform('EPSG:4326', mapService_.map.getView().getView2D().getProjection());
-          geom.transform(transform);
+          if (goog.isDefAndNotNull(crs)) {
+            var transform = ol.proj.getTransform(crs, mapService_.map.getView().getView2D().getProjection());
+            geom.transform(transform);
+          }
           var olFeature = new ol.Feature();
           olFeature.set('change', change.change);
           olFeature.setGeometry(geom);
@@ -64151,20 +64201,6 @@ var SERVER_SERVICE_USE_PROXY = true;
             width += (numPanels - 1) * 36;
             element.closest('.modal-dialog').css('width', width);
           }
-          scope.leftSeparatorClick = function () {
-            if (featureDiffService.change === 'CONFLICT') {
-              featureDiffService.choose(featureDiffService.left);
-              scope.ours = true;
-            }
-            scope.$broadcast('update-merge-feature');
-          };
-          scope.rightSeparatorClick = function () {
-            if (featureDiffService.change === 'CONFLICT') {
-              featureDiffService.choose(featureDiffService.right);
-              scope.ours = false;
-            }
-            scope.$broadcast('update-merge-feature');
-          };
           scope.cancel = function () {
             featureDiffService.clear();
             scope.leftPanel = false;
@@ -64172,23 +64208,18 @@ var SERVER_SERVICE_USE_PROXY = true;
             scope.mergePanel = false;
             scope.leftSeparator = false;
             scope.rightSeparator = false;
-            scope.ours = null;
             element.closest('.modal').modal('hide');
           };
           scope.save = function () {
-            if (!goog.isDefAndNotNull(scope.ours)) {
-              scope.ours = true;
-            }
-            featureDiffService.feature.olFeature.setGeometry(featureDiffService.merged.olGeometry);
+            featureDiffService.feature.olFeature.setGeometry(featureDiffService.merged.olFeature.getGeometry());
             featureDiffService.feature.olFeature.set('change', 'MERGED');
-            conflictService.resolveConflict(scope.ours);
+            conflictService.resolveConflict(featureDiffService.getMerges());
             featureDiffService.clear();
             scope.leftPanel = false;
             scope.rightPanel = false;
             scope.mergePanel = false;
             scope.leftSeparator = false;
             scope.rightSeparator = false;
-            scope.ours = null;
             element.closest('.modal').modal('hide');
           };
           function onResize() {
@@ -64216,6 +64247,7 @@ var SERVER_SERVICE_USE_PROXY = true;
   var repoId_ = null;
   var diffsNeeded_ = null;
   var diffsInError_ = 0;
+  var crs_ = null;
   var FeaturePanel = function () {
     this.map = null;
     this.featureLayer = null;
@@ -64223,13 +64255,13 @@ var SERVER_SERVICE_USE_PROXY = true;
     this.bounds = null;
     this.active = false;
     this.geometry = null;
-    this.olGeometry = null;
+    this.olFeature = null;
     this.clearFeature = function () {
       this.attributes = [];
       this.bounds = null;
       this.active = false;
       this.geometry = null;
-      this.olGeometry = null;
+      this.olFeature = null;
       this.featureLayer.clear();
     };
     this.getGeometry = function () {
@@ -64311,13 +64343,63 @@ var SERVER_SERVICE_USE_PROXY = true;
       service_.right.clearFeature();
       service_.merged.clearFeature();
     };
-    this.choose = function (panel) {
+    this.chooseGeometry = function (panel) {
       this.merged.geometry = panel.geometry;
-      this.merged.attributes = panel.attributes;
       this.merged.bounds = panel.bounds;
-      this.merged.olGeometry = panel.olGeometry;
-      this.merged.replaceLayers(panel.map.getLayers());
-      this.merged.map.removeLayer(this.merged.featureLayer);
+      this.merged.olFeature.setGeometry(panel.olFeature.getGeometry());
+      this.merged.olFeature.set('MapLoomChange', panel.olFeature.get('MapLoomChange'));
+      rootScope_.$broadcast('merge-feature-modified');
+    };
+    this.chooseAttribute = function (index, panel) {
+      this.merged.attributes[index] = $.extend(true, {}, panel.attributes[index]);
+    };
+    this.choose = function (panel) {
+      for (var i = 0; i < panel.attributes.length; i++) {
+        this.chooseAttribute(i, panel);
+      }
+      this.chooseGeometry(panel);
+    };
+    this.attributesEqual = function (attr1, attr2) {
+      return attr1.attributename == attr2.attributename && attr1.changetype == attr2.changetype && attr1.newvalue == attr2.newvalue && attr1.oldvalue == attr2.oldvalue;
+    };
+    this.updateChangeType = function (attribute) {
+      if (goog.isDefAndNotNull(attribute.oldvalue)) {
+        if (goog.isDefAndNotNull(attribute.newvalue)) {
+          if (attribute.oldvalue !== attribute.newvalue) {
+            attribute.changetype = 'MODIFIED';
+          } else {
+            attribute.changetype = 'NO_CHANGE';
+          }
+        } else {
+          attribute.changetype = 'REMOVED';
+        }
+      } else {
+        if (goog.isDefAndNotNull(attribute.newvalue)) {
+          attribute.changetype = 'ADDED';
+        } else {
+          attribute.changetype = 'NO_CHANGE';
+        }
+      }
+    };
+    this.getMerges = function () {
+      var merges = {};
+      if (service_.merged.geometry == service_.left.geometry) {
+        merges[service_.merged.geometry.attributename] = '__OURS__';
+      } else if (service_.merged.geometry == service_.right.geometry) {
+        merges[service_.merged.geometry.attributename] = '__THEIRS__';
+      } else {
+        merges[service_.merged.geometry.attributename] = service_.merged.geometry;
+      }
+      for (var i = 0; i < service_.merged.attributes.length; i++) {
+        if (service_.attributesEqual(service_.merged.attributes[i], service_.left.attributes[i])) {
+          merges[service_.merged.attributes[i].attributename] = '__OURS__';
+        } else if (service_.attributesEqual(service_.merged.attributes[i], service_.right.attributes[i])) {
+          merges[service_.merged.attributes[i].attributename] = '__THEIRS__';
+        } else {
+          merges[service_.merged.attributes[i].attributename] = service_.merged.attributes[i].newvalue;
+        }
+      }
+      return merges;
     };
     this.setFeature = function (feature, ours, theirs, ancestor, repoId) {
       service_.change = feature.change;
@@ -64333,6 +64415,35 @@ var SERVER_SERVICE_USE_PROXY = true;
       service_.left.replaceLayers(layers);
       service_.right.replaceLayers(layers);
       service_.merged.replaceLayers(layers);
+      crs_ = goog.isDefAndNotNull(feature.crs) ? feature.crs : null;
+      var repoName = geogitService_.getRepoById(repoId_).name;
+      mapService_.map.getLayers().forEach(function (layer) {
+        var metadata = layer.get('metadata');
+        if (goog.isDefAndNotNull(metadata)) {
+          if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === repoName) {
+            var splitFeature = feature.id.split('/');
+            if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
+              if (goog.isDefAndNotNull(metadata.projection)) {
+                crs_ = metadata.projection;
+              }
+            }
+          }
+        }
+      });
+      var geom = ol.parser.WKT.read(feature.geometry);
+      if (goog.isDefAndNotNull(crs_)) {
+        var transform = ol.proj.getTransform(crs_, mapService_.map.getView().getView2D().getProjection());
+        geom.transform(transform);
+      }
+      var newBounds = geom.getBounds();
+      var x = newBounds[2] - newBounds[0];
+      var y = newBounds[3] - newBounds[1];
+      x *= 0.5;
+      y *= 0.5;
+      newBounds[0] -= x;
+      newBounds[2] += x;
+      newBounds[1] -= y;
+      newBounds[3] += y;
       diffsInError_ = 0;
       switch (feature.change) {
       case 'ADDED':
@@ -64351,6 +64462,10 @@ var SERVER_SERVICE_USE_PROXY = true;
       case 'CONFLICT':
         diffsNeeded_ = 2;
         service_.merged.active = true;
+        service_.merged.olFeature = new ol.Feature();
+        service_.merged.olFeature.set('MapLoomChange', feature.change);
+        service_.merged.olFeature.setGeometry(geom);
+        service_.merged.featureLayer.addFeatures([service_.merged.olFeature]);
         service_.performFeatureDiff(feature, ours_, ancestor_, service_.left);
         service_.performFeatureDiff(feature, theirs_, ancestor_, service_.right);
         break;
@@ -64361,18 +64476,6 @@ var SERVER_SERVICE_USE_PROXY = true;
         service_.performFeatureDiff(feature, ours_, ancestor_, service_.merged);
         break;
       }
-      var geom = ol.parser.WKT.read(feature.geometry);
-      var transform = ol.proj.getTransform('EPSG:4326', mapService_.map.getView().getView2D().getProjection());
-      geom.transform(transform);
-      var newBounds = geom.getBounds();
-      var x = newBounds[2] - newBounds[0];
-      var y = newBounds[3] - newBounds[1];
-      x *= 0.5;
-      y *= 0.5;
-      newBounds[0] -= x;
-      newBounds[2] += x;
-      newBounds[1] -= y;
-      newBounds[3] += y;
       mapService_.zoomToExtent(newBounds);
       service_.title = feature.id;
       rootScope_.$broadcast('feature-diff-feature-set');
@@ -64387,6 +64490,9 @@ var SERVER_SERVICE_USE_PROXY = true;
       geogitService_.command(repoId_, 'featurediff', diffOptions).then(function (response) {
         forEachArrayish(response.diff, function (item) {
           if (item.geometry !== true) {
+            if (!goog.isDefAndNotNull(item.newvalue)) {
+              item.newvalue = item.oldvalue;
+            }
             panel.attributes.push(item);
           } else {
             panel.geometry = item;
@@ -64401,14 +64507,20 @@ var SERVER_SERVICE_USE_PROXY = true;
           }
           return 0;
         });
-        var geom = ol.parser.WKT.read(goog.isDefAndNotNull(panel.geometry.newvalue) ? panel.geometry.newvalue : panel.geometry.oldvalue);
-        var transform = ol.proj.getTransform('EPSG:4326', panel.map.getView().getView2D().getProjection());
-        geom.transform(transform);
+        var geom = ol.parser.WKT.read(panel.getGeometry());
+        var localCrs = crs_;
+        if (goog.isDefAndNotNull(panel.geometry.crs)) {
+          localCrs = panel.geometry.crs;
+        }
+        if (goog.isDefAndNotNull(localCrs)) {
+          var transform = ol.proj.getTransform(localCrs, panel.map.getView().getView2D().getProjection());
+          geom.transform(transform);
+        }
         var olFeature = new ol.Feature();
-        olFeature.set('change', panel.geometry.changetype);
+        olFeature.set('MapLoomChange', panel.geometry.changetype);
         olFeature.setGeometry(geom);
         panel.featureLayer.addFeatures([olFeature]);
-        panel.olGeometry = geom;
+        panel.olFeature = olFeature;
         var newBounds = geom.getBounds();
         var x = newBounds[2] - newBounds[0];
         var y = newBounds[3] - newBounds[1];
@@ -64425,8 +64537,26 @@ var SERVER_SERVICE_USE_PROXY = true;
             dialogService_.error('Error', 'Unable to retrieve all the differences for the layer.  Check network connection and try again.');
           } else {
             if (feature.change == 'CONFLICT') {
-              if (goog.isDefAndNotNull(feature.ours) && feature.ours === false) {
-                service_.choose(service_.right);
+              service_.merged.attributes = $.extend(true, [], service_.left.attributes);
+              if (goog.isDefAndNotNull(feature.merges)) {
+                var geomattributename = panel.geometry.attributename;
+                var geomMergeValue = feature.merges[geomattributename];
+                if (geomMergeValue === '__OURS__') {
+                  service_.chooseGeometry(service_.left);
+                } else if (geomMergeValue === '__THEIRS__') {
+                  service_.chooseGeometry(service_.right);
+                }
+                for (var i = 0; i < service_.merged.attributes.length; i++) {
+                  var attributename = service_.merged.attributes[i].attributename;
+                  var mergeValue = feature.merges[attributename];
+                  if (mergeValue === '__OURS__') {
+                  } else if (mergeValue === '__THEIRS__') {
+                    service_.chooseAttribute(i, service_.right);
+                  } else {
+                    service_.merged.attributes[i].newvalue = mergeValue;
+                    service_.updateChangeType(service_.merged.attributes[i]);
+                  }
+                }
               } else {
                 service_.choose(service_.left);
               }
@@ -64450,7 +64580,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       style: new ol.style.Style({
         rules: [
           new ol.style.Rule({
-            filter: 'change == "ADDED"',
+            filter: 'MapLoomChange == "ADDED"',
             symbolizers: [
               new ol.style.Fill({
                 color: '#00FF00',
@@ -64460,7 +64590,7 @@ var SERVER_SERVICE_USE_PROXY = true;
             ]
           }),
           new ol.style.Rule({
-            filter: 'change == "REMOVED"',
+            filter: 'MapLoomChange == "REMOVED"',
             symbolizers: [
               new ol.style.Fill({
                 color: '#FF0000',
@@ -64470,7 +64600,7 @@ var SERVER_SERVICE_USE_PROXY = true;
             ]
           }),
           new ol.style.Rule({
-            filter: 'change == "MODIFIED"',
+            filter: 'MapLoomChange == "MODIFIED"',
             symbolizers: [
               new ol.style.Fill({
                 color: '#FFFF00',
@@ -64480,7 +64610,7 @@ var SERVER_SERVICE_USE_PROXY = true;
             ]
           }),
           new ol.style.Rule({
-            filter: 'change == "NO_CHANGE"',
+            filter: 'MapLoomChange == "NO_CHANGE"',
             symbolizers: [
               new ol.style.Fill({
                 color: '#FFFFFF',
@@ -64497,10 +64627,11 @@ var SERVER_SERVICE_USE_PROXY = true;
 (function () {
   var module = angular.module('loom_feature_panel_directive', []);
   module.directive('loomFeaturePanel', [
+    '$rootScope',
     'mapService',
     '$timeout',
-    'geogitService',
-    function (mapService, $timeout, geogitService) {
+    'featureDiffService',
+    function ($rootScope, mapService, $timeout, featureDiffService) {
       return {
         restrict: 'C',
         scope: {
@@ -64521,6 +64652,15 @@ var SERVER_SERVICE_USE_PROXY = true;
               }, 500);
             }, 500);
           }
+          scope.isMergePanel = scope.panel === featureDiffService.merged;
+          if (scope.isMergePanel) {
+            scope.$watch('panel.attributes', function () {
+              for (var i = 0; i < scope.panel.attributes.length; i++) {
+                featureDiffService.updateChangeType(scope.panel.attributes[i]);
+              }
+              $rootScope.$broadcast('merge-feature-modified');
+            }, true);
+          }
           scope.$on('feature-diff-performed', updateVariables);
         }
       };
@@ -64529,9 +64669,6 @@ var SERVER_SERVICE_USE_PROXY = true;
 }());
 (function () {
   var module = angular.module('loom_panel_separator_directive', []);
-  var attributesEqual = function (attr1, attr2) {
-    return attr1.attributename == attr2.attributename && attr1.changetype == attr2.changetype && attr1.newvalue == attr2.newvalue && attr1.oldvalue == attr2.oldvalue;
-  };
   module.directive('loomPanelSeparator', [
     'featureDiffService',
     function (featureDiffService) {
@@ -64545,6 +64682,7 @@ var SERVER_SERVICE_USE_PROXY = true;
           hover: '='
         },
         link: function (scope, element) {
+          scope.featureDiffService = featureDiffService;
           function updateVariables(event, panel) {
             if (scope.hover) {
               element.closest('.loom-panel-separator').addClass('hoverable');
@@ -64565,7 +64703,7 @@ var SERVER_SERVICE_USE_PROXY = true;
               for (i = 0; i < scope.panel.attributes.length; i++) {
                 scope.geometryChanged = scope.panel.getGeometry() === featureDiffService.merged.getGeometry();
                 attr = scope.panel.attributes[i];
-                if (attributesEqual(attr, featureDiffService.merged.attributes[i]) && attr.changetype !== 'NO_CHANGE') {
+                if (featureDiffService.attributesEqual(attr, featureDiffService.merged.attributes[i]) && attr.changetype !== 'NO_CHANGE') {
                   scope.arrows.push({ active: true });
                 } else {
                   scope.arrows.push({ active: false });
@@ -64573,6 +64711,14 @@ var SERVER_SERVICE_USE_PROXY = true;
               }
             }
           }
+          scope.geometryArrowClick = function () {
+            featureDiffService.chooseGeometry(scope.panel);
+            updateVariables();
+          };
+          scope.arrowClick = function (index) {
+            featureDiffService.chooseAttribute(index, scope.panel);
+          };
+          scope.$on('merge-feature-modified', updateVariables);
           scope.$on('feature-diff-performed', updateVariables);
           scope.$on('update-merge-feature', updateVariables);
         }
@@ -64581,19 +64727,53 @@ var SERVER_SERVICE_USE_PROXY = true;
   ]);
 }());
 (function () {
+  var module = angular.module('loom_attribute_edit_directive', []);
+  module.directive('loomAttributeEdit', [
+    'featureManagerService',
+    function (featureManagerService) {
+      return {
+        restrict: 'C',
+        templateUrl: 'featuremanager/partial/attributeedit.tpl.html',
+        link: function (scope, element) {
+          scope.featureManagerService = featureManagerService;
+          scope.coordDisplay = coordinateDisplays.DMS;
+          scope.$on('startAttributeEdit', function (event, feature, properties) {
+            scope.properties = new Array(properties.length);
+            goog.array.forEach(properties, function (property, index, arr) {
+              scope.properties[index] = goog.object.clone(property);
+            });
+            $('#attribute-edit-dialog').modal('toggle');
+            scope.feature = feature;
+          });
+          var parentModal = element.closest('.modal');
+          var closeModal = function (event, element) {
+            if (parentModal[0] === element[0]) {
+              scope.feature = null;
+              scope.properties = null;
+            }
+          };
+          scope.$on('modal-closed', closeModal);
+        }
+      };
+    }
+  ]);
+}());
+(function () {
   var module = angular.module('loom_feature_info_box_directive', []);
   module.directive('loomFeatureInfoBox', [
-    'featureInfoBoxService',
-    function (featureInfoBoxService) {
+    'featureManagerService',
+    'mapService',
+    function (featureManagerService, mapService) {
       return {
         replace: false,
         restrict: 'A',
-        templateUrl: 'featureinfobox/partial/featureinfobox.tpl.html',
-        link: function (scope, element, attrs) {
-          scope.featureInfoBoxService = featureInfoBoxService;
+        templateUrl: 'featuremanager/partial/featureinfobox.tpl.html',
+        link: function (scope) {
+          scope.featureManagerService = featureManagerService;
+          scope.mapService = mapService;
           scope.$on('feature-info-click', function () {
             scope.$apply(function () {
-              scope.featureInfoBoxService = featureInfoBoxService;
+              scope.featureManagerService = featureManagerService;
             });
           });
         }
@@ -64602,37 +64782,45 @@ var SERVER_SERVICE_USE_PROXY = true;
   ]);
 }());
 (function () {
-  angular.module('loom_feature_info_box', [
+  angular.module('loom_feature_manager', [
     'loom_feature_info_box_directive',
-    'loom_feature_info_box_service'
+    'loom_geometry_edit_directive',
+    'loom_attribute_edit_directive',
+    'loom_feature_manager_service'
   ]);
 }());
 (function () {
-  var module = angular.module('loom_feature_info_box_service', []);
+  var module = angular.module('loom_feature_manager_service', []);
   var service_ = null;
   var mapService_ = null;
   var rootScope_ = null;
+  var http_ = null;
   var state_ = '';
   var selectedItem_ = null;
   var selectedItemPics_ = null;
   var selectedItemProperties_ = null;
+  var selectedLayer_ = null;
   var featureInfoPerLayer_ = [];
   var containerInstance_ = null;
   var overlay_ = null;
   var position_ = null;
-  module.provider('featureInfoBoxService', function () {
+  var modify_ = null;
+  var enabled_ = true;
+  module.provider('featureManagerService', function () {
     this.$get = [
       '$rootScope',
       'mapService',
       '$compile',
-      function ($rootScope, mapService, $compile) {
+      '$http',
+      function ($rootScope, mapService, $compile, $http) {
         rootScope_ = $rootScope;
         service_ = this;
         mapService_ = mapService;
+        http_ = $http;
         registerOnMapClick($rootScope, $compile);
         overlay_ = new ol.Overlay({
-          element: document.getElementById('info-box'),
-          insertFirst: false
+          insertFirst: false,
+          element: document.getElementById('info-box')
         });
         mapService_.map.addOverlay(overlay_);
         return this;
@@ -64650,6 +64838,9 @@ var SERVER_SERVICE_USE_PROXY = true;
     this.getSelectedItemProperties = function () {
       return selectedItemProperties_;
     };
+    this.getSelectedLayer = function () {
+      return selectedLayer_;
+    };
     this.getPosition = function () {
       return position_;
     };
@@ -64659,6 +64850,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       selectedItemProperties_ = null;
       state_ = null;
       featureInfoPerLayer_ = [];
+      mapService_.clearSelectedFeature();
     };
     this.show = function (item, position) {
       if (!goog.isDefAndNotNull(item)) {
@@ -64745,12 +64937,28 @@ var SERVER_SERVICE_USE_PROXY = true;
             }
           });
         }
+        if (getItemType(selectedItem_) === 'feature') {
+          selectedLayer_ = this.getSelectedItemLayer().layer;
+          mapService_.selectFeature(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+        } else {
+          mapService_.clearSelectedFeature();
+        }
         selectedItemProperties_ = props;
       }
       if (goog.isDefAndNotNull(position)) {
         position_ = position;
         mapService_.map.getOverlays().array_[0].setPosition(position);
       }
+    };
+    this.getSelectedItemLayer = function () {
+      for (var i = 0; i < featureInfoPerLayer_.length; i++) {
+        for (var j = 0; j < featureInfoPerLayer_[i].features.length; j++) {
+          if (featureInfoPerLayer_[i].features[j] === selectedItem_) {
+            return featureInfoPerLayer_[i];
+          }
+        }
+      }
+      return null;
     };
     this.showPreviousState = function () {
       service_.show(service_.getPreviousState().item);
@@ -64759,18 +64967,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       var state = null;
       var item = null;
       if (state_ === 'feature') {
-        var layer = null;
-        for (var i = 0; i < featureInfoPerLayer_.length; i++) {
-          for (var j = 0; j < featureInfoPerLayer_[i].features.length; j++) {
-            if (featureInfoPerLayer_[i].features[j] === selectedItem_) {
-              layer = featureInfoPerLayer_[i];
-              break;
-            }
-          }
-          if (layer !== null) {
-            break;
-          }
-        }
+        var layer = this.getSelectedItemLayer();
         if (layer) {
           if (layer.features.length > 1) {
             state = 'layer';
@@ -64814,46 +65011,89 @@ var SERVER_SERVICE_USE_PROXY = true;
         blueimp.Gallery(selectedItemPics_, options);
       }
     };
-  });
-  function registerOnMapClick($rootScope, $compile) {
-    mapService_.map.on('click', function (evt) {
-      if (!goog.isDefAndNotNull(containerInstance_)) {
-        containerInstance_ = mapService_.map.getOverlays().array_[0].getElement();
-        $compile(containerInstance_)($rootScope);
+    this.startGeometryEditing = function () {
+      $('#info-box').hide();
+      rootScope_.$broadcast('startGeometryEdit');
+      modify_ = new ol.interaction.Modify();
+      mapService_.map.addInteraction(modify_);
+      enabled_ = false;
+    };
+    this.endGeometryEditing = function (save) {
+      if (save) {
+      } else {
+        mapService_.clearSelectedFeature();
+        mapService_.selectFeature(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
       }
-      service_.hide();
-      var layers = mapService_.getFeatureLayers();
-      mapService_.map.getFeatureInfo({
-        pixel: evt.getPixel(),
-        layers: layers,
-        success: function (featureInfoByLayer) {
-          var infoPerLayer = [];
-          featureInfoByLayer.forEach(function (elm, index) {
-            var layerInfo = JSON.parse(elm);
-            if (layerInfo.features && layerInfo.features.length > 0) {
-              layerInfo.layer = layers[index];
-              goog.array.insert(infoPerLayer, layerInfo);
-            }
-          });
-          if (infoPerLayer.length > 0) {
-            service_.show(infoPerLayer, evt.getCoordinate());
-          } else {
-            service_.hide();
-          }
-          rootScope_.$broadcast('feature-info-click');
-        },
-        error: function () {
-          console.log('====[ ERROR: loomFeatureInfoBox.map.getFeatureInfo.error');
-          throw {
-            name: 'featureInfoBox',
-            level: 'High',
-            message: 'map.getFeatureInfo failed!',
-            toString: function () {
-              return this.name + ': ' + this.message;
-            }
-          };
+      $('#info-box').show();
+      rootScope_.$broadcast('endGeometryEdit');
+      mapService_.map.removeInteraction(modify_);
+      enabled_ = true;
+    };
+    this.startAttributeEditing = function () {
+      rootScope_.$broadcast('startAttributeEdit', selectedItem_, selectedItemProperties_);
+    };
+    this.endAttributeEditing = function (properties) {
+      var propertyXmlPartial = '';
+      goog.array.forEach(properties, function (property, index) {
+        if (properties[index][1] !== selectedItemProperties_[index][1]) {
+          propertyXmlPartial += '<wfs:Property><wfs:Name>' + property[0] + '</wfs:Name><wfs:Value>' + property[1] + '</wfs:Value></wfs:Property>';
         }
       });
+      if (propertyXmlPartial !== '') {
+        var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.1.0" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd"> ' + '<wfs:Update xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.getSource().getParams().LAYERS + '">' + propertyXmlPartial + '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">' + '<ogc:FeatureId fid="' + selectedItem_.id + '" />' + '</ogc:Filter>' + '</wfs:Update>' + '</wfs:Transaction>';
+        http_({
+          url: '/geoserver/wfs/WfsDispatcher',
+          method: 'POST',
+          data: wfsRequestData
+        }).success(function (data, status, headers, config) {
+          selectedItemProperties_ = properties;
+        }).error(function (data, status, headers, config) {
+          console.log('----[ ERROR: wfs-t post failed! ', data, status, headers, config);
+        });
+      }
+    };
+  });
+  function registerOnMapClick($rootScope, $compile) {
+    mapService_.map.on('singleclick', function (evt) {
+      if (enabled_) {
+        if (!goog.isDefAndNotNull(containerInstance_)) {
+          containerInstance_ = mapService_.map.getOverlays().array_[0].getElement();
+          $compile(containerInstance_)($rootScope);
+        }
+        service_.hide();
+        var layers = mapService_.getFeatureLayers();
+        mapService_.map.getFeatureInfo({
+          pixel: evt.getPixel(),
+          layers: layers,
+          success: function (featureInfoByLayer) {
+            var infoPerLayer = [];
+            featureInfoByLayer.forEach(function (elm, index) {
+              var layerInfo = JSON.parse(elm);
+              if (layerInfo.features && layerInfo.features.length > 0) {
+                layerInfo.layer = layers[index];
+                goog.array.insert(infoPerLayer, layerInfo);
+              }
+            });
+            if (infoPerLayer.length > 0) {
+              service_.show(infoPerLayer, evt.getCoordinate());
+            } else {
+              service_.hide();
+            }
+            rootScope_.$broadcast('feature-info-click');
+          },
+          error: function () {
+            console.log('====[ ERROR: loomFeatureInfoBox.map.getFeatureInfo.error');
+            throw {
+              name: 'featureInfoBox',
+              level: 'High',
+              message: 'map.getFeatureInfo failed!',
+              toString: function () {
+                return this.name + ': ' + this.message;
+              }
+            };
+          }
+        });
+      }
     });
   }
   function getItemType(item) {
@@ -64869,6 +65109,36 @@ var SERVER_SERVICE_USE_PROXY = true;
     }
     return type;
   }
+}());
+(function () {
+  var module = angular.module('loom_geometry_edit_directive', []);
+  module.directive('loomGeometryEdit', [
+    'mapService',
+    'featureManagerService',
+    function (mapService, featureManagerService) {
+      return {
+        restrict: 'C',
+        replace: true,
+        templateUrl: 'featuremanager/partial/geometryedit.tpl.html',
+        link: function (scope) {
+          scope.mapService = mapService;
+          scope.featureManagerService = featureManagerService;
+          scope.panelOpen = false;
+          var expandPanel = function () {
+            if (scope.panelOpen === false) {
+              scope.panelOpen = true;
+              angular.element('#geometry-edit-container').collapse('show');
+            } else {
+              angular.element('#geometry-edit-container').collapse('hide');
+              scope.panelOpen = false;
+            }
+          };
+          scope.$on('startGeometryEdit', expandPanel);
+          scope.$on('endGeometryEdit', expandPanel);
+        }
+      };
+    }
+  ]);
 }());
 (function () {
   angular.module('loom_geogit', ['loom_geogit_service']);
@@ -64936,6 +65206,10 @@ var GeoGitAddOptions = function () {
 var GeoGitRemoveOptions = function () {
   this.path = null;
   this.recursive = null;
+};
+var GeoGitResolveConflictOptions = function () {
+  this.path = null;
+  this.objectid = null;
 };
 var GeoGitVersionOptions = function () {
 };
@@ -65099,6 +65373,22 @@ var GeoGitLogOptions = function () {
       }
       return deferredResponse.promise;
     };
+    this.post = function (repoId, command, data) {
+      var deferredResponse = q.defer();
+      var repo = service_.getRepoById(repoId);
+      if (goog.isDefAndNotNull(repo)) {
+        var URL = repo.url + '/' + command;
+        URL += '&_dc=' + new Date().getTime();
+        http.post(URL, data).then(function (response) {
+          deferredResponse.resolve(response);
+        }, function (reject) {
+          deferredResponse.reject(reject);
+        }, function (update) {
+          deferredResponse.update(update);
+        });
+      }
+      return deferredResponse.promise;
+    };
     this.addRepo = function (newRepo) {
       var result = q.defer();
       for (var index = 0; index < service_.repos.length; index++) {
@@ -65216,8 +65506,9 @@ var GeoGitLogOptions = function () {
       return null;
     };
     this.isNotLayerGroup = function (layer) {
+      var layerUrl = layer.get('metadata').url;
       var featureType = layer.getSource().getParams().LAYERS;
-      var url = layer.get('metadata').url + '/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=DescribeLayer&layers=' + featureType;
+      var url = layerUrl + '/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=DescribeLayer&layers=' + featureType;
       if (SERVER_SERVICE_USE_PROXY) {
         url = '/proxy/?url=' + encodeURIComponent(url);
       }
@@ -65285,8 +65576,8 @@ var GeoGitLogOptions = function () {
           service_.isNotLayerGroup(layer).then(function () {
             service_.getDataStoreName(layer).then(function (dataStoreName) {
               service_.getDataStore(layer, dataStoreName).then(function (dataStore) {
-                if (dataStore.type === 'GeoGIT') {
-                  service_.getFeatureType(layer, dataStore).then(function (featureType) {
+                service_.getFeatureType(layer, dataStore).then(function (featureType) {
+                  if (dataStore.type === 'GeoGIT') {
                     var repoName = dataStore.connectionParameters.entry[0].$;
                     repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
                     var promise = service_.addRepo(new GeoGitRepo(metadata.url + '/geogit/' + featureType.workspace + ':' + dataStore.name, dataStore.connectionParameters.entry[1].$, repoName));
@@ -65300,17 +65591,17 @@ var GeoGitLogOptions = function () {
                     }, function (reject) {
                       dialogService_.error('Error', 'Unable to add the GeoGit remote: ' + reject);
                     });
-                    metadata.projection = featureType.srs;
                     metadata.isGeoGit = true;
-                    metadata.workspace = featureType.workspace;
                     metadata.geogitStore = dataStore.name;
-                    metadata.nativeName = featureType.nativeName;
-                  }, function (rejected) {
-                    dialogService_.error('Error', 'Unable to get feature type of GeoGit data store. (' + rejected.status + ')');
-                  });
-                } else {
-                  metadata.isGeoGit = false;
-                }
+                  } else {
+                    metadata.isGeoGit = false;
+                  }
+                  metadata.projection = featureType.srs;
+                  metadata.workspace = featureType.workspace;
+                  metadata.nativeName = featureType.nativeName;
+                }, function (rejected) {
+                  dialogService_.error('Error', 'Unable to get feature type of GeoGit data store. (' + rejected.status + ')');
+                });
               }, function (rejected) {
                 dialogService_.error('Error', 'Unable to get the data store. (' + rejected.status + ')');
               });
@@ -65348,6 +65639,9 @@ var GeoGitLogOptions = function () {
             var length = mapService.map.getLayers().getArray().length - 1;
             var layer = mapService.map.removeLayer(mapService.map.getLayers().getAt(length - startIndex));
             mapService.map.getLayers().insertAt(length - endIndex, layer);
+          };
+          scope.filterHiddenLayers = function (layer) {
+            return !(!goog.isDefAndNotNull(layer.get('metadata')) || goog.isDefAndNotNull(layer.get('metadata').hidden) && layer.get('metadata').hidden);
           };
         }
       };
@@ -65407,6 +65701,92 @@ var GeoGitLogOptions = function () {
   var cookieStoreService_ = null;
   var cookiesService_ = null;
   var dragZoomActive = false;
+  var createVectorEditLayer = function () {
+    return new ol.layer.Vector({
+      metadata: { hidden: true },
+      source: new ol.source.Vector({ parser: null }),
+      style: new ol.style.Style({
+        rules: [
+          new ol.style.Rule({
+            filter: 'renderIntent("selected")',
+            symbolizers: [
+              new ol.style.Shape({
+                fill: new ol.style.Fill({
+                  color: '#0099ff',
+                  opacity: 1
+                }),
+                stroke: new ol.style.Stroke({
+                  color: 'white',
+                  opacity: 0.75
+                }),
+                size: 14,
+                zIndex: 1
+              }),
+              new ol.style.Fill({
+                color: '#0099ff',
+                opacity: 0.5
+              }),
+              new ol.style.Stroke({
+                color: '#0099ff',
+                width: 3
+              })
+            ]
+          }),
+          new ol.style.Rule({
+            filter: 'renderIntent("temporary")',
+            symbolizers: [new ol.style.Shape({
+                fill: new ol.style.Fill({
+                  color: '#0099ff',
+                  opacity: 1
+                }),
+                stroke: new ol.style.Stroke({
+                  color: 'white',
+                  opacity: 0.75
+                }),
+                size: 14,
+                zIndex: 1
+              })]
+          }),
+          new ol.style.Rule({
+            filter: 'renderIntent("future")',
+            symbolizers: [new ol.style.Shape({
+                fill: new ol.style.Fill({
+                  color: '#00ff33',
+                  opacity: 1
+                }),
+                stroke: new ol.style.Stroke({
+                  color: 'white',
+                  opacity: 0.75
+                }),
+                size: 14,
+                zIndex: 1
+              })]
+          })
+        ],
+        symbolizers: [
+          new ol.style.Shape({
+            fill: new ol.style.Fill({
+              color: 'blue',
+              opacity: 0.4
+            }),
+            stroke: new ol.style.Stroke({
+              color: 'blue',
+              width: 4
+            }),
+            size: 20
+          }),
+          new ol.style.Fill({
+            color: 'blue',
+            opacity: 0.4
+          }),
+          new ol.style.Stroke({
+            color: 'blue',
+            width: 4
+          })
+        ]
+      })
+    });
+  };
   module.provider('mapService', function () {
     this.$get = [
       'serverService',
@@ -65423,6 +65803,7 @@ var GeoGitLogOptions = function () {
         serverService_ = serverService;
         geogitService_ = geogitService;
         this.map = this.createMap();
+        this.editLayer = createVectorEditLayer();
         return this;
       }
     ];
@@ -65476,23 +65857,29 @@ var GeoGitLogOptions = function () {
     this.getFeatureLayers = function () {
       var layers = [];
       this.map.getLayers().forEach(function (layer) {
-        if (!(layer.source_ instanceof ol.source.OSM)) {
+        if (!(layer.source_ instanceof ol.source.OSM) && goog.isDefAndNotNull(layer.get('metadata')) && !layer.get('metadata').hidden) {
           layers.push(layer);
         }
       });
       return layers;
     };
     this.addWMSLayer = function (config, doNotAddToMap) {
-      var urlIndex = serverService_.getServer(config.source).url.lastIndexOf('/');
-      var url = serverService_.getServer(config.source).url.slice(0, urlIndex);
+      var url = null;
+      var server = serverService_.getServer(config.source);
+      if (goog.isDefAndNotNull(server.url)) {
+        var urlIndex = server.url.lastIndexOf('/');
+        if (urlIndex !== -1) {
+          url = serverService_.getServer(config.source).url.slice(0, urlIndex);
+        }
+      }
       var newLayer = new ol.layer.Tile({
           label: config.title,
           metadata: {
             serverId: config.source,
-            url: url
+            url: goog.isDefAndNotNull(url) ? url : undefined
           },
           source: new ol.source.TileWMS({
-            url: serverService_.getServer(config.source).url,
+            url: server.url,
             params: { 'LAYERS': config.name },
             getFeatureInfoOptions: {
               'method': ol.source.WMSGetFeatureInfoMethod.XHR_GET,
@@ -65511,22 +65898,24 @@ var GeoGitLogOptions = function () {
     };
     this.addBaseLayer = function (title, doNotAddToMap) {
       var layer = null;
+      var serverId = serverService_.getServer('OpenStreetMap').id;
+      console.log('____ serverId for baselayer: ', serverId);
       if (title === 'OpenStreetMap') {
         layer = new ol.layer.Tile({
           label: title,
-          metadata: { serverId: 1 },
+          metadata: { serverId: serverId },
           source: new ol.source.OSM()
         });
       } else if (title === 'MapQuestImagery') {
         layer = new ol.layer.Tile({
           label: title,
-          metadata: { serverId: 1 },
+          metadata: { serverId: serverId },
           source: new ol.source.MapQuestOpenAerial()
         });
       } else if (title === 'MapQuestOSM') {
         layer = new ol.layer.Tile({
           label: title,
-          metadata: { serverId: 1 },
+          metadata: { serverId: serverId },
           source: new ol.source.MapQuestOSM()
         });
       }
@@ -65622,7 +66011,27 @@ var GeoGitLogOptions = function () {
       }
       return layers;
     };
+    this.switchMousePosCoordFormat = function () {
+      var index;
+      for (index = 0; index < this.map.getControls().getLength(); ++index) {
+        if (this.map.getControls().getArray()[index] instanceof ol.control.MousePosition) {
+          break;
+        }
+      }
+      if (settings.coordinateDisplay === coordinateDisplays.DMS) {
+        this.map.getControls().getArray()[index].setCoordinateFormat(ol.coordinate.toStringHDMS);
+      } else if (settings.coordinateDisplay === coordinateDisplays.DD) {
+        var precision = settings.DDPrecision;
+        this.map.getControls().getArray()[index].setCoordinateFormat(ol.coordinate.createStringXY(precision));
+      }
+    };
     this.createMap = function () {
+      var coordDisplay;
+      if (settings.coordinateDisplay === coordinateDisplays.DMS) {
+        coordDisplay = ol.coordinate.toStringHDMS;
+      } else if (settings.coordinateDisplay === coordinateDisplays.DD) {
+        coordDisplay = ol.coordinate.createStringXY(settings.DDPrecision);
+      }
       if (goog.isDefAndNotNull(config)) {
         this.configuration = config;
       } else {
@@ -65684,7 +66093,7 @@ var GeoGitLogOptions = function () {
             new ol.control.ZoomSlider(),
             new ol.control.MousePosition({
               projection: 'EPSG:4326',
-              coordinateFormat: ol.coordinate.toStringHDMS
+              coordinateFormat: coordDisplay
             }),
             new ol.control.ScaleLine({
               className: 'metric-scale-line ol-scale-line',
@@ -65695,7 +66104,10 @@ var GeoGitLogOptions = function () {
               units: ol.control.ScaleLineUnits.IMPERIAL
             })
           ]),
-          interactions: ol.interaction.defaults().extend([new ol.interaction.DragRotate()]),
+          interactions: ol.interaction.defaults().extend([
+            new ol.interaction.DragRotate(),
+            new ol.interaction.Select()
+          ]),
           renderer: ol.RendererHint.CANVAS,
           target: 'map',
           view: new ol.View2D({
@@ -65724,6 +66136,50 @@ var GeoGitLogOptions = function () {
         dragZoomActive = false;
       });
       return map;
+    };
+    this.selectFeature = function (geom, crs) {
+      var newFeature = new ol.Feature();
+      var newGeom;
+      switch (geom.type) {
+      case 'Point': {
+          newGeom = new ol.geom.Point($.extend(true, [], geom.coordinates));
+        }
+        break;
+      case 'LineString': {
+          newGeom = new ol.geom.LineString($.extend(true, [], geom.coordinates));
+        }
+        break;
+      case 'Polygon': {
+          newGeom = new ol.geom.Polygon($.extend(true, [], geom.coordinates));
+        }
+        break;
+      case 'MultiPoint': {
+          newGeom = new ol.geom.MultiPoint($.extend(true, [], geom.coordinates));
+        }
+        break;
+      case 'MultiLineString': {
+          newGeom = new ol.geom.MultiLineString($.extend(true, [], geom.coordinates));
+        }
+        break;
+      case 'MultiPolygon': {
+          newGeom = new ol.geom.MultiPolygon($.extend(true, [], geom.coordinates));
+        }
+        break;
+      default: {
+          console.log(geom.geometry.type, 'Not a valid geometry type');
+        }
+      }
+      var transform = ol.proj.getTransform(crs, this.map.getView().getView2D().getProjection());
+      newGeom.transform(transform);
+      newFeature.setGeometry(newGeom);
+      this.editLayer.addFeatures([newFeature]);
+      var select = this.map.getInteractions().getArray()[11];
+      select.select(this.map, [[newFeature]], [this.editLayer], false);
+      this.map.addLayer(this.editLayer);
+    };
+    this.clearSelectedFeature = function () {
+      this.editLayer.clear();
+      this.map.removeLayer(this.editLayer);
     };
   });
   function getConfig() {
@@ -66369,6 +66825,7 @@ var GeoGitLogOptions = function () {
   var service_ = null;
   var mapService_ = null;
   var dialogService_ = null;
+  var geogitService_ = null;
   module.provider('conflictService', function () {
     this.features = null;
     this.ours = null;
@@ -66379,6 +66836,7 @@ var GeoGitLogOptions = function () {
     this.ourName = null;
     this.theirName = null;
     this.transaction = null;
+    this.message = null;
     this.$get = [
       '$rootScope',
       '$location',
@@ -66387,12 +66845,14 @@ var GeoGitLogOptions = function () {
       'featureDiffService',
       'mapService',
       'dialogService',
-      function ($rootScope, $location, diffService, pulldownService, featureDiffService, mapService, dialogService) {
+      'geogitService',
+      function ($rootScope, $location, diffService, pulldownService, featureDiffService, mapService, dialogService, geogitService) {
         diffService_ = diffService;
         pulldownService_ = pulldownService;
         featureDiffService_ = featureDiffService;
         mapService_ = mapService;
         dialogService_ = dialogService;
+        geogitService_ = geogitService;
         service_ = this;
         return this;
       }
@@ -66413,15 +66873,15 @@ var GeoGitLogOptions = function () {
     this.selectFeature = function (index) {
       this.currentFeature = this.features[index];
     };
-    this.resolveConflict = function (ours) {
+    this.resolveConflict = function (merges) {
       this.currentFeature.resolved = true;
-      this.currentFeature.ours = ours;
+      this.currentFeature.merges = merges;
       diffService_.resolveFeature(this.currentFeature);
     };
     this.beginResolution = function () {
       diffService_.setTitle('Merge Results');
       diffService_.clickCallback = featureClicked;
-      diffService_.populate(service_.features, null, service_.ourName, service_.theirName);
+      diffService_.populate(service_.features, geogitService_.getRepoById(service_.repoId).name, service_.ourName, service_.theirName);
       pulldownService_.conflictsMode();
     };
     this.commit = function () {
@@ -66431,6 +66891,12 @@ var GeoGitLogOptions = function () {
         var feature = service_.features[i];
         if (feature.change === 'CONFLICT') {
           conflicts.push(feature);
+        }
+      }
+      if (conflicts.length > 0) {
+        for (i = 0; i < conflicts.length; i++) {
+          var conflict = conflicts[i];
+          service_.message += '\nResolved conflict: ' + conflict.id;
         }
       }
       var conflictsInError = 0;
@@ -66453,7 +66919,7 @@ var GeoGitLogOptions = function () {
       if (conflictsInError === 0) {
         var commitOptions = new GeoGitCommitOptions();
         commitOptions.all = true;
-        commitOptions.message = 'Resolved some conflicts.';
+        commitOptions.message = service_.message;
         service_.transaction.command('commit', commitOptions).then(function () {
           service_.transaction.finalize().then(function () {
             diffService_.clearDiff();
@@ -66479,25 +66945,25 @@ var GeoGitLogOptions = function () {
       }
     } else {
       var conflict = conflictList.pop();
-      var checkoutOptions = new GeoGitCheckoutOptions();
-      checkoutOptions.path = conflict.id;
-      if (conflict.ours) {
-        checkoutOptions.ours = true;
-      } else {
-        checkoutOptions.theirs = true;
-      }
-      service_.transaction.command('checkout', checkoutOptions).then(function () {
-        var addOptions = new GeoGitAddOptions();
-        addOptions.path = conflict.id;
-        service_.transaction.command('add', addOptions).then(function () {
+      var resolveConflict = {
+          path: conflict.id,
+          ours: service_.ours,
+          theirs: service_.theirs,
+          merges: conflict.merges
+        };
+      geogitService_.post(service_.repoId, 'repo/mergefeature', resolveConflict).then(function (response) {
+        var resolveConflictOptions = new GeoGitResolveConflictOptions();
+        resolveConflictOptions.path = conflict.id;
+        resolveConflictOptions.objectid = response.data;
+        service_.transaction.command('resolveconflict', resolveConflictOptions).then(function () {
           commitInternal(conflictList, conflictsInError);
         }, function (reject) {
           commitInternal(conflictList, conflictsInError + 1);
-          console.log('ERROR: Failed to add resolved conflicts to the tree: ', conflict, reject);
+          console.log('ERROR: Failed to resolve the conflict: ', conflict, reject);
         });
       }, function (reject) {
         commitInternal(conflictList, conflictsInError + 1);
-        console.log('ERROR: Failed to checkout conflicted feature: ', conflict, reject);
+        console.log('ERROR: Failed to merge the conflicted feature: ', conflict, reject);
       });
     }
   }
@@ -66518,6 +66984,7 @@ var GeoGitLogOptions = function () {
         service_.theirs = mergeFailure.theirs;
         service_.ancestor = mergeFailure.ancestor;
         service_.features = mergeFailure.Feature;
+        service_.message = 'Merge transaction\n\nConflicts:';
         service_.beginResolution();
         break;
       }
@@ -66554,7 +67021,8 @@ var GeoGitLogOptions = function () {
           };
           scope.onMerge = function () {
             $('#loading').toggleClass('hidden');
-            geogitService.beginTransaction(scope.selectedRepoId).then(function (transaction) {
+            var repoId = scope.selectedRepoId;
+            geogitService.beginTransaction(repoId).then(function (transaction) {
               var checkoutOptions = new GeoGitCheckoutOptions();
               checkoutOptions.branch = scope.destinationBranch;
               transaction.command('checkout', checkoutOptions).then(function (checkoutResult) {
@@ -66572,37 +67040,71 @@ var GeoGitLogOptions = function () {
                           features: mergeResult.Merge.Feature
                         }],
                       callback: function (feature) {
-                        console.log(feature.feature + ' was clicked!');
+                        var crs = goog.isDefAndNotNull(feature.original.crs) ? feature.original.crs : null;
+                        var repoName = geogitService.getRepoById(repoId).name;
+                        mapService.map.getLayers().forEach(function (layer) {
+                          var metadata = layer.get('metadata');
+                          if (goog.isDefAndNotNull(metadata)) {
+                            if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === repoName) {
+                              if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === feature.layer) {
+                                if (goog.isDefAndNotNull(metadata.projection)) {
+                                  crs = metadata.projection;
+                                }
+                              }
+                            }
+                          }
+                        });
+                        var geom = ol.parser.WKT.read(feature.original.geometry);
+                        if (goog.isDefAndNotNull(crs)) {
+                          var transform = ol.proj.getTransform(crs, mapService.map.getView().getView2D().getProjection());
+                          geom.transform(transform);
+                        }
+                        var newBounds = geom.getBounds();
+                        var x = newBounds[2] - newBounds[0];
+                        var y = newBounds[3] - newBounds[1];
+                        x *= 0.5;
+                        y *= 0.5;
+                        newBounds[0] -= x;
+                        newBounds[2] += x;
+                        newBounds[1] -= y;
+                        newBounds[3] += y;
+                        mapService.zoomToExtent(newBounds);
                       }
                     });
                     scope.cancel();
                     mapService.dumpTileCache();
                   }, function (endTransactionFailure) {
                     if (goog.isObject(endTransactionFailure) && goog.isDefAndNotNull(endTransactionFailure.conflicts)) {
-                      handleConflicts(endTransactionFailure, transaction, dialogService, conflictService, scope);
+                      var message = 'Merge transaction\n\nConflicts:';
+                      handleConflicts(endTransactionFailure, transaction, dialogService, conflictService, scope, message);
                     } else {
                       dialogService.error('Error', 'An unknown error occurred when finalizing the transaction.  Please try again.');
                       transaction.abort();
+                      scope.cancel();
                       console.log('ERROR: EndTransaction failure: ', endTransactionFailure);
                     }
                   });
                 }, function (mergeFailure) {
                   if (goog.isObject(mergeFailure) && goog.isDefAndNotNull(mergeFailure.conflicts)) {
-                    handleConflicts(mergeFailure, transaction, dialogService, conflictService, scope);
+                    var message = 'Merge branch ' + scope.sourceBranch + '\n\nConflicts:';
+                    handleConflicts(mergeFailure, transaction, dialogService, conflictService, scope, message);
                   } else {
                     dialogService.error('Error', 'An unknown error occurred when performing the merge.  Please try again.');
                     transaction.abort();
+                    scope.cancel();
                     console.log('ERROR: Merge failure: ', mergeOptions, mergeFailure);
                   }
                 });
               }, function (checkoutFailure) {
                 dialogService.error('Error', 'An unknown error occurred when checking out the destination branch.  Please try again.');
                 transaction.abort();
+                scope.cancel();
                 console.log('ERROR: Checkout failure: ', checkoutOptions, checkoutFailure);
               });
             }, function (beginTransactionFailure) {
               dialogService.error('Error', 'An unknown error occurred creating the transaction.  Please try again.');
               console.log('ERROR: Begin transaction failure: ', beginTransactionFailure);
+              scope.cancel();
             });
           };
           scope.$watch('selectedRepoId', function () {
@@ -66613,7 +67115,7 @@ var GeoGitLogOptions = function () {
       };
     }
   ]);
-  function handleConflicts(mergeFailure, transaction, dialogService, conflictService, scope) {
+  function handleConflicts(mergeFailure, transaction, dialogService, conflictService, scope, message) {
     var myDialog = dialogService.warn('Merge Conflicts', 'Some conflicts were encountered when performing the merge,' + ' would you like to resolve these or abort the merge?', [
         'Abort',
         'Resolve Conflicts'
@@ -66632,6 +67134,7 @@ var GeoGitLogOptions = function () {
         conflictService.features = mergeFailure.Feature;
         conflictService.repoId = scope.selectedRepoId;
         conflictService.transaction = transaction;
+        conflictService.message = message;
         conflictService.beginResolution();
         break;
       }
@@ -66723,24 +67226,31 @@ var GeoGitLogOptions = function () {
 }());
 (function () {
   var module = angular.module('loom_modal_directive', []);
-  module.directive('loomModal', function () {
-    return {
-      replace: true,
-      transclude: true,
-      scope: {
-        title: '@modalTitle',
-        closeButton: '@closeButton'
-      },
-      templateUrl: 'modal/partials/modal.tpl.html',
-      link: function (scope, element, attrs) {
-        attrs.$observe('closeButton', function (val) {
-          if (!angular.isDefined(val)) {
-            scope.closeButton = true;
-          }
-        });
-      }
-    };
-  });
+  module.directive('loomModal', [
+    '$rootScope',
+    function ($rootScope) {
+      return {
+        replace: true,
+        transclude: true,
+        scope: {
+          title: '@modalTitle',
+          closeButton: '@closeButton'
+        },
+        templateUrl: 'modal/partials/modal.tpl.html',
+        link: function (scope, element, attrs) {
+          attrs.$observe('closeButton', function (val) {
+            if (!angular.isDefined(val)) {
+              scope.closeButton = true;
+            }
+          });
+          scope.closeModal = function () {
+            $rootScope.$broadcast('modal-closed', element);
+            element.closest('.modal').modal('hide');
+          };
+        }
+      };
+    }
+  ]);
 }());
 (function () {
   angular.module('loom_modal', [
@@ -66763,7 +67273,8 @@ var GeoGitLogOptions = function () {
       return {
         restrict: 'C',
         replace: true,
-        template: '<div class="panel flat">' + '  <div class="btn-group">' + '    <button type="button" ng-click="addNotification()"' + '      class="btn btn-default">Post Notification</button>' + '    <button type="button" ng-click="performDiff()"' + '      class="btn btn-default">Perform Diff</button>' + '    <button type="button" ng-click="clearDiff()"' + '      class="btn btn-default">Clear Diff</button>' + '    <button type="button" ng-click="mapService.activateDragZoom()"' + '      class="btn btn-default">Drag Zoom</button>' + '    <button type="button" ng-click="addModal()"' + '      class="btn btn-default">Modal</button>' + '  </div>' + '</div>',
+        scope: true,
+        template: '<div class="panel flat">' + '  <div class="btn-group">' + '    <button type="button" ng-click="switchCoords()"' + '      class="btn btn-default">Switch Coords</button>' + '    <button type="button" ng-click="addNotification()"' + '      class="btn btn-default">Post Notification</button>' + '    <button type="button" ng-click="performDiff()"' + '      class="btn btn-default">Perform Diff</button>' + '    <button type="button" ng-click="clearDiff()"' + '      class="btn btn-default">Clear Diff</button>' + '    <button type="button" ng-click="mapService.activateDragZoom()"' + '      class="btn btn-default">Drag Zoom</button>' + '    <button type="button" ng-click="addModal()"' + '      class="btn btn-default">Modal</button>' + '  </div>' + '</div>',
         link: function (scope) {
           scope.mapService = mapService;
           function addNotification() {
@@ -66818,6 +67329,14 @@ var GeoGitLogOptions = function () {
             pulldownService.defaultMode();
           }
           scope.clearDiff = clearDiff;
+          scope.switchCoords = function () {
+            if (settings.coordinateDisplay === coordinateDisplays.DD) {
+              settings.coordinateDisplay = coordinateDisplays.DMS;
+            } else {
+              settings.coordinateDisplay = coordinateDisplays.DD;
+            }
+            mapService.switchMousePosCoordFormat();
+          };
           scope.addModal = function () {
             dialogService.open('My Title', 'This is the message of the dialog.', [
               'OK',
@@ -67412,7 +67931,8 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
               var feature = {
                   repo: repos[i].name,
                   layer: splitFeature[0],
-                  feature: splitFeature[1]
+                  feature: splitFeature[1],
+                  original: features[j]
                 };
               switch (features[j].change) {
               case 'ADDED':
@@ -67449,6 +67969,14 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
 (function () {
   angular.module('loom_update_notification', ['loom_update_notification_directive']);
 }());
+var coordinateDisplays = {
+    DMS: 'Degrees Minutes Seconds',
+    DD: 'Decimal Degrees'
+  };
+var settings = {
+    coordinateDisplay: coordinateDisplays.DMS,
+    DDPrecision: 8
+  };
 var forEachArrayish = function (arrayish, funct) {
   if (goog.isArray(arrayish)) {
     goog.array.forEach(arrayish, funct);
@@ -67466,6 +67994,15 @@ var getScrollbarWidth = function () {
   }
   return width;
 };
+var clean = function (array, deleteValue) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] == deleteValue) {
+      array.splice(i, 1);
+      i--;
+    }
+  }
+  return array;
+};
 (function () {
   var module = angular.module('loom_utils', []);
   module.directive('stopEvent', function () {
@@ -67479,6 +68016,169 @@ var getScrollbarWidth = function () {
           var event = events[i];
           element.bind(event, stopFunction);
         }
+      }
+    };
+  });
+  module.directive('autotextarea', function () {
+    return {
+      restrict: 'E',
+      template: '<textarea rows="1" style="height:34px;"></textarea>',
+      replace: true,
+      scope: true,
+      link: function (scope, element) {
+        var observe;
+        if (window.attachEvent) {
+          observe = function (element, event, handler) {
+            element.attachEvent('on' + event, handler);
+          };
+        } else {
+          observe = function (element, event, handler) {
+            element.addEventListener(event, handler, false);
+          };
+        }
+        scope.prevHeight = 0;
+        function resize() {
+          var clone = element[0].cloneNode();
+          element[0].parentNode.insertBefore(clone, element[0]);
+          clone.style.height = 'auto';
+          clone.style.width = element[0].style.width;
+          clone.value = element[0].value;
+          var height = clone.scrollHeight + 2;
+          if (height !== scope.prevHeight) {
+            element[0].style.height = height + 'px';
+            scope.prevHeight = height;
+            if (height >= 200) {
+              element[0].style.overflowY = 'auto';
+            } else {
+              element[0].style.overflowY = 'hidden';
+            }
+          }
+          element[0].parentNode.removeChild(clone);
+        }
+        function delayedResize() {
+          window.setTimeout(resize, 0);
+        }
+        window.setTimeout(resize, 250);
+        observe(element[0], 'change', resize);
+        observe(element[0], 'cut', delayedResize);
+        observe(element[0], 'paste', delayedResize);
+        observe(element[0], 'drop', delayedResize);
+        observe(element[0], 'keydown', delayedResize);
+      }
+    };
+  });
+  module.directive('datetimepicker', function () {
+    return {
+      restrict: 'E',
+      template: '<div class="row">' + '<div ng-class="{\'col-md-6\': (time === \'true\'),' + ' \'col-md-12\': (time === \'false\') || (seperateTime === \'false\')}">' + '<div class="form-group">' + '<div class="input-group date datepicker">' + '<input type="text" class="form-control" />' + '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>' + '</span>' + '</div>' + '</div>' + '</div>' + '<div ng-show="(time === \'true\') && (seperateTime === \'true\')" class="col-md-6">' + '<div class="form-group">' + '<div class="input-group date timepicker">' + '<input type="text" class="form-control" />' + '<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>' + '</span>' + '</div>' + '</div>' + '</div></div>',
+      replace: true,
+      scope: {
+        dateObject: '=dateObject',
+        dateKey: '=dateKey'
+      },
+      link: function (scope, element, attrs) {
+        if (!goog.isDefAndNotNull(attrs.time)) {
+          scope.time = 'true';
+        } else {
+          scope.time = attrs.time;
+        }
+        if (!goog.isDefAndNotNull(attrs.seperateTime)) {
+          scope.seperateTime = 'true';
+        } else {
+          scope.seperateTime = attrs.seperateTime;
+        }
+        var updateDateTime = function () {
+          var newDate = new Date();
+          var date = element.find('.datepicker').data('DateTimePicker').getDate();
+          newDate.setFullYear(date.year(), date.month(), date.date());
+          if (scope.time === 'true' && scope.seperateTime === 'true') {
+            var time = element.find('.timepicker').data('DateTimePicker').getDate();
+            newDate.setHours(time.hour(), time.minute(), time.second(), time.millisecond());
+          } else {
+            newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
+          }
+          scope.dateObject[scope.dateKey] = newDate.toISOString();
+        };
+        element.find('.datepicker').datetimepicker({
+          pickTime: scope.time === 'true' && scope.seperateTime === 'false',
+          defaultDate: scope.dateObject[scope.dateKey]
+        });
+        element.find('.datepicker').on('change.dp', updateDateTime);
+        if (scope.time === 'true' && scope.seperateTime === 'true') {
+          element.find('.timepicker').datetimepicker({
+            pickDate: false,
+            defaultDate: scope.dateObject[scope.dateKey]
+          });
+          element.find('.timepicker').on('change.dp', updateDateTime);
+        }
+      }
+    };
+  });
+  module.directive('latloneditor', function () {
+    return {
+      restrict: 'E',
+      template: '<div ng-class="{\'has-error\': !formName.coords.$valid}" class="form-group">' + '<div class="input-group">' + '<div class="input-group-btn">' + '<button type="button" class="btn btn-default dropdown-toggle custom-width-100" data-toggle="dropdown">' + '<span class="caret"></span>' + '</button>' + '<ul id="display-list" class="dropdown-menu">' + '<li ng-repeat="display in coordinateDisplays">' + '<a ng-click="selectDisplay($index)">{{display}}</a></li>' + '</ul>' + '</div>' + '<input name="coords" ng-model="coordinates" type="text" class="form-control" ng-change="validate()"/>' + '</div>' + '</div>',
+      replace: true,
+      scope: {
+        geom: '=',
+        formName: '=formName',
+        coordDisplay: '=coordDisplay'
+      },
+      link: function (scope) {
+        scope.coordinateDisplays = coordinateDisplays;
+        if (scope.coordDisplay === coordinateDisplays.DMS) {
+          scope.coordinates = ol.coordinate.toStringHDMS(scope.geom.coordinates);
+        } else if (scope.coordDisplay === coordinateDisplays.DD) {
+          scope.coordinates = ol.coordinate.createStringXY(scope.geom.coordinates, settings.DDPrecision);
+        }
+        scope.selectDisplay = function (index) {
+          scope.coordDisplay = coordinateDisplays[index];
+        };
+        var validateDMS = function (name, split) {
+          var upperBounds;
+          var negateChar;
+          if (name === 'lon') {
+            upperBounds = 180;
+            negateChar = 'W';
+          } else if (name === 'lat') {
+            upperBounds = 90;
+            negateChar = 'S';
+          } else {
+            return false;
+          }
+          if (split.length === 4) {
+            var newPos = parseInt(split[0], 10) + (parseInt(split[1], 10) + parseFloat(split[2]) / 60) / 60;
+            if (newPos < 0 || newPos > upperBounds) {
+              return false;
+            }
+            if (split[3].toUpperCase() === negateChar) {
+              newPos = -newPos;
+            }
+          } else {
+            return false;
+          }
+          return true;
+        };
+        scope.validate = function () {
+          var split = scope.coordinates.replace(/[^\dEWewNSns\.]/g, ' ').split(' ');
+          clean(split, '');
+          var valid = false;
+          if (split.length === 8) {
+            var split2 = split.splice(0, 4);
+            if (split[3].toUpperCase() === 'S' || split[3].toUpperCase() === 'N') {
+              valid = validateDMS('lat', split);
+              if (valid === true && (split2[3].toUpperCase() === 'W' || split2[3].toUpperCase() === 'E')) {
+                valid = validateDMS('lon', split2);
+              }
+            } else {
+              valid = validateDMS('lon', split);
+              if (valid === true && (split2[3].toUpperCase() === 'S' || split2[3].toUpperCase() === 'N')) {
+                valid = validateDMS('lat', split2);
+              }
+            }
+          }
+          scope.formName.coords.$valid = valid;
+        };
       }
     };
   });
@@ -67503,7 +68203,7 @@ var getScrollbarWidth = function () {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featureinfobox/partial/featureinfobox.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'featuremanager/partial/geometryedit.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -67689,75 +68389,98 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "  <div id=\"preview-map-{{mapid}}\" class=\"preview-map map\"></div>\n" +
     "  <span ng-repeat=\"attribute in panel.attributes\" class=\"\">\n" +
     "    <span class=\"info-box-attribute\">{{attribute.attributename}}</span>\n" +
-    "    <span class=\"info-box-attribute-value\"\n" +
-    "          ng-class=\"{\n" +
+    "    <input ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\" ng-disabled=\"!isMergePanel\" placeholder=\"\"\n" +
+    "           ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
     "                      'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
-    "                    }\">{{attribute.newvalue ? attribute.newvalue : (attribute.oldvalue ? attribute.oldvalue : '&nbsp;')}}</span>\n" +
+    "                    }\">\n" +
     "  </span>\n" +
     "</div>");
 }]);
 
 angular.module("diff/partial/panelseparator.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("diff/partial/panelseparator.tpl.html",
-    "<div ng-click=\"clickfunction()\">\n" +
+    "<div>\n" +
     "  &nbsp;\n" +
-    "  <div class=\"map-arrow\">\n" +
-    "    <span class=\"map-arrow-inner glyphicon {{icon}}\" ng-class=\"{'arrow-inactive':!geometryChanged}\"/>\n" +
+    "  <div class=\"map-arrow attribute-arrow\">\n" +
+    "    <span class=\"map-arrow-inner attribute-arrow-inner glyphicon {{icon}}\" ng-click=\"geometryArrowClick()\"\n" +
+    "          ng-class=\"{'arrow-inactive':!geometryChanged}\"></span>\n" +
     "  </div>\n" +
     "  <div id=\"preview-map-{{mapid}}\" class=\"preview-map map\"></div>\n" +
     "  <span ng-repeat=\"attribute in arrows\" class=\"\">\n" +
     "    <div class=\"attribute-arrow\">\n" +
-    "      <span class=\"attribute-arrow-inner glyphicon {{icon}}\" ng-class=\"{'arrow-inactive':!attribute.active}\"/>\n" +
+    "      <span class=\"attribute-arrow-inner glyphicon {{icon}}\" ng-class=\"{'arrow-inactive':!attribute.active}\"\n" +
+    "            ng-click=\"arrowClick($index)\"></span>\n" +
     "    </div>\n" +
     "  </span>\n" +
     "</div>");
 }]);
 
-angular.module("featureinfobox/partial/featureinfobox.tpl.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("featureinfobox/partial/featureinfobox.tpl.html",
+angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("featuremanager/partial/attributeedit.tpl.html",
+    "<div id=\"editFeatureBody\" class=\"modal-body\">\n" +
+    "  <div class=\"top-fade\"></div>\n" +
+    "  <div class=\"bottom-fade\"></div>\n" +
+    "  <form name=\"editfeatureform\" class=\"form wrapper\">\n" +
+    "    <div class=\"form-group\" ng-if=\"feature.geometry.type == 'Point'\">\n" +
+    "        <label for=\"latLonEdit\" class=\"control-label custom-control-label\">Location ( lon, lat )</label>\n" +
+    "        <latloneditor id=\"latLonEdit\" coord-display=\"coordDisplay\" form-name=\"editfeatureform\" geom=\"feature.geometry\"></latloneditor>\n" +
+    "    </div>\n" +
+    "    <div class=\"form-group\" ng-repeat=\"prop in properties\">\n" +
+    "        <label class=\"control-label custom-control-label\">{{prop[0]}}</label>\n" +
+    "        <autotextarea ng-model=\"prop[1]\" class=\"form-control custom-form-control auto-text-area\"></autotextarea>\n" +
+    "    </div>\n" +
+    "  </form>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" ng-click=\"featureManagerService.endAttributeEditing(properties)\" data-dismiss=\"modal\">Save</button>\n" +
+    "</div>");
+}]);
+
+angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("featuremanager/partial/featureinfobox.tpl.html",
     "<div>\n" +
     "  <div class=\"row\">\n" +
-    "    <div ng-if=\"featureInfoBoxService.getPreviousState() != ''\" class=\"btn btn-sm pull-left\">\n" +
-    "      <i class=\"glyphicon glyphicon-chevron-left\" ng-click=\"featureInfoBoxService.showPreviousState()\"></i>\n" +
+    "    <div ng-if=\"featureManagerService.getPreviousState() != ''\" class=\"btn btn-sm pull-left\">\n" +
+    "      <i class=\"glyphicon glyphicon-chevron-left\" ng-click=\"featureManagerService.showPreviousState()\"></i>\n" +
     "    </div>\n" +
     "    <div class=\"btn btn-sm pull-right\">\n" +
-    "      <i class=\"glyphicon glyphicon-remove\" ng-click=\"featureInfoBoxService.hide()\"></i>\n" +
+    "      <i class=\"glyphicon glyphicon-remove\" ng-click=\"featureManagerService.hide()\"></i>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "  <div class=\"animate-switch-container\">\n" +
-    "    <div ng-if=\"featureInfoBoxService.getState() == 'layers'\">\n" +
+    "    <div ng-if=\"featureManagerService.getState() == 'layers'\">\n" +
     "      <ul class=\"list-group list-group-info-box\">\n" +
-    "        <li ng-repeat=\"layerInfo in featureInfoBoxService.getSelectedItem()\" class=\"list-group-item-info-box\" ng-click=\"featureInfoBoxService.show(layerInfo)\">\n" +
+    "        <li ng-repeat=\"layerInfo in featureManagerService.getSelectedItem()\" class=\"list-group-item-info-box\" ng-click=\"featureManagerService.show(layerInfo)\">\n" +
     "          <div>{{layerInfo.layer.source_.params_.LAYERS}}</div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
-    "    <div ng-if=\"featureInfoBoxService.getState() == 'layer'\">\n" +
+    "    <div ng-if=\"featureManagerService.getState() == 'layer'\">\n" +
     "      <ul class=\"list-group list-group-info-box\">\n" +
-    "        <li ng-repeat=\"feature in featureInfoBoxService.getSelectedItem().features\" class=\"list-group-item-info-box\" ng-click=\"featureInfoBoxService.show(feature)\">\n" +
+    "        <li ng-repeat=\"feature in featureManagerService.getSelectedItem().features\" class=\"list-group-item-info-box\" ng-click=\"featureManagerService.show(feature)\">\n" +
     "          <div>{{feature.id}}</div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
-    "  <div ng-if=\"featureInfoBoxService.getState() == 'feature'\">\n" +
-    "    <div id=\"pic-carousel-container\" ng-if=\"featureInfoBoxService.getSelectedItemPics()\">\n" +
+    "  <div ng-if=\"featureManagerService.getState() == 'feature'\">\n" +
+    "    <div id=\"pic-carousel-container\" ng-if=\"featureManagerService.getSelectedItemPics()\">\n" +
     "      <carousel id=\"feature-info-box-carousel\" interval=\"2000\">\n" +
-    "        <slide ng-repeat=\"pic in featureInfoBoxService.getSelectedItemPics()\">\n" +
-    "          <img ng-src=\"{{pic}}\" style=\"margin: auto\" ng-click=\"featureInfoBoxService.showPics($index)\">\n" +
+    "        <slide ng-repeat=\"pic in featureManagerService.getSelectedItemPics()\">\n" +
+    "          <img ng-src=\"{{pic}}\" style=\"margin: auto\" ng-click=\"featureManagerService.showPics($index)\">\n" +
     "        </slide>\n" +
     "      </carousel>\n" +
     "    </div>\n" +
     "\n" +
     "    <div class=\"feature-info-box\">\n" +
-    "      <span ng-if=\"featureInfoBoxService.getSelectedItem().geometry.type == 'Point'\">\n" +
+    "      <span ng-if=\"featureManagerService.getSelectedItem().geometry.type == 'Point'\">\n" +
     "        <span class=\"info-box-attribute\">Location ( lon, lat )</span>\n" +
-    "        <span class=\"info-box-attribute-value\">({{featureInfoBoxService.getSelectedItem().geometry.coordinates[0]}},{{featureInfoBoxService.getSelectedItem().geometry.coordinates[1]}})</span>\n" +
+    "        <span class=\"info-box-attribute-value\">({{featureManagerService.getSelectedItem().geometry.coordinates[0]}},{{featureManagerService.getSelectedItem().geometry.coordinates[1]}})</span>\n" +
     "      </span>\n" +
-    "      <span ng-repeat=\"prop in featureInfoBoxService.getSelectedItemProperties()\">\n" +
+    "      <span ng-repeat=\"prop in featureManagerService.getSelectedItemProperties()\">\n" +
     "        <span class=\"info-box-attribute\">{{prop[0]}}</span>\n" +
     "        <span class=\"info-box-attribute-value\">{{prop[1]}}</span>\n" +
     "      </span>\n" +
@@ -67766,11 +68489,23 @@ angular.module("featureinfobox/partial/featureinfobox.tpl.html", []).run(["$temp
     "    <div id=\"feature-info-box-bottom\">\n" +
     "      <div id=\"feature-info-box-button-group\" class=\"btn-group pull-right\">\n" +
     "        <button type=\"button\" data-toggle=\"tooltip\" title=\"Show Pics\" class=\"btn btn-sm btn-default glyphicon glyphicon-camera\"></button>\n" +
-    "        <button type=\"button\" data-toggle=\"tooltip\" title=\"Edit attributes\" class=\"btn btn-sm btn-default glyphicon glyphicon-list\"></button>\n" +
-    "        <button type=\"button\" data-toggle=\"tooltip\" title=\"Edit geometry\" class=\"btn btn-sm btn-default glyphicon glyphicon-edit\"></button>\n" +
+    "        <button type=\"button\" ng-click=\"featureManagerService.startAttributeEditing()\" data-toggle=\"tooltip\" title=\"Edit attributes\" class=\"btn btn-sm btn-default glyphicon glyphicon-list\"></button>\n" +
+    "        <button type=\"button\" ng-click=\"featureManagerService.startGeometryEditing()\" data-toggle=\"tooltip\" title=\"Edit geometry\" class=\"btn btn-sm btn-default glyphicon glyphicon-edit\"></button>\n" +
     "        <button type=\"button\" data-toggle=\"tooltip\" title=\"Delete\" class=\"btn btn-sm btn-default glyphicon glyphicon-trash\"></button>\n" +
     "      </div>\n" +
     "    </div>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("featuremanager/partial/geometryedit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("featuremanager/partial/geometryedit.tpl.html",
+    "<div id=\"geometry-edit-container\" class=\"panel collapse flat-top\">\n" +
+    "  <div id=\"geometry-edit-panel\" class=\"panel\">\n" +
+    "    <div align=\"center\"><h5>Editing Geometry</h5></div>\n" +
+    "    <button ng-click=\"featureManagerService.endGeometryEditing(true)\" class=\"btn btn-default\">Save</button>\n" +
+    "    <button ng-click=\"featureManagerService.endGeometryEditing(false)\" class=\"btn btn-default\">Cancel</button>\n" +
     "  </div>\n" +
     "</div>\n" +
     "");
@@ -67781,7 +68516,7 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "<div id=\"layerpanel-group\" class=\"panel-group loom-arrangeable\" arrangeable-handle=\"div.layer-heading\"\n" +
     "     arrangeable-item-selector=\"div.panel\" arrangeable-callback=\"reorderLayer\"\n" +
     "     arrangeable-placeholder='<div class=\"placeholder\"></div>'>\n" +
-    "  <div class=\"panel\" ng-repeat=\"layer in layers = mapService.map.getLayers().getArray() | reverse\">\n" +
+    "  <div class=\"panel\" ng-repeat=\"layer in layers = mapService.map.getLayers().getArray() | reverse | filter:filterHiddenLayers\">\n" +
     "    <div class=\"panel-heading layer-heading\" data-toggle=\"collapse\"\n" +
     "         data-parent=\"#layerpanel-group\" data-target=\"#{{layer.get('label')}}\">\n" +
     "      <div class=\"row\">\n" +
@@ -67906,7 +68641,7 @@ angular.module("modal/partials/modal.tpl.html", []).run(["$templateCache", funct
     "  <div class=\"modal-dialog\">\n" +
     "    <div class=\"modal-content\">\n" +
     "      <div class=\"modal-header\">\n" +
-    "          <i ng-if=\"closeButton\" data-dismiss=\"modal\" class=\"close glyphicon glyphicon-remove\"></i>\n" +
+    "          <i ng-if=\"closeButton\" ng-click=\"closeModal()\" class=\"close glyphicon glyphicon-remove\"></i>\n" +
     "        <h4 class=\"modal-title\">{{title}}</h4>\n" +
     "      </div>\n" +
     "      <div ng-transclude>\n" +
