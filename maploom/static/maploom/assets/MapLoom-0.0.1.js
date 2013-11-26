@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2013-11-25
+ * MapLoom - v0.0.1 - 2013-11-26
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2013 LMN Solutions
@@ -63595,22 +63595,6 @@ var SERVER_SERVICE_USE_PROXY = true;
       '$location',
       function ($rootScope, $location) {
         rootScope = $rootScope;
-        this.addServer('WMS', 'Local Geoserver', 'http://' + $location.host() + (SERVER_SERVICE_USE_PORT ? ':' + $location.port() : '') + '/geoserver/wms');
-        var id = this.addServer('fakeType', 'OpenStreetMap', 'fakeURL');
-        this.getServer(id).layers = [
-          {
-            title: 'OpenStreetMap',
-            added: true
-          },
-          {
-            title: 'MapQuestImagery',
-            added: false
-          },
-          {
-            title: 'MapQuestOSM',
-            added: false
-          }
-        ];
         return this;
       }
     ];
@@ -63641,6 +63625,9 @@ var SERVER_SERVICE_USE_PROXY = true;
     };
     this.getLayers = function (index) {
       var server = servers[index];
+      if (!goog.isDefAndNotNull(server)) {
+        return [];
+      }
       if (!goog.isDefAndNotNull(server.layers)) {
         var parser = new ol.parser.ogc.WMSCapabilities();
         var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
@@ -63669,7 +63656,7 @@ var SERVER_SERVICE_USE_PROXY = true;
     };
     this.refreshLayers = function (index) {
       var server = servers[index];
-      if (goog.isDefAndNotNull(server.layers)) {
+      if (goog.isDefAndNotNull(server) && goog.isDefAndNotNull(server.layers)) {
         var parser = new ol.parser.ogc.WMSCapabilities();
         var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
         if (SERVER_SERVICE_USE_PROXY) {
@@ -65437,6 +65424,7 @@ var GeoGitLogOptions = function () {
         return this;
       }
     ];
+    this.configuration = null;
     this.activateDragZoom = function () {
       var index;
       for (index = 0; index < this.map.getInteractions().getLength(); ++index) {
@@ -65492,6 +65480,59 @@ var GeoGitLogOptions = function () {
       });
       return layers;
     };
+    this.addWMSLayer = function (config, doNotAddToMap) {
+      var urlIndex = serverService_.getServer(config.source).url.lastIndexOf('/');
+      var url = serverService_.getServer(config.source).url.slice(0, urlIndex);
+      var newLayer = new ol.layer.Tile({
+          label: config.title,
+          metadata: {
+            serverId: config.source,
+            url: url
+          },
+          source: new ol.source.TileWMS({
+            url: serverService_.getServer(config.source).url,
+            params: { 'LAYERS': config.name },
+            getFeatureInfoOptions: {
+              'method': ol.source.WMSGetFeatureInfoMethod.XHR_GET,
+              'params': {
+                'INFO_FORMAT': 'application/json',
+                'FEATURE_COUNT': 50
+              }
+            }
+          })
+        });
+      geogitService_.isGeoGit(newLayer);
+      if (!goog.isDefAndNotNull(doNotAddToMap)) {
+        this.map.addLayer(newLayer);
+      }
+      return newLayer;
+    };
+    this.addBaseLayer = function (title, doNotAddToMap) {
+      var layer = null;
+      if (title === 'OpenStreetMap') {
+        layer = new ol.layer.Tile({
+          label: title,
+          metadata: { serverId: 1 },
+          source: new ol.source.OSM()
+        });
+      } else if (title === 'MapQuestImagery') {
+        layer = new ol.layer.Tile({
+          label: title,
+          metadata: { serverId: 1 },
+          source: new ol.source.MapQuestOpenAerial()
+        });
+      } else if (title === 'MapQuestOSM') {
+        layer = new ol.layer.Tile({
+          label: title,
+          metadata: { serverId: 1 },
+          source: new ol.source.MapQuestOSM()
+        });
+      }
+      if (!goog.isDefAndNotNull(doNotAddToMap) && goog.isDefAndNotNull(layer)) {
+        this.map.addLayer(layer);
+      }
+      return layer;
+    };
     this.save = function () {
       var cfg = {
           about: {
@@ -65523,85 +65564,115 @@ var GeoGitLogOptions = function () {
       });
       cfg.map.layers.push({
         name: 'OpenStreetMap',
-        source: serverService_.getServer('OpenStreetMap').id,
+        source: serverService_.getServer('OpenStreetMap').id.toString(),
         title: 'OpenStreetMap'
       });
       goog.array.forEach(service_.getFeatureLayers(), function (layer, key, obj) {
         console.log('saving layer: ', layer);
         cfg.map.layers.push({
           name: layer.getSource().getParams().LAYERS,
-          source: layer.get('metadata').serverId,
+          source: layer.get('metadata').serverId.toString(),
           title: layer.get('label')
         });
       });
       console.log('--- save.cfg: ', cfg);
+      console.log('--- save.cfg string: ', JSON.stringify(cfg));
+      console.log('+++++++[ token: ', cookiesService_.csrftoken);
       httpService_({
         url: '/maps/new/data',
         method: 'POST',
-        data: cfg,
-        headers: {}
+        data: JSON.stringify(cfg),
+        headers: { 'X-CSRFToken': cookiesService_.csrftoken }
       }).success(function (data, status, headers, config) {
         console.log('====[ map.save great success. ', data, status, headers, config);
       }).error(function (data, status, headers, config) {
         console.log('----[ ERROR: map.save failed! ', data, status, headers, config);
       });
+      this.configuration = cfg;
+      console.log('this.configuration: ', this.configuration);
       return cfg;
     };
-    this.addWMSLayer = function (config) {
-      var urlIndex = serverService_.getServer(config.source).url.lastIndexOf('/');
-      var url = serverService_.getServer(config.source).url.slice(0, urlIndex);
-      var newLayer = new ol.layer.Tile({
-          label: config.title,
-          metadata: {
-            serverId: config.source,
-            url: url
-          },
-          source: new ol.source.TileWMS({
-            url: serverService_.getServer(config.source).url,
-            params: { 'LAYERS': config.name },
-            getFeatureInfoOptions: {
-              'method': ol.source.WMSGetFeatureInfoMethod.XHR_GET,
-              'params': {
-                'INFO_FORMAT': 'application/json',
-                'FEATURE_COUNT': 50
-              }
-            }
-          })
+    this.loadLayers = function () {
+      console.log('=======[[ using this.configuration: ', this.configuration);
+      var layers = [];
+      if (goog.isDefAndNotNull(this.configuration) && goog.isDefAndNotNull(this.configuration.sources) && goog.isDefAndNotNull(this.configuration.map) && goog.isDefAndNotNull(this.configuration.map.layers)) {
+        var ordered = new Array(this.configuration.sources.length);
+        goog.object.forEach(this.configuration.sources, function (serverInfo, key, obj) {
+          ordered[key] = serverInfo;
         });
-      geogitService_.isGeoGit(newLayer);
-      this.map.addLayer(newLayer);
-    };
-    this.addBaseLayer = function (title) {
-      if (title === 'OpenStreetMap') {
-        var osmLayer = new ol.layer.Tile({
-            label: title,
-            metadata: { serverId: 1 },
-            source: new ol.source.OSM()
-          });
-        this.map.addLayer(osmLayer);
-      } else if (title === 'MapQuestImagery') {
-        var imageryLayer = new ol.layer.Tile({
-            label: title,
-            metadata: { serverId: 1 },
-            source: new ol.source.MapQuestOpenAerial()
-          });
-        this.map.addLayer(imageryLayer);
-      } else if (title === 'MapQuestOSM') {
-        var mapquestLayer = new ol.layer.Tile({
-            label: title,
-            metadata: { serverId: 1 },
-            source: new ol.source.MapQuestOSM()
-          });
-        this.map.addLayer(mapquestLayer);
+        goog.array.forEach(ordered, function (serverInfo, index, obj) {
+          serverService_.addServer('WMS', serverInfo.name, serverInfo.url);
+        });
+        goog.array.forEach(this.configuration.map.layers, function (layerInfo, index, obj) {
+          if (serverService_.getServer(layerInfo.source).name === 'OpenStreetMap') {
+            layers.push(service_.addBaseLayer(layerInfo.name, true));
+          } else {
+            if (goog.isDefAndNotNull(layerInfo.name)) {
+              layers.push(service_.addWMSLayer(layerInfo, true));
+            } else {
+              console.log('====[ Error: cannot add a layer without a name');
+            }
+          }
+        });
+      } else {
+        console.log('invalid config object, cannot load map: ', this.configuration);
+        alert('invalid config object, cannot load map');
       }
+      return layers;
     };
     this.createMap = function () {
+      this.configuration = {
+        'about': {
+          'abstract': '',
+          'title': 'OD1'
+        },
+        'map': {
+          'center': [
+            -9707163.4015525,
+            1585022.104872
+          ],
+          'zoom': 15,
+          'projection': 'EPSG:900913',
+          'layers': [
+            {
+              'name': 'OpenStreetMap',
+              'source': 1,
+              'title': 'OpenStreetMap'
+            },
+            {
+              'name': 'geonode:canchas_de_futbol',
+              'source': 0,
+              'title': 'canchas_de_futbol'
+            },
+            {
+              'name': 'geonode:estaciones_temporales_de_primeros_auxilios',
+              'source': 0,
+              'title': 'estaciones_temporales_de_primeros_auxilios'
+            },
+            {
+              'name': 'geonode:incidentes_copeco',
+              'source': 0,
+              'title': 'incidentes_copeco'
+            }
+          ],
+          'id': 0
+        },
+        'sources': {
+          '0': {
+            'name': 'Local Geoserver',
+            'url': 'http://192.168.10.102/geoserver/wms',
+            'baseParams': { 'SERVICE': 'WMS' }
+          },
+          '1': {
+            'name': 'OpenStreetMap',
+            'url': 'fakeURL',
+            'baseParams': { 'SERVICE': 'WMS' }
+          }
+        }
+      };
+      console.log('====[[ loading config: ', this.configuration);
       var map = new ol.Map({
-          layers: [new ol.layer.Tile({
-              label: 'OpenStreetMap',
-              metadata: { serverId: 1 },
-              source: new ol.source.OSM()
-            })],
+          layers: this.loadLayers(),
           controls: ol.control.defaults().extend([
             new ol.control.FullScreen(),
             new ol.control.ZoomSlider(),
