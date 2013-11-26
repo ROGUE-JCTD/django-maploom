@@ -63665,6 +63665,7 @@ var SERVER_SERVICE_USE_PROXY = true;
         return [];
       }
       if (!goog.isDefAndNotNull(server.layers) && goog.isDefAndNotNull(server.url)) {
+        console.log('Sending GetCapabilities.server: ', server, ', index:', index);
         var parser = new ol.parser.ogc.WMSCapabilities();
         var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
         if (SERVER_SERVICE_USE_PROXY) {
@@ -63684,6 +63685,7 @@ var SERVER_SERVICE_USE_PROXY = true;
             }
           } else {
             console.log('Failed to get capabilities: ', xhr);
+            server.layers = [];
           }
         };
         xhr.send();
@@ -65992,7 +65994,23 @@ var GeoGitLogOptions = function () {
           ordered[key] = serverInfo;
         });
         goog.array.forEach(ordered, function (serverInfo, index, obj) {
-          serverService_.addServer('WMS', serverInfo.name, serverInfo.url);
+          var server = serverService_.addServer('WMS', serverInfo.name, serverInfo.url);
+          if (server.name === 'OpenStreeMap') {
+            server.layers = [
+              {
+                title: 'OpenStreetMap',
+                added: true
+              },
+              {
+                title: 'MapQuestImagery',
+                added: false
+              },
+              {
+                title: 'MapQuestOSM',
+                added: false
+              }
+            ];
+          }
         });
         goog.array.forEach(this.configuration.map.layers, function (layerInfo, index, obj) {
           if (goog.isDefAndNotNull(layerInfo.name)) {
@@ -66032,59 +66050,55 @@ var GeoGitLogOptions = function () {
       } else if (settings.coordinateDisplay === coordinateDisplays.DD) {
         coordDisplay = ol.coordinate.createStringXY(settings.DDPrecision);
       }
-      if (goog.isDefAndNotNull(config)) {
-        this.configuration = config;
-      } else {
-        this.configuration = {
-          'about': {
-            'abstract': '',
-            'title': 'OD1'
-          },
-          'map': {
-            'center': [
-              -9707163.4015525,
-              1585022.104872
-            ],
-            'zoom': 15,
-            'projection': 'EPSG:900913',
-            'layers': [
-              {
-                'name': 'OpenStreetMap',
-                'source': 1,
-                'title': 'OpenStreetMap'
-              },
-              {
-                'name': 'geonode:canchas_de_futbol',
-                'source': 0,
-                'title': 'canchas_de_futbol'
-              },
-              {
-                'name': 'geonode:estaciones_temporales_de_primeros_auxilios',
-                'source': 0,
-                'title': 'estaciones_temporales_de_primeros_auxilios'
-              },
-              {
-                'name': 'geonode:incidentes_copeco',
-                'source': 0,
-                'title': 'incidentes_copeco'
-              }
-            ],
-            'id': 0
-          },
-          'sources': {
-            '0': {
-              'name': 'Local Geoserver',
-              'url': 'http://192.168.10.102/geoserver/wms',
-              'baseParams': { 'SERVICE': 'WMS' }
-            },
-            '1': {
+      this.configuration = {
+        'about': {
+          'abstract': '',
+          'title': 'OD1'
+        },
+        'map': {
+          'center': [
+            -9707163.4015525,
+            1585022.104872
+          ],
+          'zoom': 15,
+          'projection': 'EPSG:900913',
+          'layers': [
+            {
               'name': 'OpenStreetMap',
-              'url': 'fakeURL',
-              'baseParams': { 'SERVICE': 'WMS' }
+              'source': 1,
+              'title': 'OpenStreetMap'
+            },
+            {
+              'name': 'geonode:canchas_de_futbol',
+              'source': 0,
+              'title': 'canchas_de_futbol'
+            },
+            {
+              'name': 'geonode:estaciones_temporales_de_primeros_auxilios',
+              'source': 0,
+              'title': 'estaciones_temporales_de_primeros_auxilios'
+            },
+            {
+              'name': 'geonode:incidentes_copeco',
+              'source': 0,
+              'title': 'incidentes_copeco'
             }
+          ],
+          'id': 0
+        },
+        'sources': {
+          '0': {
+            'name': 'Local Geoserver',
+            'url': 'http://192.168.10.102/geoserver/wms',
+            'baseParams': { 'SERVICE': 'WMS' }
+          },
+          '1': {
+            'name': 'OpenStreetMap',
+            'url': 'fakeURL',
+            'baseParams': { 'SERVICE': 'WMS' }
           }
-        };
-      }
+        }
+      };
       console.log('====[[ loading config: ', this.configuration);
       var map = new ol.Map({
           layers: this.loadLayers(),
