@@ -63604,6 +63604,8 @@ var SERVER_SERVICE_USE_PROXY = true;
     this.getServer = function (indexOrName) {
       if (typeof indexOrName === 'number') {
         return servers[indexOrName];
+      } else if (!isNaN(parseInt(indexOrName, 10)) && parseInt(indexOrName, 10).toString() === indexOrName) {
+        return servers[parseInt(indexOrName, 10)];
       } else {
         for (var index = 0; index < servers.length; index += 1) {
           if (servers[index].name === indexOrName) {
