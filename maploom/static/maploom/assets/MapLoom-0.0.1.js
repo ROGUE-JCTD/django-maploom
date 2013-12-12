@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2013-11-26
+ * MapLoom - v0.0.1 - 2013-12-12
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2013 LMN Solutions
@@ -21564,6 +21564,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
  * =========================================================
  */
 (function(d){var c=0,a=moment,b=function(g,i){var s={pickDate:true,pickTime:true,startDate:new a({y:1970}),endDate:new a().add(50,"y"),collapse:true,language:"en",defaultDate:"",disabledDates:[],icons:{},useStrict:false},K={time:"glyphicon glyphicon-time",date:"glyphicon glyphicon-calendar",up:"glyphicon glyphicon-chevron-up",down:"glyphicon glyphicon-chevron-down"},q=this,E=function(){var O=false,N,P,M;q.options=d.extend({},s,i);q.options.icons=d.extend({},K,q.options.icons);if(!(q.options.pickTime||q.options.pickDate)){throw new Error("Must choose at least one picker")}q.id=c++;a.lang(q.options.language);q.date=a();q.element=d(g);q.unset=false;q.isInput=q.element.is("input");q.component=false;if(q.element.hasClass("input-group")){if(q.element.find(".datepickerbutton").size()==0){q.component=q.element.find(".input-group-addon")}else{q.component=q.element.find(".datepickerbutton")}}q.format=q.options.format;M=a()._lang._longDateFormat;if(!q.format){if(q.isInput){q.format=q.element.data("format")}else{q.format=q.element.find("input").data("format")}if(!q.format){q.format=(q.options.pickDate?M.L:"");if(q.options.pickDate&&q.options.pickTime){q.format+=" "}q.format+=(q.options.pickTime?M.LT:"")}}q.use24hours=q.format.toLowerCase().indexOf("a")<1;if(q.component){O=q.component.find("span")}if(q.options.pickTime){if(O){O.addClass(q.options.icons.time)}}if(q.options.pickDate){if(O){O.removeClass(q.options.icons.time);O.addClass(q.options.icons.date)}}q.widget=d(I(q.options.pickDate,q.options.pickTime,q.options.collapse)).appendTo("body");q.minViewMode=q.options.minViewMode||q.element.data("date-minviewmode")||0;if(typeof q.minViewMode==="string"){switch(q.minViewMode){case"months":q.minViewMode=1;break;case"years":q.minViewMode=2;break;default:q.minViewMode=0;break}}q.viewMode=q.options.viewMode||q.element.data("date-viewmode")||0;if(typeof q.viewMode==="string"){switch(q.viewMode){case"months":q.viewMode=1;break;case"years":q.viewMode=2;break;default:q.viewMode=0;break}}for(N=0;N<q.options.disabledDates.length;N++){P=q.options.disabledDates[N];P=a(P);if(!P.isValid()){P=a(q.options.startDate).subtract(1,"day")}q.options.disabledDates[N]=P.format("L")}q.startViewMode=q.viewMode;q.setStartDate(q.options.startDate||q.element.data("date-startdate"));q.setEndDate(q.options.endDate||q.element.data("date-enddate"));H();L();l();C();n();f();J();if(q.options.defaultDate!==""){q.setValue(q.options.defaultDate)}},o=function(){var M="absolute",O=q.component?q.component.offset():q.element.offset(),N=d(window);q.width=q.component?q.component.outerWidth():q.element.outerWidth();O.top=O.top+q.element.outerHeight();if(q.options.width!==undefined){q.widget.width(q.options.width)}if(q.options.orientation==="left"){q.widget.addClass("left-oriented");O.left=O.left-q.widget.width()+20}if(A()){M="fixed";O.top-=N.scrollTop();O.left-=N.scrollLeft()}if(N.width()<O.left+q.widget.outerWidth()){O.right=N.width()-O.left-q.width;O.left="auto";q.widget.addClass("pull-right")}else{O.right="auto";q.widget.removeClass("pull-right")}q.widget.css({position:M,top:O.top,left:O.left,right:O.right})},z=function(M){q.element.trigger({type:"change.dp",date:q.getDate(),oldDate:M})},w=function(M){q.element.trigger({type:"error.dp",date:M})},n=function(M){a.lang(q.options.language);var N=M;if(!N){if(q.isInput){N=q.element.val()}else{N=q.element.find("input").val()}if(N){q.date=a(N,q.format,q.options.useStrict)}if(!q.date){q.date=a()}}q.viewDate=a(q.date).startOf("month");h();y()},H=function(){a.lang(q.options.language);var O=d("<tr>"),M=a.weekdaysMin(),N;if(a()._lang._week.dow==0){for(N=0;N<7;N++){O.append('<th class="dow">'+M[N]+"</th>")}}else{for(N=1;N<8;N++){if(N==7){O.append('<th class="dow">'+M[0]+"</th>")}else{O.append('<th class="dow">'+M[N]+"</th>")}}}q.widget.find(".datepicker-days thead").append(O)},L=function(){a.lang(q.options.language);var N="",M=0,O=a.monthsShort();while(M<12){N+='<span class="month">'+O[M++]+"</span>"}q.widget.find(".datepicker-months td").append(N)},h=function(){a.lang(q.options.language);var X=q.viewDate.year(),V=q.viewDate.month(),W=q.options.startDate.year(),Z=q.options.startDate.month(),aa=q.options.endDate.year(),T=q.options.endDate.month(),P,S,R=[],ab,O,Q,Y,N,U,M=a.months();q.widget.find(".datepicker-days").find(".disabled").removeClass("disabled");q.widget.find(".datepicker-months").find(".disabled").removeClass("disabled");q.widget.find(".datepicker-years").find(".disabled").removeClass("disabled");q.widget.find(".datepicker-days th:eq(1)").text(M[V]+" "+X);P=a(q.viewDate).subtract("months",1);Y=P.daysInMonth();P.date(Y).startOf("week");if((X==W&&V<=Z)||X<W){q.widget.find(".datepicker-days th:eq(0)").addClass("disabled")}if((X==aa&&V>=T)||X>aa){q.widget.find(".datepicker-days th:eq(2)").addClass("disabled")}S=a(P).add(42,"d");while(P.isBefore(S)){if(P.weekday()===a().startOf("week").weekday()){ab=d("<tr>");R.push(ab)}O="";if(P.year()<X||(P.year()==X&&P.month()<V)){O+=" old"}else{if(P.year()>X||(P.year()==X&&P.month()>V)){O+=" new"}}if(P.isSame(a({y:q.date.year(),M:q.date.month(),d:q.date.date()}))){O+=" active"}if((a(P).add(1,"d")<=q.options.startDate)||(P>q.options.endDate)||e(P)){O+=" disabled"}ab.append('<td class="day'+O+'">'+P.date()+"</td>");P.add(1,"d")}q.widget.find(".datepicker-days tbody").empty().append(R);U=a().year(),M=q.widget.find(".datepicker-months").find("th:eq(1)").text(X).end().find("span").removeClass("active");if(U===X){M.eq(a().month()).addClass("active")}if(U-1<W){q.widget.find(".datepicker-months th:eq(0)").addClass("disabled")}if(U+1>aa){q.widget.find(".datepicker-months th:eq(2)").addClass("disabled")}for(Q=0;Q<12;Q++){if((X==W&&Z>Q)||(X<W)){d(M[Q]).addClass("disabled")}else{if((X==aa&&T<Q)||(X>aa)){d(M[Q]).addClass("disabled")}}}R="";X=parseInt(X/10,10)*10;N=q.widget.find(".datepicker-years").find("th:eq(1)").text(X+"-"+(X+9)).end().find("td");q.widget.find(".datepicker-years").find("th").removeClass("disabled");if(W>X){q.widget.find(".datepicker-years").find("th:eq(0)").addClass("disabled")}if(aa<X+9){q.widget.find(".datepicker-years").find("th:eq(2)").addClass("disabled")}X-=1;for(Q=-1;Q<11;Q++){R+='<span class="year'+(Q===-1||Q===10?" old":"")+(U===X?" active":"")+((X<W||X>aa)?" disabled":"")+'">'+X+"</span>";X+=1}N.html(R)},l=function(){a.lang(q.options.language);var P=q.widget.find(".timepicker .timepicker-hours table"),O="",Q,N,M;P.parent().hide();if(q.use24hours){Q=0;for(N=0;N<6;N+=1){O+="<tr>";for(M=0;M<4;M+=1){O+='<td class="hour">'+D(Q.toString())+"</td>";Q++}O+="</tr>"}}else{Q=1;for(N=0;N<3;N+=1){O+="<tr>";for(M=0;M<4;M+=1){O+='<td class="hour">'+D(Q.toString())+"</td>";Q++}O+="</tr>"}}P.html(O)},C=function(){var P=q.widget.find(".timepicker .timepicker-minutes table"),O="",Q=0,N,M;P.parent().hide();for(N=0;N<5;N++){O+="<tr>";for(M=0;M<4;M+=1){O+='<td class="minute">'+D(Q.toString())+"</td>";Q+=3}O+="</tr>"}P.html(O)},y=function(){if(!q.date){return}var O=q.widget.find(".timepicker span[data-time-component]"),M=q.date.hours(),N="AM";if(!q.use24hours){if(M>=12){N="PM"}if(M===0){M=12}else{if(M!=12){M=M%12}}q.widget.find(".timepicker [data-action=togglePeriod]").text(N)}O.filter("[data-time-component=hours]").text(D(M));O.filter("[data-time-component=minutes]").text(D(q.date.minutes()))},B=function(S){S.stopPropagation();S.preventDefault();q.unset=false;var R=d(S.target).closest("span, td, th"),Q,O,P,M,N=q.date;if(R.length===1){if(!R.is(".disabled")){switch(R[0].nodeName.toLowerCase()){case"th":switch(R[0].className){case"switch":f(1);break;case"prev":case"next":P=G.modes[q.viewMode].navStep;if(R[0].className==="prev"){P=P*-1}q.viewDate.add(P,G.modes[q.viewMode].navFnc);h();break}break;case"span":if(R.is(".month")){Q=R.parent().find("span").index(R);q.viewDate.month(Q)}else{O=parseInt(R.text(),10)||0;q.viewDate.year(O)}if(q.viewMode!==0){q.date=a({y:q.viewDate.year(),M:q.viewDate.month(),d:q.viewDate.date(),h:q.date.hours(),m:q.date.minutes()});z(N)}f(-1);h();break;case"td":if(R.is(".day")){M=parseInt(R.text(),10)||1;Q=q.viewDate.month();O=q.viewDate.year();if(R.is(".old")){if(Q===0){Q=11;O-=1}else{Q-=1}}else{if(R.is(".new")){if(Q==11){Q=0;O+=1}else{Q+=1}}}q.date=a({y:O,M:Q,d:M,h:q.date.hours(),m:q.date.minutes()});q.viewDate=a({y:O,M:Q,d:Math.min(28,M)});h();x();z(N)}break}}}},r={incrementHours:function(){j("add","hours")},incrementMinutes:function(){j("add","minutes")},decrementHours:function(){j("subtract","hours")},decrementMinutes:function(){j("subtract","minutes")},togglePeriod:function(){var M=q.date.hours();if(M>=12){M-=12}else{M+=12}q.date.hours(M)},showPicker:function(){q.widget.find(".timepicker > div:not(.timepicker-picker)").hide();q.widget.find(".timepicker .timepicker-picker").show()},showHours:function(){q.widget.find(".timepicker .timepicker-picker").hide();q.widget.find(".timepicker .timepicker-hours").show()},showMinutes:function(){q.widget.find(".timepicker .timepicker-picker").hide();q.widget.find(".timepicker .timepicker-minutes").show()},selectHour:function(M){q.date.hours(parseInt(d(M.target).text(),10));r.showPicker.call(q)},selectMinute:function(M){q.date.minutes(parseInt(d(M.target).text(),10));r.showPicker.call(q)}},v=function(O){var N=d(O.currentTarget).data("action"),P=r[N].apply(q,arguments),M=q.date;F(O);if(!q.date){q.date=a({y:1970})}x();y();z(M);return P},F=function(M){M.stopPropagation();M.preventDefault()},u=function(O){a.lang(q.options.language);var M=d(O.target),N=q.date,P=a(M.val(),q.format,q.options.useStrict);if(P.isValid()){n();q.setValue(P);z(N);x()}else{q.viewDate=N;z(N);w(P);q.unset=true;M.val("")}},f=function(M){if(M){q.viewMode=Math.max(q.minViewMode,Math.min(2,q.viewMode+M))}q.widget.find(".datepicker > div").hide().filter(".datepicker-"+G.modes[q.viewMode].clsName).show()},J=function(){var Q,P,N,M,O;q.widget.on("click",".datepicker *",d.proxy(B,this));q.widget.on("click","[data-action]",d.proxy(v,this));q.widget.on("mousedown",d.proxy(F,this));if(q.options.pickDate&&q.options.pickTime){q.widget.on("click.togglePicker",".accordion-toggle",function(R){R.stopPropagation();Q=d(this);P=Q.closest("ul");N=P.find(".in");M=P.find(".collapse:not(.in)");if(N&&N.length){O=N.data("collapse");if(O&&O.transitioning){return}N.collapse("hide");M.collapse("show");Q.find("span").toggleClass(q.options.icons.time+" "+q.options.icons.date);q.element.find(".input-group-addon span").toggleClass(q.options.icons.time+" "+q.options.icons.date)}})}if(q.isInput){q.element.on({focus:d.proxy(q.show,this),change:d.proxy(u,this),blur:d.proxy(q.hide,this)})}else{q.element.on({change:d.proxy(u,this)},"input");if(q.component){q.component.on("click",d.proxy(q.show,this))}else{q.element.on("click",d.proxy(q.show,this))}}},p=function(){d(window).on("resize.datetimepicker"+q.id,d.proxy(o,this));if(!q.isInput){d(document).on("mousedown.datetimepicker"+q.id,d.proxy(q.hide,this))}},t=function(){q.widget.off("click",".datepicker *",q.click);q.widget.off("click","[data-action]");q.widget.off("mousedown",q.stopEvent);if(q.options.pickDate&&q.options.pickTime){q.widget.off("click.togglePicker")}if(q.isInput){q.element.off({focus:q.show,change:q.change})}else{q.element.off({change:q.change},"input");if(q.component){q.component.off("click",q.show)}else{q.element.off("click",q.show)}}},k=function(){d(window).off("resize.datetimepicker"+q.id);if(!q.isInput){d(document).off("mousedown.datetimepicker"+q.id)}},A=function(){if(q.element){var N=q.element.parents(),M=false,O;for(O=0;O<N.length;O++){if(d(N[O]).css("position")=="fixed"){M=true;break}}return M}else{return false}},x=function(){a.lang(q.options.language);var N="",M;if(!q.unset){N=a(q.date).format(q.format)}if(!q.isInput){if(q.component){M=q.element.find("input");M.val(N)}q.element.data("date",N)}else{q.element.val(N)}if(!q.options.pickTime){q.hide()}},j=function(O,N){a.lang(q.options.language);var M;if(O=="add"){M=a(q.date);if(M.hours()==23){M.add(1,N)}M.add(1,N)}else{M=a(q.date).subtract(1,N)}if(M.isAfter(q.options.endDate)||M.subtract(1,N).isBefore(q.options.startDate)||e(M)){w(M.format(q.format));return}if(O=="add"){q.date.add(1,N)}else{q.date.subtract(1,N)}},e=function(M){a.lang(q.options.language);var O=q.options.disabledDates,N;for(N in O){if(O[N]==a(M).format("L")){return true}}return false},D=function(M){M=M.toString();if(M.length>=2){return M}else{return"0"+M}},I=function(N,M,O){if(N&&M){return('<div class="bootstrap-datetimepicker-widget dropdown-menu" style="z-index:9999 !important;"><ul class="list-unstyled"><li'+(O?' class="collapse in"':"")+'><div class="datepicker">'+G.template+'</div></li><li class="picker-switch accordion-toggle"><a class="btn" style="width:100%"><span class="'+q.options.icons.time+'"></span></a></li><li'+(O?' class="collapse"':"")+'><div class="timepicker">'+m.getTemplate()+"</div></li></ul></div>")}else{if(M){return('<div class="bootstrap-datetimepicker-widget dropdown-menu"><div class="timepicker">'+m.getTemplate()+"</div></div>")}else{return('<div class="bootstrap-datetimepicker-widget dropdown-menu"><div class="datepicker">'+G.template+"</div></div>")}}},G={modes:[{clsName:"days",navFnc:"month",navStep:1},{clsName:"months",navFnc:"year",navStep:1},{clsName:"years",navFnc:"year",navStep:10}],headTemplate:'<thead><tr><th class="prev">&lsaquo;</th><th colspan="5" class="switch"></th><th class="next">&rsaquo;</th></tr></thead>',contTemplate:'<tbody><tr><td colspan="7"></td></tr></tbody>'},m={hourTemplate:'<span data-action="showHours" data-time-component="hours" class="timepicker-hour"></span>',minuteTemplate:'<span data-action="showMinutes" data-time-component="minutes" class="timepicker-minute"></span>'};G.template='<div class="datepicker-days"><table class="table-condensed">'+G.headTemplate+'<tbody></tbody></table></div><div class="datepicker-months"><table class="table-condensed">'+G.headTemplate+G.contTemplate+'</table></div><div class="datepicker-years"><table class="table-condensed">'+G.headTemplate+G.contTemplate+"</table></div>";m.getTemplate=function(){return('<div class="timepicker-picker"><table class="table-condensed"><tr><td><a href="#" class="btn" data-action="incrementHours"><span class="'+q.options.icons.up+'"></span></a></td><td class="separator"></td><td><a href="#" class="btn" data-action="incrementMinutes"><span class="'+q.options.icons.up+'"></span></a></td>'+(!q.use24hours?'<td class="separator"></td>':"")+"</tr><tr><td>"+m.hourTemplate+'</td> <td class="separator">:</td><td>'+m.minuteTemplate+"</td> "+(!q.use24hours?'<td class="separator"></td><td><button type="button" class="btn btn-primary" data-action="togglePeriod"></button></td>':"")+'</tr><tr><td><a href="#" class="btn" data-action="decrementHours"><span class="'+q.options.icons.down+'"></span></a></td><td class="separator"></td><td><a href="#" class="btn" data-action="decrementMinutes"><span class="'+q.options.icons.down+'"></span></a></td>'+(!q.use24hours?'<td class="separator"></td>':"")+'</tr></table></div><div class="timepicker-hours" data-action="selectHour"><table class="table-condensed"></table></div><div class="timepicker-minutes" data-action="selectMinute"><table class="table-condensed"></table></div>')};q.destroy=function(){t();k();q.widget.remove();q.element.removeData("DateTimePicker");q.component.removeData("DateTimePicker")};q.show=function(M){q.widget.show();q.height=q.component?q.component.outerHeight():q.element.outerHeight();o();q.element.trigger({type:"show.dp",date:q.date});p();if(M){F(M)}},q.disable=function(){q.element.find("input").prop("disabled",true);t()},q.enable=function(){q.element.find("input").prop("disabled",false);J()},q.hide=function(){var O=q.widget.find(".collapse"),M,N;for(M=0;M<O.length;M++){N=O.eq(M).data("collapse");if(N&&N.transitioning){return}}q.widget.hide();q.viewMode=q.startViewMode;f();q.element.trigger({type:"hide.dp",date:q.date});k()},q.setValue=function(M){a.lang(q.options.language);if(!M){q.unset=true}else{q.unset=false}if(!a.isMoment(M)){M=a(M)}if(M.isValid()){q.date=M;x();q.viewDate=a({y:q.date.year(),M:q.date.month()});h();y()}else{w(M)}},q.getDate=function(){if(q.unset){return null}return q.date},q.setDate=function(M){if(!M){q.setValue(null)}else{q.setValue(M)}},q.setEndDate=function(M){q.options.endDate=a(M);if(!q.options.endDate.isValid()){q.options.endDate=a().add(50,"y")}if(q.viewDate){n()}},q.setStartDate=function(M){q.options.startDate=a(M);if(!q.options.startDate.isValid()){q.options.startDate=a({y:1970})}if(q.viewDate){n()}};E()};d.fn.datetimepicker=function(e){return this.each(function(){var g=d(this),f=g.data("DateTimePicker");if(!f){g.data("DateTimePicker",new b(this,e))}})}})(jQuery);
+function X2JS(s){var o="1.1.3";s=s||{};g();function g(){if(s.escapeMode===undefined){s.escapeMode=true;}s.attributePrefix=s.attributePrefix||"_";s.arrayAccessForm=s.arrayAccessForm||"none";s.emptyNodeForm=s.emptyNodeForm||"text";if(s.enableToStringFunc===undefined){s.enableToStringFunc=true;}s.arrayAccessFormPaths=s.arrayAccessFormPaths||[];if(s.skipEmptyTextNodesForObj===undefined){s.skipEmptyTextNodesForObj=true;}}var f={ELEMENT_NODE:1,TEXT_NODE:3,CDATA_SECTION_NODE:4,COMMENT_NODE:8,DOCUMENT_NODE:9};function q(u){var v=u.localName;if(v==null){v=u.baseName;}if(v==null||v==""){v=u.nodeName;}return v;}function m(u){return u.prefix;}function n(u){if(typeof(u)=="string"){return u.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;").replace(/\//g,"&#x2F;");}else{return u;}}function i(u){return u.replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#x27;/g,"'").replace(/&#x2F;/g,"/");}function j(y,v,x){switch(s.arrayAccessForm){case"property":if(!(y[v] instanceof Array)){y[v+"_asArray"]=[y[v]];}else{y[v+"_asArray"]=y[v];}break;}if(!(y[v] instanceof Array)&&s.arrayAccessFormPaths.length>0){var u=0;for(;u<s.arrayAccessFormPaths.length;u++){var w=s.arrayAccessFormPaths[u];if(typeof w==="string"){if(w==x){break;}}else{if(w instanceof RegExp){if(w.test(x)){break;}}else{if(typeof w==="function"){if(w(y,v,x)){break;}}}}}if(u!=s.arrayAccessFormPaths.length){y[v]=[y[v]];}}}function t(w,B){if(w.nodeType==f.DOCUMENT_NODE){var C=new Object;var u=w.childNodes;for(var D=0;D<u.length;D++){var v=u.item(D);if(v.nodeType==f.ELEMENT_NODE){var A=q(v);C[A]=t(v,A);}}return C;}else{if(w.nodeType==f.ELEMENT_NODE){var C=new Object;C.__cnt=0;var u=w.childNodes;for(var D=0;D<u.length;D++){var v=u.item(D);var A=q(v);if(v.nodeType!=f.COMMENT_NODE){C.__cnt++;if(C[A]==null){C[A]=t(v,B+"."+A);j(C,A,B+"."+A);}else{if(C[A]!=null){if(!(C[A] instanceof Array)){C[A]=[C[A]];j(C,A,B+"."+A);}}(C[A])[C[A].length]=t(v,B+"."+A);}}}for(var x=0;x<w.attributes.length;x++){var y=w.attributes.item(x);C.__cnt++;C[s.attributePrefix+y.name]=y.value;}var z=m(w);if(z!=null&&z!=""){C.__cnt++;C.__prefix=z;}if(C["#text"]!=null){C.__text=C["#text"];if(C.__text instanceof Array){C.__text=C.__text.join("\n");}if(s.escapeMode){C.__text=i(C.__text);}delete C["#text"];if(s.arrayAccessForm=="property"){delete C["#text_asArray"];}}if(C["#cdata-section"]!=null){C.__cdata=C["#cdata-section"];delete C["#cdata-section"];if(s.arrayAccessForm=="property"){delete C["#cdata-section_asArray"];}}if(C.__cnt==1&&C.__text!=null){C=C.__text;}else{if(C.__cnt==0&&s.emptyNodeForm=="text"){C="";}else{if(C.__cnt>1&&C.__text!=null&&s.skipEmptyTextNodesForObj){if(C.__text.trim()==""){delete C.__text;}}}}delete C.__cnt;if(s.enableToStringFunc&&C.__text!=null||C.__cdata!=null){C.toString=function(){return(this.__text!=null?this.__text:"")+(this.__cdata!=null?this.__cdata:"");};}return C;}else{if(w.nodeType==f.TEXT_NODE||w.nodeType==f.CDATA_SECTION_NODE){return w.nodeValue;}}}}function k(B,y,A,v){var x="<"+((B!=null&&B.__prefix!=null)?(B.__prefix+":"):"")+y;if(A!=null){for(var z=0;z<A.length;z++){var w=A[z];var u=B[w];x+=" "+w.substr(s.attributePrefix.length)+"='"+u+"'";}}if(!v){x+=">";}else{x+="/>";}return x;}function h(v,u){return"</"+(v.__prefix!=null?(v.__prefix+":"):"")+u+">";}function p(v,u){return v.indexOf(u,v.length-u.length)!==-1;}function r(v,u){if((s.arrayAccessForm=="property"&&p(u.toString(),("_asArray")))||u.toString().indexOf(s.attributePrefix)==0||u.toString().indexOf("__")==0||(v[u] instanceof Function)){return true;}else{return false;}}function l(w){var v=0;if(w instanceof Object){for(var u in w){if(r(w,u)){continue;}v++;}}return v;}function a(w){var v=[];if(w instanceof Object){for(var u in w){if(u.toString().indexOf("__")==-1&&u.toString().indexOf(s.attributePrefix)==0){v.push(u);}}}return v;}function e(v){var u="";if(v.__cdata!=null){u+="<![CDATA["+v.__cdata+"]]>";}if(v.__text!=null){if(s.escapeMode){u+=n(v.__text);}else{u+=v.__text;}}return u;}function b(v){var u="";if(v instanceof Object){u+=e(v);}else{if(v!=null){if(s.escapeMode){u+=n(v);}else{u+=v;}}}return u;}function d(w,y,x){var u="";if(w.length==0){u+=k(w,y,x,true);}else{for(var v=0;v<w.length;v++){u+=k(w[v],y,a(w[v]),false);u+=c(w[v]);u+=h(w[v],y);}}return u;}function c(A){var u="";var y=l(A);if(y>0){for(var x in A){if(r(A,x)){continue;}var w=A[x];var z=a(w);if(w==null||w==undefined){u+=k(w,x,z,true);}else{if(w instanceof Object){if(w instanceof Array){u+=d(w,x,z);}else{var v=l(w);if(v>0||w.__text!=null||w.__cdata!=null){u+=k(w,x,z,false);u+=c(w);u+=h(w,x);}else{u+=k(w,x,z,true);}}}else{u+=k(w,x,z,false);u+=b(w);u+=h(w,x);}}}}u+=b(A);return u;}this.parseXmlString=function(u){if(u===undefined){return null;}var v;if(window.DOMParser){var w=new window.DOMParser();v=w.parseFromString(u,"text/xml");}else{if(u.indexOf("<?")==0){u=u.substr(u.indexOf("?>")+2);}v=new ActiveXObject("Microsoft.XMLDOM");v.async="false";v.loadXML(u);}return v;};this.asArray=function(u){if(u instanceof Array){return u;}else{return[u];}};this.xml2json=function(u){return t(u);};this.xml_str2json=function(u){var v=this.parseXmlString(u);return this.xml2json(v);};this.json2xml_str=function(u){return c(u);};this.json2xml=function(v){var u=this.json2xml_str(v);return this.parseXmlString(u);};this.getVersion=function(){return o;};}
 /**
  * angular-translate - v1.1.0 - 2013-09-02
  * http://github.com/PascalPrecht/angular-translate
@@ -63403,6 +63404,7 @@ ol.tilegrid.XYZOptions;
 }());
 (function () {
   angular.module('loom', [
+    'loom_configuration',
     'loom_map',
     'loom_notifications',
     'loom_notification_poster',
@@ -63430,7 +63432,9 @@ ol.tilegrid.XYZOptions;
     'pulldownService',
     'geogitService',
     'diffService',
-    function ($scope, pulldownService, geogitService, diffService) {
+    'mapService',
+    'configService',
+    function ($scope, pulldownService, geogitService, diffService, mapService, configService) {
       $('#pulldown-content').on('show.bs.collapse', function (e) {
         $('#pulldown-content .in').not($(e.target).parents()).collapse('hide');
       });
@@ -63439,6 +63443,8 @@ ol.tilegrid.XYZOptions;
         $scope.notificationsPanel = pulldownService.notificationsPanel.getVisible();
         $scope.layersPanel = pulldownService.layersPanel.getVisible();
         $scope.syncPanel = pulldownService.syncPanel.getVisible();
+        $scope.mapService = mapService;
+        $scope.configService = configService;
       }
       function updateScopeVariables() {
         if (!$scope.$$phase) {
@@ -63451,6 +63457,8 @@ ol.tilegrid.XYZOptions;
       }
       assignScopeVariables();
       $scope.$on('refresh-pulldown', updateScopeVariables);
+      $scope.$watch('configService', updateScopeVariables);
+      $scope.$watch('mapService', updateScopeVariables);
       var syncPanelEnabled = function () {
         pulldownService.syncPanel.enabled = geogitService.repos.length > 0;
         updateScopeVariables();
@@ -63482,10 +63490,11 @@ ol.tilegrid.XYZOptions;
   });
   module.controller('AppCtrl', [
     '$scope',
+    '$window',
     '$location',
     '$translate',
     'mapService',
-    function AppCtrl($scope, $location, $translate, mapService) {
+    function AppCtrl($scope, $window, $location, $translate, mapService) {
       console.log('---- ngBoilerplate.controller.');
       $scope.$on('$stateChangeSuccess', function (event, toState) {
         if (angular.isDefined(toState.data.pageTitle)) {
@@ -63534,10 +63543,11 @@ ol.tilegrid.XYZOptions;
         templateUrl: 'addlayers/partials/addlayers.tpl.html',
         link: function (scope, element) {
           scope.serverService = serverService;
-          scope.currentServerIndex = 0;
+          scope.currentServerIndex = serverService.getServer('Local Geoserver').id;
           scope.addLayers = function () {
-            var layers = scope.serverService.getLayers(scope.currentServerIndex);
-            if (scope.currentServerIndex === 1) {
+            var currentServer = serverService.getServer(scope.currentServerIndex);
+            var layers = scope.serverService.populateLayers(scope.currentServerIndex);
+            if (currentServer.type === 'fakeType') {
               if (layers[0].add) {
                 mapService.addBaseLayer(layers[0].title);
                 layers[0].add = false;
@@ -63563,7 +63573,7 @@ ol.tilegrid.XYZOptions;
                       title: layer.title,
                       name: layer.name
                     };
-                  mapService.addWMSLayer(config);
+                  mapService.addLayer(config);
                   layer.add = false;
                   layer.added = true;
                 }
@@ -63577,7 +63587,7 @@ ol.tilegrid.XYZOptions;
             scope.$apply();
           });
           var layerRemoved = function (event, layer) {
-            var layers = scope.serverService.getLayers(layer.get('metadata').serverId);
+            var layers = scope.serverService.populateLayers(layer.get('metadata').serverId);
             var length = layers.length;
             for (var index = 0; index < length; index++) {
               var serverLayer = layers[index];
@@ -63642,24 +63652,24 @@ var SERVER_SERVICE_USE_PROXY = true;
         return servers[parseInt(indexOrName, 10)];
       } else {
         for (var index = 0; index < servers.length; index += 1) {
-          if (servers[index].name === indexOrName) {
+          if (servers[index].name.toLocaleLowerCase() === indexOrName.toLowerCase()) {
             return servers[index];
           }
         }
       }
     };
-    this.addServer = function (type, name, url) {
+    this.addServer = function (serverInfo) {
       var server = {
-          type: type,
-          name: name,
-          url: url,
-          id: servers.length
+          id: servers.length,
+          ptype: 'gxp_olsource',
+          config: serverInfo
         };
+      goog.object.extend(server, serverInfo, {});
       console.log('---- adding server: ', server);
       servers.push(server);
       return server.id;
     };
-    this.getLayers = function (index) {
+    this.populateLayers = function (index) {
       var server = servers[index];
       if (!goog.isDefAndNotNull(server)) {
         return [];
@@ -63794,6 +63804,32 @@ var SERVER_SERVICE_USE_PROXY = true;
 }());
 (function () {
   angular.module('loom_arrangeable', ['loom_arrangeable_directive']);
+}());
+(function () {
+  var module = angular.module('loom_configuration', ['ngCookies']);
+  angular.module('loom').config([
+    '$httpProvider',
+    function ($httpProvider) {
+      $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    }
+  ]);
+  module.provider('configService', function () {
+    this.configuration = {};
+    this.$get = [
+      '$window',
+      '$http',
+      '$cookies',
+      function ($window, $http, $cookies) {
+        goog.object.extend(this.configuration, $window.config, {});
+        this.username = this.configuration.username;
+        this.user_profile_name = this.configuration.userprofilename;
+        this.user_profile_email = this.configuration.userprofileemail;
+        this.proxy = this.configuration.proxy;
+        this.csrfToken = $cookies.csrftoken;
+        return this;
+      }
+    ];
+  });
 }());
 (function () {
   var module = angular.module('loom_diff_list_directive', []);
@@ -64741,9 +64777,17 @@ var SERVER_SERVICE_USE_PROXY = true;
           scope.coordDisplay = coordinateDisplays.DMS;
           scope.$on('startAttributeEdit', function (event, feature, properties) {
             scope.properties = new Array(properties.length);
+            var attributeTypes = featureManagerService.getSelectedLayer().get('metadata').schema;
             goog.array.forEach(properties, function (property, index, arr) {
               scope.properties[index] = goog.object.clone(property);
+              if (goog.isDefAndNotNull(attributeTypes)) {
+                scope.properties[index].type = attributeTypes[scope.properties[index][0]]._type;
+                if (scope.properties[index].type === 'simpleType') {
+                  scope.properties[index].enum = attributeTypes[scope.properties[index][0]].simpleType.restriction.enumeration;
+                }
+              }
             });
+            scope.coordinates = goog.array.clone(feature.geometry.coordinates);
             $('#attribute-edit-dialog').modal('toggle');
             scope.feature = feature;
           });
@@ -64752,7 +64796,11 @@ var SERVER_SERVICE_USE_PROXY = true;
             if (parentModal[0] === element[0]) {
               scope.feature = null;
               scope.properties = null;
+              scope.coordinates = null;
             }
+          };
+          scope.selectValue = function (property, index) {
+            property[1] = property.enum[index]._value;
           };
           scope.$on('modal-closed', closeModal);
         }
@@ -65022,36 +65070,70 @@ var SERVER_SERVICE_USE_PROXY = true;
     };
     this.endGeometryEditing = function (save) {
       if (save) {
+        var feature = mapService_.editLayer.getFeatures()[0];
+        if (feature.original_) {
+          var writer = new ol.parser.ogc.GML_v3({
+              featureNS: selectedLayer_.get('metadata').workspace,
+              featureType: selectedLayer_.get('metadata').nativeName
+            });
+          var featureGML = writer.write({ features: [feature] }, { srsName: mapService_.map.getView().getView2D().getProjection().getCode() });
+          var startIndex = featureGML.indexOf('<feature:geometry>');
+          var endIndex = featureGML.indexOf('</feature:geometry');
+          featureGML = featureGML.substring(startIndex + 18, endIndex);
+          startIndex = featureGML.indexOf(' srsName=');
+          var originalString = featureGML.substring(0, startIndex);
+          var newString = originalString + ' xmlns:gml="http://www.opengis.net/gml"';
+          featureGML = featureGML.replace(originalString, newString);
+          var partial = '<wfs:Property><wfs:Name>' + selectedItem_.geometry_name + '</wfs:Name><wfs:Value>' + featureGML + '</wfs:Value></wfs:Property>';
+          var coords = null;
+          var newPos = null;
+          if (feature.getGeometry().getType() == 'point') {
+            var transformedGeom = transformPoint(feature.getGeometry().getCoordinates(), mapService_.map.getView().getView2D().getProjection(), selectedLayer_.get('metadata').projection);
+            coords = transformedGeom.getCoordinates();
+            newPos = feature.getGeometry().getCoordinates();
+          } else if (feature.getGeometry().getType() == 'multilinestring') {
+            newPos = feature.getGeometry().getComponents()[0].getCoordinates();
+            newPos = newPos[Math.floor(newPos.length / 2)];
+          } else if (feature.getGeometry().getType() == 'multipolygon') {
+            newPos = feature.getGeometry().getComponents()[0].getRings()[0].getCoordinates()[0];
+          }
+          issueWFSPost(partial, null, coords, newPos);
+        }
       } else {
         mapService_.clearSelectedFeature();
         mapService_.selectFeature(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
       }
       $('#info-box').show();
-      rootScope_.$broadcast('endGeometryEdit');
+      rootScope_.$broadcast('endGeometryEdit', save);
       mapService_.map.removeInteraction(modify_);
       enabled_ = true;
     };
     this.startAttributeEditing = function () {
       rootScope_.$broadcast('startAttributeEdit', selectedItem_, selectedItemProperties_);
     };
-    this.endAttributeEditing = function (properties) {
+    this.endAttributeEditing = function (properties, coords) {
       var propertyXmlPartial = '';
       goog.array.forEach(properties, function (property, index) {
         if (properties[index][1] !== selectedItemProperties_[index][1]) {
           propertyXmlPartial += '<wfs:Property><wfs:Name>' + property[0] + '</wfs:Name><wfs:Value>' + property[1] + '</wfs:Value></wfs:Property>';
         }
       });
+      var newPos = null;
+      if (goog.isDefAndNotNull(coords)) {
+        if (coords[0] !== selectedItem_.geometry.coordinates[0] || coords[1] !== selectedItem_.geometry.coordinates[1]) {
+          var newGeom = transformPoint(coords, selectedLayer_.get('metadata').projection, mapService_.map.getView().getView2D().getProjection());
+          var feature = mapService_.editLayer.getFeatures()[0];
+          feature.setGeometry(newGeom);
+          newPos = newGeom.getCoordinates();
+          var featureGML = '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '"><gml:pos>' + newPos[0] + ' ' + newPos[1] + '</gml:pos></gml:Point>';
+          propertyXmlPartial += '<wfs:Property><wfs:Name>' + selectedItem_.geometry_name + '</wfs:Name><wfs:Value>' + featureGML + '</wfs:Value></wfs:Property>';
+          var pan = ol.animation.pan({ source: mapService_.map.getView().getView2D().getCenter() });
+          mapService_.map.beforeRender(pan);
+          mapService_.map.getView().getView2D().setCenter(newPos);
+        }
+      }
       if (propertyXmlPartial !== '') {
-        var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.1.0" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd"> ' + '<wfs:Update xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.getSource().getParams().LAYERS + '">' + propertyXmlPartial + '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">' + '<ogc:FeatureId fid="' + selectedItem_.id + '" />' + '</ogc:Filter>' + '</wfs:Update>' + '</wfs:Transaction>';
-        http_({
-          url: '/geoserver/wfs/WfsDispatcher',
-          method: 'POST',
-          data: wfsRequestData
-        }).success(function (data, status, headers, config) {
-          selectedItemProperties_ = properties;
-        }).error(function (data, status, headers, config) {
-          console.log('----[ ERROR: wfs-t post failed! ', data, status, headers, config);
-        });
+        issueWFSPost(propertyXmlPartial, properties, coords, newPos);
       }
     };
   });
@@ -65110,6 +65192,33 @@ var SERVER_SERVICE_USE_PROXY = true;
       }
     }
     return type;
+  }
+  function issueWFSPost(partial, properties, coords, newPos) {
+    var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.1.0" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd"> ' + '<wfs:Update xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.get('metadata').name + '">' + partial + '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">' + '<ogc:FeatureId fid="' + selectedItem_.id + '" />' + '</ogc:Filter>' + '</wfs:Update>' + '</wfs:Transaction>';
+    http_({
+      url: '/geoserver/wfs/WfsDispatcher',
+      method: 'POST',
+      data: wfsRequestData
+    }).success(function (data, status, headers, config) {
+      if (goog.isDefAndNotNull(properties)) {
+        selectedItemProperties_ = properties;
+      }
+      if (goog.isDefAndNotNull(coords)) {
+        selectedItem_.geometry.coordinates = coords;
+      }
+      if (goog.isDefAndNotNull(newPos)) {
+        service_.show(selectedItem_, newPos);
+      }
+      mapService_.dumpTileCache();
+    }).error(function (data, status, headers, config) {
+      console.log('----[ ERROR: wfs-t post failed! ', data, status, headers, config);
+    });
+  }
+  function transformPoint(coords, crsFrom, crsTo) {
+    var newGeom = new ol.geom.Point(goog.array.clone(coords));
+    var transform = ol.proj.getTransform(crsFrom, crsTo);
+    newGeom.transform(transform);
+    return newGeom;
   }
 }());
 (function () {
@@ -65565,7 +65674,23 @@ var GeoGitLogOptions = function () {
       var deferredResponse = q.defer();
       http.get(url).then(function (response) {
         response.data.featureType.workspace = workspaceRoute.workspace;
-        deferredResponse.resolve(response.data.featureType);
+        var featureType = response.data.featureType;
+        url = layer.get('metadata').url + '/wfs?service=wfs&version=1.0.0&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
+        http.get(url).then(function (response) {
+          var x2js = new X2JS();
+          var json = x2js.xml_str2json(response.data);
+          var schema = [];
+          goog.array.forEach(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
+            schema[obj._name] = obj;
+            if (goog.isDefAndNotNull(obj.simpleType)) {
+              schema[obj._name]._type = 'simpleType';
+            }
+          });
+          layer.get('metadata').schema = schema;
+          deferredResponse.resolve(featureType);
+        }, function (reject) {
+          deferredResponse.reject(reject);
+        });
       }, function (reject) {
         deferredResponse.reject(reject);
       });
@@ -65602,16 +65727,22 @@ var GeoGitLogOptions = function () {
                   metadata.workspace = featureType.workspace;
                   metadata.nativeName = featureType.nativeName;
                 }, function (rejected) {
-                  dialogService_.error('Error', 'Unable to get feature type of GeoGit data store. (' + rejected.status + ')');
+                  dialogService_.error('Error', 'Unable to get feature type of data store. (' + rejected.status + ')');
                 });
               }, function (rejected) {
-                dialogService_.error('Error', 'Unable to get the data store. (' + rejected.status + ')');
+                var msg = 'Unable to get the data store. (' + rejected.status + ')';
+                console.log('====[ Error: ' + msg, layer);
+                dialogService_.error('Error', msg);
               });
             }, function (rejected) {
-              dialogService_.error('Error', 'Unable to determine the data store name. (' + rejected.status + ')');
+              var msg = 'Unable to determine the data store name. (' + rejected.status + ')';
+              console.log('====[ Error: ' + msg, layer);
+              dialogService_.error('Error', msg);
             });
           }, function (rejected) {
-            dialogService_.error('Error', 'Unable to determine if the layer was a layer group. (' + rejected.status + ')');
+            var msg = 'Unable to determine if the layer was a layer group. (' + rejected.status + ')';
+            console.log('====[ Error: ' + msg, layer);
+            dialogService_.error('Error', msg);
           });
         }
       }
@@ -65692,7 +65823,27 @@ var GeoGitLogOptions = function () {
   angular.module('loom_legend', ['loom_legend_directive']);
 }());
 (function () {
-  angular.module('loom_map', ['loom_map_service']);
+  angular.module('loom_map', [
+    'loom_map_service',
+    'loom_savemap_directive'
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_savemap_directive', []);
+  module.directive('loomSaveMap', [
+    'mapService',
+    'configService',
+    function (mapService, configService) {
+      return {
+        restrict: 'AC',
+        templateUrl: 'map/partial/savemap.tpl.html',
+        link: function (scope, element, attrs) {
+          scope.mapService = mapService;
+          scope.configService = configService;
+        }
+      };
+    }
+  ]);
 }());
 (function () {
   var module = angular.module('loom_map_service', ['ngCookies']);
@@ -65702,6 +65853,7 @@ var GeoGitLogOptions = function () {
   var httpService_ = null;
   var cookieStoreService_ = null;
   var cookiesService_ = null;
+  var configService_ = null;
   var dragZoomActive = false;
   var createVectorEditLayer = function () {
     return new ol.layer.Vector({
@@ -65796,20 +65948,34 @@ var GeoGitLogOptions = function () {
       '$http',
       '$cookieStore',
       '$cookies',
-      function (serverService, geogitService, $http, $cookieStore, $cookies) {
+      'configService',
+      'dialogService',
+      function (serverService, geogitService, $http, $cookieStore, $cookies, configService, dialogService) {
         service_ = this;
         httpService_ = $http;
         cookieStoreService_ = $cookieStore;
         cookiesService_ = $cookies;
+        configService_ = configService;
         console.log(cookiesService_, cookieStoreService_);
         serverService_ = serverService;
         geogitService_ = geogitService;
+        dialogService_ = dialogService;
+        this.configuration = configService_.configuration;
+        this.title = this.configuration.about.title;
+        this.abstract = this.configuration.about.abstract;
+        this.id = this.configuration.id;
+        this.save_method = 'POST';
+        if (goog.isDefAndNotNull(this.id) && this.id) {
+          this.save_url = '/maps/' + this.id + '/data';
+          this.save_method = 'PUT';
+        } else {
+          this.save_url = '/maps/new/data';
+        }
         this.map = this.createMap();
         this.editLayer = createVectorEditLayer();
         return this;
       }
     ];
-    this.configuration = null;
     this.activateDragZoom = function () {
       var index;
       for (index = 0; index < this.map.getInteractions().getLength(); ++index) {
@@ -65865,19 +66031,43 @@ var GeoGitLogOptions = function () {
       });
       return layers;
     };
-    this.addWMSLayer = function (config, doNotAddToMap) {
-      var url = null;
+    this.addLayer = function (config, doNotAddToMap) {
       var server = serverService_.getServer(config.source);
-      if (goog.isDefAndNotNull(server.url)) {
-        var urlIndex = server.url.lastIndexOf('/');
-        if (urlIndex !== -1) {
-          url = serverService_.getServer(config.source).url.slice(0, urlIndex);
+      var layer = null;
+      if (server.ptype === 'gxp_osmsource') {
+        layer = new ol.layer.Tile({
+          label: config.title,
+          metadata: { serverId: server.id },
+          source: new ol.source.OSM()
+        });
+      } else if (server.ptype === 'gxp_omapquestsource') {
+        var source = null;
+        if (config.name === 'osm') {
+          source = new ol.source.MapQuestOSM();
+        } else if (config.name === 'naip') {
+          source = new ol.source.MapQuestOpenAerial();
         }
-      }
-      var newLayer = new ol.layer.Tile({
+        if (goog.isDefAndNotNull(source)) {
+          layer = new ol.layer.Tile({
+            label: config.title,
+            metadata: { serverId: server.id },
+            source: source
+          });
+        } else {
+          console.log('====[ Error: could not create base layer.');
+        }
+      } else if (server.ptype === 'gxp_olsource' || server.ptype === 'gxp_wmscsource') {
+        var url = null;
+        if (goog.isDefAndNotNull(server.url)) {
+          var urlIndex = server.url.lastIndexOf('/');
+          if (urlIndex !== -1) {
+            url = server.url.slice(0, urlIndex);
+          }
+        }
+        layer = new ol.layer.Tile({
           label: config.title,
           metadata: {
-            serverId: config.source,
+            serverId: server.id,
             url: goog.isDefAndNotNull(url) ? url : undefined
           },
           source: new ol.source.TileWMS({
@@ -65892,11 +66082,14 @@ var GeoGitLogOptions = function () {
             }
           })
         });
-      geogitService_.isGeoGit(newLayer);
-      if (!goog.isDefAndNotNull(doNotAddToMap)) {
-        this.map.addLayer(newLayer);
+        geogitService_.isGeoGit(layer);
       }
-      return newLayer;
+      config.source = parseInt(config.source, 10);
+      layer.get('metadata').config = config;
+      if (!goog.isDefAndNotNull(doNotAddToMap) && goog.isDefAndNotNull(layer)) {
+        this.map.addLayer(layer);
+      }
+      return layer;
     };
     this.addBaseLayer = function (title, doNotAddToMap) {
       var layer = null;
@@ -65926,60 +66119,52 @@ var GeoGitLogOptions = function () {
       }
       return layer;
     };
+    this.getCenter = function () {
+      return this.map.getView().getCenter();
+    };
+    this.getProjection = function () {
+      return this.map.getView().getProjection().getCode();
+    };
+    this.getZoom = function () {
+      return this.map.getView().getZoom();
+    };
     this.save = function () {
       var cfg = {
           about: {
-            abstract: '',
-            title: 'OD1'
+            abstract: this.abstract,
+            title: this.title
           },
           map: {
-            center: [
-              -9707163.4015525,
-              1585022.104872
-            ],
-            zoom: 15,
-            projection: 'EPSG:900913',
+            id: this.configuration.id || 0,
+            center: this.getCenter(),
+            zoom: this.getZoom(),
+            projection: this.getProjection(),
             layers: []
           },
-          sources: {}
+          sources: serverService_.getServers()
         };
-      cfg.map.id = 0;
-      cfg.map.center = [
-        -9707163.4015525,
-        1585022.104872
-      ];
       goog.array.forEach(serverService_.getServers(), function (server, key, obj) {
-        cfg.sources[key] = {
-          name: server.name,
-          url: server.url,
-          baseParams: { 'SERVICE': 'WMS' }
-        };
+        cfg.sources[key] = server.config;
       });
-      cfg.map.layers.push({
-        name: 'OpenStreetMap',
-        source: serverService_.getServer('OpenStreetMap').id.toString(),
-        title: 'OpenStreetMap'
-      });
-      goog.array.forEach(service_.getFeatureLayers(), function (layer, key, obj) {
+      goog.array.forEach(service_.map.getLayers().getArray(), function (layer, key, obj) {
         console.log('saving layer: ', layer);
-        cfg.map.layers.push({
-          name: layer.getSource().getParams().LAYERS,
-          source: layer.get('metadata').serverId.toString(),
-          title: layer.get('label')
-        });
+        console.log('metadata: ', layer.get('metadata'));
+        console.log('config: ', layer.get('metadata').config);
+        cfg.map.layers.push(layer.get('metadata').config);
       });
       console.log('--- save.cfg: ', cfg);
       console.log('--- save.cfg string: ', JSON.stringify(cfg));
       console.log('+++++++[ token: ', cookiesService_.csrftoken);
       httpService_({
-        url: '/maps/new/data',
-        method: 'POST',
+        url: this.save_url,
+        method: this.save_method,
         data: JSON.stringify(cfg),
-        headers: { 'X-CSRFToken': cookiesService_.csrftoken }
+        headers: { 'X-CSRFToken': configService_.csrfToken }
       }).success(function (data, status, headers, config) {
         console.log('====[ map.save great success. ', data, status, headers, config);
       }).error(function (data, status, headers, config) {
         console.log('----[ ERROR: map.save failed! ', data, status, headers, config);
+        dialogService_.error('Save failed.', 'Map save failed with status: ' + status + '.');
       });
       this.configuration = cfg;
       console.log('this.configuration: ', this.configuration);
@@ -65994,8 +66179,8 @@ var GeoGitLogOptions = function () {
           ordered[key] = serverInfo;
         });
         goog.array.forEach(ordered, function (serverInfo, index, obj) {
-          var server = serverService_.addServer('WMS', serverInfo.name, serverInfo.url);
-          if (server.name === 'OpenStreeMap') {
+          var server = serverService_.addServer(serverInfo);
+          if (server.name === 'OpenStreetMap') {
             server.layers = [
               {
                 title: 'OpenStreetMap',
@@ -66014,11 +66199,7 @@ var GeoGitLogOptions = function () {
         });
         goog.array.forEach(this.configuration.map.layers, function (layerInfo, index, obj) {
           if (goog.isDefAndNotNull(layerInfo.name)) {
-            if (serverService_.getServer(layerInfo.source).name === 'OpenStreetMap') {
-              layers.push(service_.addBaseLayer(layerInfo.name, true));
-            } else {
-              layers.push(service_.addWMSLayer(layerInfo, true));
-            }
+            layers.push(service_.addLayer(layerInfo, true));
           } else {
             console.log('====[ Error: cannot add a layer without a name: ', layerInfo);
           }
@@ -66050,55 +66231,6 @@ var GeoGitLogOptions = function () {
       } else if (settings.coordinateDisplay === coordinateDisplays.DD) {
         coordDisplay = ol.coordinate.createStringXY(settings.DDPrecision);
       }
-      this.configuration = {
-        'about': {
-          'abstract': '',
-          'title': 'OD1'
-        },
-        'map': {
-          'center': [
-            -9707163.4015525,
-            1585022.104872
-          ],
-          'zoom': 15,
-          'projection': 'EPSG:900913',
-          'layers': [
-            {
-              'name': 'OpenStreetMap',
-              'source': 1,
-              'title': 'OpenStreetMap'
-            },
-            {
-              'name': 'geonode:canchas_de_futbol',
-              'source': 0,
-              'title': 'canchas_de_futbol'
-            },
-            {
-              'name': 'geonode:estaciones_temporales_de_primeros_auxilios',
-              'source': 0,
-              'title': 'estaciones_temporales_de_primeros_auxilios'
-            },
-            {
-              'name': 'geonode:incidentes_copeco',
-              'source': 0,
-              'title': 'incidentes_copeco'
-            }
-          ],
-          'id': 0
-        },
-        'sources': {
-          '0': {
-            'name': 'Local Geoserver',
-            'url': 'http://192.168.10.102/geoserver/wms',
-            'baseParams': { 'SERVICE': 'WMS' }
-          },
-          '1': {
-            'name': 'OpenStreetMap',
-            'url': 'fakeURL',
-            'baseParams': { 'SERVICE': 'WMS' }
-          }
-        }
-      };
       console.log('====[[ loading config: ', this.configuration);
       var map = new ol.Map({
           layers: this.loadLayers(),
@@ -66125,11 +66257,8 @@ var GeoGitLogOptions = function () {
           renderer: ol.RendererHint.CANVAS,
           target: 'map',
           view: new ol.View2D({
-            center: ol.proj.transform([
-              -87.2011,
-              14.1
-            ], 'EPSG:4326', 'EPSG:3857'),
-            zoom: 14
+            center: this.configuration.map.center,
+            zoom: this.configuration.map.zoom
           })
         });
       map.on('dragend', function () {
@@ -66196,640 +66325,6 @@ var GeoGitLogOptions = function () {
       this.map.removeLayer(this.editLayer);
     };
   });
-  function getConfig() {
-    return {
-      'authStatus': 200,
-      'username': 'admin',
-      'userprofilename': 'bobby',
-      'userprofileemail': 'bobby@bob.com',
-      'proxy': '/proxy/?url=',
-      'printService': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/geoserver/pdf/',
-      'rest': '/maps/',
-      'ajaxLoginUrl': '/account/ajax_login',
-      'homeUrl': '/',
-      'portalItems': [{
-          'xtype': 'container',
-          'layout': 'fit',
-          'height': 81,
-          'region': 'north'
-        }],
-      'localGeoServerBaseUrl': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/geoserver/',
-      'localCSWBaseUrl': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw',
-      'csrfToken': 'au2a6uZO9A42lmsYLOGwkhUfgLFJxgY2',
-      'tools': [{ 'ptype': 'gxp_getfeedfeatureinfo' }],
-      'defaultSourceType': 'gxp_wmscsource',
-      'about': {
-        'abstract': '',
-        'title': 'OD1'
-      },
-      'map': {
-        'layers': [
-          {
-            'opacity': 1,
-            'args': ['No background'],
-            'group': 'background',
-            'name': 'No background',
-            'title': 'No background',
-            'selected': false,
-            'visibility': false,
-            'source': '0',
-            'fixed': true,
-            'type': 'OpenLayers.Layer'
-          },
-          {
-            'opacity': 1,
-            'args': ['OpenStreetMap'],
-            'group': 'background',
-            'name': 'OpenStreetMap',
-            'title': 'OpenStreetMap',
-            'selected': false,
-            'visibility': false,
-            'source': '0',
-            'fixed': true,
-            'type': 'OpenLayers.Layer.OSM'
-          },
-          {
-            'opacity': 1,
-            'group': 'background',
-            'name': 'osm',
-            'title': 'MapQuest OpenStreetMap',
-            'selected': false,
-            'visibility': true,
-            'source': '1',
-            'fixed': true
-          },
-          {
-            'opacity': 1,
-            'group': 'background',
-            'name': 'naip',
-            'title': 'MapQuest Imagery',
-            'selected': false,
-            'visibility': false,
-            'source': '1',
-            'fixed': true
-          },
-          {
-            'opacity': 1,
-            'args': [
-              'bluemarble',
-              'http://maps.opengeo.org/geowebcache/service/wms',
-              {
-                'layers': ['bluemarble'],
-                'tiled': true,
-                'tilesOrigin': [
-                  -20037508.34,
-                  -20037508.34
-                ],
-                'format': 'image/png'
-              },
-              { 'buffer': 0 }
-            ],
-            'group': 'background',
-            'name': 'bluemarble',
-            'title': 'bluemarble',
-            'selected': false,
-            'visibility': false,
-            'source': '0',
-            'fixed': true,
-            'type': 'OpenLayers.Layer.WMS'
-          },
-          {
-            'opacity': 1,
-            'name': 'geonode:estaciones_temporales_de_primeros_auxilios',
-            'format': 'image/png',
-            'cached': true,
-            'selected': false,
-            'visibility': true,
-            'capability': {
-              'abstract': 'No abstract provided',
-              'nestedLayers': [],
-              'cascaded': 0,
-              'fixedHeight': 0,
-              'prefix': 'geonode',
-              'keywords': [],
-              'noSubsets': false,
-              'dimensions': {},
-              'opaque': false,
-              'infoFormats': [
-                'text/plain',
-                'application/vnd.ogc.gml',
-                'application/vnd.ogc.gml/3.1.1',
-                'text/html',
-                'application/json'
-              ],
-              'styles': [{
-                  'abstract': '',
-                  'title': '',
-                  'legend': {
-                    'height': '20',
-                    'width': '20',
-                    'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/geoserver/wms?' + 'request=Ge\u2026%2Fpng&width=20&height=20&layer=estaciones_temporales_de_primeros_auxilios',
-                    'format': 'image/png'
-                  },
-                  'name': 'estaciones_temporales_de_primeros_auxilios'
-                }],
-              'attribution': { 'title': 'admin' },
-              'authorityURLs': {},
-              'bbox': {
-                'EPSG:4326': {
-                  'srs': 'EPSG:4326',
-                  'bbox': [
-                    -121.4727099651595,
-                    13.377182634851891,
-                    -82.61305278735648,
-                    32.86114429745853
-                  ]
-                }
-              },
-              'fixedWidth': 0,
-              'metadataURLs': [
-                {
-                  'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw?outputsche\u2026&version=' + '2.0.2&elementsetname=full&id=24ad7ac3-df59-4a61-b09a-836a27d96b9e',
-                  'type': 'FGDC',
-                  'format': 'text/xml'
-                },
-                {
-                  'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw?outputsche\u2026&' + 'version=2.0.2&elementsetname=full&id=24ad7ac3-df59-4a61-b09a-836a27d96b9e',
-                  'type': 'TC211',
-                  'format': 'text/xml'
-                }
-              ],
-              'name': 'geonode:estaciones_temporales_de_primeros_auxilios',
-              'identifiers': {},
-              'srs': { 'EPSG:900913': true },
-              'formats': [
-                'image/png',
-                'application/atom xml',
-                'application/atom+xml',
-                'application/openlayers',
-                'application/pdf',
-                'application/rss xml',
-                'application/rss+xml',
-                'application/vnd.google-earth.kml',
-                'application/vnd.google-earth.kml xml',
-                'application/vnd.google-earth.kml+xml',
-                'application/vnd.google-earth.kml+xml;mode=networklink',
-                'application/vnd.google-earth.kmz',
-                'application/vnd.google-earth.kmz xml',
-                'application/vnd.google-earth.kmz+xml',
-                'application/vnd.google-earth.kmz;mode=networklink',
-                'atom',
-                'image/geotiff',
-                'image/geotiff8',
-                'image/gif',
-                'image/gif;subtype=animated',
-                'image/jpeg',
-                'image/png8',
-                'image/png; mode=8bit',
-                'image/svg',
-                'image/svg xml',
-                'image/svg+xml',
-                'image/tiff',
-                'image/tiff8',
-                'kml',
-                'kmz',
-                'openlayers',
-                'rss'
-              ],
-              'title': 'estaciones_temporales_de_primeros_auxilios',
-              'queryable': true,
-              'llbbox': [
-                -121.4727099651595,
-                13.377182634851891,
-                -82.61305278735648,
-                32.86114429745853
-              ]
-            },
-            'source': '2',
-            'tiled': true,
-            'title': 'estaciones_temporales_de_primeros_auxilios',
-            'fixed': false,
-            'transparent': true
-          },
-          {
-            'opacity': 1,
-            'name': 'geonode:incidentes_copeco',
-            'format': 'image/png',
-            'cached': true,
-            'selected': false,
-            'visibility': true,
-            'capability': {
-              'abstract': 'No abstract provided',
-              'nestedLayers': [],
-              'cascaded': 0,
-              'fixedHeight': 0,
-              'prefix': 'geonode',
-              'keywords': [],
-              'noSubsets': false,
-              'dimensions': {},
-              'opaque': false,
-              'infoFormats': [
-                'text/plain',
-                'application/vnd.ogc.gml',
-                'application/vnd.ogc.gml/3.1.1',
-                'text/html',
-                'application/json'
-              ],
-              'styles': [{
-                  'abstract': '',
-                  'title': '',
-                  'legend': {
-                    'height': '20',
-                    'width': '20',
-                    'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/geoserver/wms?' + 'request=Ge\u2026egendGraphic&format=image%2Fpng&width=20&height=20&layer=incidentes_copeco',
-                    'format': 'image/png'
-                  },
-                  'name': 'incidentes_copeco'
-                }],
-              'attribution': { 'title': 'admin' },
-              'authorityURLs': {},
-              'bbox': {
-                'EPSG:4326': {
-                  'srs': 'EPSG:4326',
-                  'bbox': [
-                    -91.02745345567851,
-                    13.377182634851891,
-                    -84.25438216661354,
-                    15.520765886648507
-                  ]
-                }
-              },
-              'fixedWidth': 0,
-              'metadataURLs': [
-                {
-                  'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw?' + 'outputsche\u2026&version=2.0.2&elementsetname=full&id=1bf7e5bc-e3be-4a44-bc2a-d6ff96d815e7',
-                  'type': 'FGDC',
-                  'format': 'text/xml'
-                },
-                {
-                  'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw?' + 'outputsche\u2026&version=2.0.2&elementsetname=full&id=1bf7e5bc-e3be-4a44-bc2a-d6ff96d815e7',
-                  'type': 'TC211',
-                  'format': 'text/xml'
-                }
-              ],
-              'name': 'geonode:incidentes_copeco',
-              'identifiers': {},
-              'srs': { 'EPSG:900913': true },
-              'formats': [
-                'image/png',
-                'application/atom xml',
-                'application/atom+xml',
-                'application/openlayers',
-                'application/pdf',
-                'application/rss xml',
-                'application/rss+xml',
-                'application/vnd.google-earth.kml',
-                'application/vnd.google-earth.kml xml',
-                'application/vnd.google-earth.kml+xml',
-                'application/vnd.google-earth.kml+xml;mode=networklink',
-                'application/vnd.google-earth.kmz',
-                'application/vnd.google-earth.kmz xml',
-                'application/vnd.google-earth.kmz+xml',
-                'application/vnd.google-earth.kmz;mode=networklink',
-                'atom',
-                'image/geotiff',
-                'image/geotiff8',
-                'image/gif',
-                'image/gif;subtype=animated',
-                'image/jpeg',
-                'image/png8',
-                'image/png; mode=8bit',
-                'image/svg',
-                'image/svg xml',
-                'image/svg+xml',
-                'image/tiff',
-                'image/tiff8',
-                'kml',
-                'kmz',
-                'openlayers',
-                'rss'
-              ],
-              'title': 'incidentes_copeco',
-              'queryable': true,
-              'llbbox': [
-                -91.02745345567851,
-                13.377182634851891,
-                -84.25438216661354,
-                15.520765886648507
-              ]
-            },
-            'source': '2',
-            'tiled': true,
-            'title': 'incidentes_copeco',
-            'fixed': false,
-            'transparent': true
-          },
-          {
-            'opacity': 1,
-            'name': 'geonode:puestos_de_control',
-            'format': 'image/png',
-            'cached': true,
-            'selected': false,
-            'visibility': true,
-            'capability': {
-              'abstract': 'No abstract provided',
-              'nestedLayers': [],
-              'cascaded': 0,
-              'fixedHeight': 0,
-              'prefix': 'geonode',
-              'keywords': [],
-              'noSubsets': false,
-              'dimensions': {},
-              'opaque': false,
-              'infoFormats': [
-                'text/plain',
-                'application/vnd.ogc.gml',
-                'application/vnd.ogc.gml/3.1.1',
-                'text/html',
-                'application/json'
-              ],
-              'styles': [{
-                  'abstract': '',
-                  'title': '',
-                  'legend': {
-                    'height': '20',
-                    'width': '20',
-                    'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/geoserver/wms?' + 'request=Ge\u2026gendGraphic&format=image%2Fpng&width=20&height=20&layer=puestos_de_control',
-                    'format': 'image/png'
-                  },
-                  'name': 'puestos_de_control'
-                }],
-              'attribution': { 'title': 'admin' },
-              'authorityURLs': {},
-              'bbox': {
-                'EPSG:4326': {
-                  'srs': 'EPSG:4326',
-                  'bbox': [
-                    -91.02745345567851,
-                    13.377182634851891,
-                    -84.25438216661354,
-                    15.520765886648507
-                  ]
-                }
-              },
-              'fixedWidth': 0,
-              'metadataURLs': [
-                {
-                  'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw?outputsche\u2026&version=' + '2.0.2&elementsetname=full&id=6771c2ef-25c1-4878-8e0e-2847ef2b92b6',
-                  'type': 'FGDC',
-                  'format': 'text/xml'
-                },
-                {
-                  'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw?outputsche\u2026&version=' + '2.0.2&elementsetname=full&id=6771c2ef-25c1-4878-8e0e-2847ef2b92b6',
-                  'type': 'TC211',
-                  'format': 'text/xml'
-                }
-              ],
-              'name': 'geonode:puestos_de_control',
-              'identifiers': {},
-              'srs': { 'EPSG:900913': true },
-              'formats': [
-                'image/png',
-                'application/atom xml',
-                'application/atom+xml',
-                'application/openlayers',
-                'application/pdf',
-                'application/rss xml',
-                'application/rss+xml',
-                'application/vnd.google-earth.kml',
-                'application/vnd.google-earth.kml xml',
-                'application/vnd.google-earth.kml+xml',
-                'application/vnd.google-earth.kml+xml;mode=networklink',
-                'application/vnd.google-earth.kmz',
-                'application/vnd.google-earth.kmz xml',
-                'application/vnd.google-earth.kmz+xml',
-                'application/vnd.google-earth.kmz;mode=networklink',
-                'atom',
-                'image/geotiff',
-                'image/geotiff8',
-                'image/gif',
-                'image/gif;subtype=animated',
-                'image/jpeg',
-                'image/png8',
-                'image/png; mode=8bit',
-                'image/svg',
-                'image/svg xml',
-                'image/svg+xml',
-                'image/tiff',
-                'image/tiff8',
-                'kml',
-                'kmz',
-                'openlayers',
-                'rss'
-              ],
-              'title': 'puestos_de_control',
-              'queryable': true,
-              'llbbox': [
-                -91.02745345567851,
-                13.377182634851891,
-                -84.25438216661354,
-                15.520765886648507
-              ]
-            },
-            'source': '2',
-            'tiled': true,
-            'title': 'puestos_de_control',
-            'fixed': false,
-            'transparent': true
-          },
-          {
-            'opacity': 1,
-            'name': 'geonode:zonas_de_aterrizaje_de_helicopteros',
-            'format': 'image/png',
-            'cached': true,
-            'selected': true,
-            'visibility': true,
-            'capability': {
-              'abstract': 'No abstract provided',
-              'nestedLayers': [],
-              'cascaded': 0,
-              'fixedHeight': 0,
-              'prefix': 'geonode',
-              'keywords': [],
-              'noSubsets': false,
-              'dimensions': {},
-              'opaque': false,
-              'infoFormats': [
-                'text/plain',
-                'application/vnd.ogc.gml',
-                'application/vnd.ogc.gml/3.1.1',
-                'text/html',
-                'application/json'
-              ],
-              'styles': [{
-                  'abstract': '',
-                  'title': '',
-                  'legend': {
-                    'height': '20',
-                    'width': '20',
-                    'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/geoserver/wms?' + 'request=Ge\u2026t=image%2Fpng&width=20&height=20&layer=zonas_de_aterrizaje_de_helicopteros',
-                    'format': 'image/png'
-                  },
-                  'name': 'zonas_de_aterrizaje_de_helicopteros'
-                }],
-              'attribution': { 'title': 'admin' },
-              'authorityURLs': {},
-              'bbox': {
-                'EPSG:4326': {
-                  'srs': 'EPSG:4326',
-                  'bbox': [
-                    -91.02745345567851,
-                    13.377182634851891,
-                    -84.25438216661354,
-                    15.520765886648507
-                  ]
-                }
-              },
-              'fixedWidth': 0,
-              'metadataURLs': [
-                {
-                  'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw?' + 'outputsche\u2026&version=2.0.2&elementsetname=full&id=7f6dec65-39ee-4ac7-8e76-ed2ca9b9363f',
-                  'type': 'FGDC',
-                  'format': 'text/xml'
-                },
-                {
-                  'href': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/catalogue/csw?' + 'outputsche\u2026&version=2.0.2&elementsetname=full&id=7f6dec65-39ee-4ac7-8e76-ed2ca9b9363f',
-                  'type': 'TC211',
-                  'format': 'text/xml'
-                }
-              ],
-              'name': 'geonode:zonas_de_aterrizaje_de_helicopteros',
-              'identifiers': {},
-              'srs': { 'EPSG:900913': true },
-              'formats': [
-                'image/png',
-                'application/atom xml',
-                'application/atom+xml',
-                'application/openlayers',
-                'application/pdf',
-                'application/rss xml',
-                'application/rss+xml',
-                'application/vnd.google-earth.kml',
-                'application/vnd.google-earth.kml xml',
-                'application/vnd.google-earth.kml+xml',
-                'application/vnd.google-earth.kml+xml;mode=networklink',
-                'application/vnd.google-earth.kmz',
-                'application/vnd.google-earth.kmz xml',
-                'application/vnd.google-earth.kmz+xml',
-                'application/vnd.google-earth.kmz;mode=networklink',
-                'atom',
-                'image/geotiff',
-                'image/geotiff8',
-                'image/gif',
-                'image/gif;subtype=animated',
-                'image/jpeg',
-                'image/png8',
-                'image/png; mode=8bit',
-                'image/svg',
-                'image/svg xml',
-                'image/svg+xml',
-                'image/tiff',
-                'image/tiff8',
-                'kml',
-                'kmz',
-                'openlayers',
-                'rss'
-              ],
-              'title': 'zonas_de_aterrizaje_de_helicopteros',
-              'queryable': true,
-              'llbbox': [
-                -91.02745345567851,
-                13.377182634851891,
-                -84.25438216661354,
-                15.520765886648507
-              ]
-            },
-            'source': '2',
-            'tiled': true,
-            'title': 'zonas_de_aterrizaje_de_helicopteros',
-            'fixed': false,
-            'transparent': true
-          }
-        ],
-        'center': [
-          -9707163.4015525,
-          1585022.104872
-        ],
-        'units': 'm',
-        'maxResolution': 156543.03390625,
-        'maxExtent': [
-          -20037508.34,
-          -20037508.34,
-          20037508.34,
-          20037508.34
-        ],
-        'zoom': 15,
-        'projection': 'EPSG:900913'
-      },
-      'id': 144,
-      'sources': {
-        '0': {
-          'id': '1',
-          'ptype': 'gxp_olsource'
-        },
-        '1': {
-          'id': '2',
-          'ptype': 'gxp_mapquestsource'
-        },
-        '2': {
-          'title': 'Local Geoserver',
-          'url': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/geoserver/wms',
-          'baseParams': {
-            'VERSION': '1.1.1',
-            'REQUEST': 'GetCapabilities',
-            'TILED': true,
-            'SERVICE': 'WMS'
-          },
-          'ptype': 'gxp_wmscsource',
-          'restUrl': '/gs/rest',
-          'id': '0'
-        }
-      }
-    };
-  }
-  function getDefaultConfig() {
-    return {
-      'map': {
-        'layers': [
-          {
-            'group': 'background',
-            'name': 'osm',
-            'title': 'MapQuest OpenStreetMap',
-            'selected': false,
-            'visibility': true,
-            'source': '1',
-            'fixed': true
-          },
-          {
-            'name': 'geonode:incidentes_copeco',
-            'source': '2',
-            'title': 'incidentes_copeco'
-          }
-        ],
-        'center': [
-          -9707163.4015525,
-          1585022.104872
-        ],
-        'units': 'm',
-        'maxResolution': 156543.03390625,
-        'maxExtent': [
-          -20037508.34,
-          -20037508.34,
-          20037508.34,
-          20037508.34
-        ],
-        'zoom': 15,
-        'projection': 'EPSG:900913'
-      },
-      'id': 0,
-      'sources': {
-        '0': {
-          'title': 'Local Geoserver',
-          'url': 'http://ec2-174-129-197-156.compute-1.amazonaws.com/geoserver/wms'
-        }
-      }
-    };
-  }
 }());
 (function () {
   var module = angular.module('loom_conflict_service', []);
@@ -68131,7 +67626,7 @@ var clean = function (array, deleteValue) {
   module.directive('latloneditor', function () {
     return {
       restrict: 'E',
-      template: '<div ng-class="{\'has-error\': !formName.coords.$valid}" class="form-group">' + '<div class="input-group">' + '<div class="input-group-btn">' + '<button type="button" class="btn btn-default dropdown-toggle custom-width-100" data-toggle="dropdown">' + '<span class="caret"></span>' + '</button>' + '<ul id="display-list" class="dropdown-menu">' + '<li ng-repeat="display in coordinateDisplays">' + '<a ng-click="selectDisplay($index)">{{display}}</a></li>' + '</ul>' + '</div>' + '<input name="coords" ng-model="coordinates" type="text" class="form-control" ng-change="validate()"/>' + '</div>' + '</div>',
+      template: '<div ng-class="{\'has-error\': !formName.coords.$valid}" class="form-group">' + '<input name="coords" ng-model="coordinates" type="text" class="form-control" ng-change="validate()"/>' + '</div>',
       replace: true,
       scope: {
         geom: '=',
@@ -68141,9 +67636,9 @@ var clean = function (array, deleteValue) {
       link: function (scope) {
         scope.coordinateDisplays = coordinateDisplays;
         if (scope.coordDisplay === coordinateDisplays.DMS) {
-          scope.coordinates = ol.coordinate.toStringHDMS(scope.geom.coordinates);
+          scope.coordinates = ol.coordinate.toStringHDMS(scope.geom);
         } else if (scope.coordDisplay === coordinateDisplays.DD) {
-          scope.coordinates = ol.coordinate.createStringXY(scope.geom.coordinates, settings.DDPrecision);
+          scope.coordinates = ol.coordinate.createStringXY(scope.geom, settings.DDPrecision);
         }
         scope.selectDisplay = function (index) {
           scope.coordDisplay = coordinateDisplays[index];
@@ -68151,12 +67646,15 @@ var clean = function (array, deleteValue) {
         var validateDMS = function (name, split) {
           var upperBounds;
           var negateChar;
+          var coordIndex;
           if (name === 'lon') {
             upperBounds = 180;
             negateChar = 'W';
+            coordIndex = 0;
           } else if (name === 'lat') {
             upperBounds = 90;
             negateChar = 'S';
+            coordIndex = 1;
           } else {
             return false;
           }
@@ -68168,6 +67666,7 @@ var clean = function (array, deleteValue) {
             if (split[3].toUpperCase() === negateChar) {
               newPos = -newPos;
             }
+            scope.geom[coordIndex] = newPos;
           } else {
             return false;
           }
@@ -68183,14 +67682,19 @@ var clean = function (array, deleteValue) {
               valid = validateDMS('lat', split);
               if (valid === true && (split2[3].toUpperCase() === 'W' || split2[3].toUpperCase() === 'E')) {
                 valid = validateDMS('lon', split2);
+              } else {
+                valid = false;
               }
             } else {
               valid = validateDMS('lon', split);
               if (valid === true && (split2[3].toUpperCase() === 'S' || split2[3].toUpperCase() === 'N')) {
                 valid = validateDMS('lat', split2);
+              } else {
+                valid = false;
               }
             }
           }
+          scope.formName.$valid = valid;
           scope.formName.coords.$valid = valid;
         };
       }
@@ -68217,7 +67721,7 @@ var clean = function (array, deleteValue) {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'featuremanager/partial/geometryedit.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'featuremanager/partial/geometryedit.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -68245,7 +67749,7 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "    <hr>\n" +
     "    <div class=\"form-group\">\n" +
     "      <ul id=\"layer-list\" class=\"list-group\">\n" +
-    "        <li ng-repeat=\"layer in layers = serverService.getLayers(currentServerIndex) | filter:{added:'false'} | filter:filterLayers\"\n" +
+    "        <li ng-repeat=\"layer in layers = serverService.populateLayers(currentServerIndex) | filter:{added:'false'} | filter:filterLayers\"\n" +
     "            class=\"list-group-item\">\n" +
     "          <div class=\"row\">\n" +
     "            <div class=\"col-xs-2\">\n" +
@@ -68306,7 +67810,7 @@ angular.module("addlayers/partials/addserver.tpl.html", []).run(["$templateCache
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
     "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n" +
-    "  <button type=\"button\" class=\"btn btn-primary\" ng-class=\"{'disabled': !serverform.$valid}\" ng-click=\"serverService.addServer(type, name, url)\" data-dismiss=\"modal\">Add</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" ng-class=\"{'disabled': !serverform.$valid}\" ng-click=\"serverService.addServer({'type': type, 'name': name, 'url': url})\" data-dismiss=\"modal\">Add</button>\n" +
     "</div>\n" +
     "");
 }]);
@@ -68439,16 +67943,33 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "  <form name=\"editfeatureform\" class=\"form wrapper\">\n" +
     "    <div class=\"form-group\" ng-if=\"feature.geometry.type == 'Point'\">\n" +
     "        <label for=\"latLonEdit\" class=\"control-label custom-control-label\">Location ( lon, lat )</label>\n" +
-    "        <latloneditor id=\"latLonEdit\" coord-display=\"coordDisplay\" form-name=\"editfeatureform\" geom=\"feature.geometry\"></latloneditor>\n" +
+    "        <latloneditor id=\"latLonEdit\" coord-display=\"coordDisplay\" form-name=\"editfeatureform\" geom=\"coordinates\"></latloneditor>\n" +
     "    </div>\n" +
     "    <div class=\"form-group\" ng-repeat=\"prop in properties\">\n" +
     "        <label class=\"control-label custom-control-label\">{{prop[0]}}</label>\n" +
-    "        <autotextarea ng-model=\"prop[1]\" class=\"form-control custom-form-control auto-text-area\"></autotextarea>\n" +
+    "        <div ng-switch on=\"prop.type\">\n" +
+    "          <datetimepicker ng-switch-when=\"xsd:dateTime\" date-object=\"prop\" date-key=\"1\"></datetimepicker>\n" +
+    "          <div ng-switch-when=\"simpleType\" class=\"input-group\">\n" +
+    "            <div class=\"input-group-btn\">\n" +
+    "              <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">\n" +
+    "                <span class=\"caret\"></span>\n" +
+    "              </button>\n" +
+    "              <ul class=\"dropdown-menu\">\n" +
+    "                <li ng-repeat=\"enum in prop.enum\">\n" +
+    "                  <a ng-click=\"selectValue(prop, $index)\">{{enum._value}}</a>\n" +
+    "                </li>\n" +
+    "              </ul>\n" +
+    "            </div>\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" disabled/>\n" +
+    "          </div>\n" +
+    "          <autotextarea ng-switch-default ng-model=\"prop[1]\" class=\"form-control custom-form-control auto-text-area\"></autotextarea>\n" +
+    "        </div>\n" +
+    "\n" +
     "    </div>\n" +
     "  </form>\n" +
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
-    "  <button type=\"button\" class=\"btn btn-primary\" ng-click=\"featureManagerService.endAttributeEditing(properties)\" data-dismiss=\"modal\">Save</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" ng-class=\"{'disabled': !editfeatureform.$valid}\" ng-click=\"featureManagerService.endAttributeEditing(properties, coordinates)\" data-dismiss=\"modal\">Save</button>\n" +
     "</div>");
 }]);
 
@@ -68578,12 +68099,38 @@ angular.module("legend/partial/legend.tpl.html", []).run(["$templateCache", func
     "                    data-target=\"{{'#' + layer.get('label') + 'legend'}}\">{{layer.get('label')}}\n" +
     "                </div>\n" +
     "                <div class=\"panel-collapse legend-item in legend-panel-body\" id=\"{{layer.get('label') + 'legend'}}\">\n" +
-    "                    <img ng-src=\"{{serverService.getServer(layer.get('metadata').serverId).url}}?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer={{layer.getSource().getParams().LAYERS}}&transparent=true&legend_options=fontColor:0xFFFFFF;fontAntiAliasing:true;fontSize:14;fontStyle:bold;\">\n" +
+    "                    <img ng-src=\"{{serverService.getServer(layer.get('metadata').serverId).url}}?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer={{layer.get('metadata').name}}&transparent=true&legend_options=fontColor:0xFFFFFF;fontAntiAliasing:true;fontSize:14;fontStyle:bold;\">\n" +
     "                </div>\n" +
     "            </div>\n" +
     "        </div>\n" +
     "    </div>\n" +
     "</div>");
+}]);
+
+angular.module("map/partial/savemap.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("map/partial/savemap.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "    <form class=\"form-horizontal col-md-12\">\n" +
+    "        <div class=\"form-group\">\n" +
+    "\n" +
+    "            <div class=\"form-group\">\n" +
+    "                <label for=\"mapTitle\">Title</label> <input id=\"mapTitle\" ng-model=\"mapService.title\" type=\"text\" class=\"form-control\" value=\"{{mapService.title}}\" placeholder=\"{{mapService.title || 'Title'}}\">\n" +
+    "            </div>\n" +
+    "\n" +
+    "            <div class=\"form-group\">\n" +
+    "                <label for=\"mapAbstract\">Abstract</label><textarea id=\"mapAbstract\" ng-model=\"mapService.abstract\" class=\"form-control\" rows=\"4\" value=\"{{mapService.abstract}}\" placeholder=\"{{mapService.abstract || 'Abstract'}}\"></textarea>\n" +
+    "            </div>\n" +
+    "\n" +
+    "        </div>\n" +
+    "    </form>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "    <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-class=\"{'disabled': !configService.username}\" ng-click=\"mapService.save()\">Save</button>\n" +
+    "</div>\n" +
+    "\n" +
+    "\n" +
+    "");
 }]);
 
 angular.module("merge/partials/merge.tpl.html", []).run(["$templateCache", function($templateCache) {

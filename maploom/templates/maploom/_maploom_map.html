@@ -5,9 +5,7 @@
     <div id="pulldown-shadow">
       <div class="panel flat" id="map-title">
         <div class="panel-heading">
-                        <span style="font-weight: 100; font-size: 20px;">
-                            <em id="map-name" translate="new_map">New Map</em>
-                        </span>
+            <em id="map-name">{{ mapService.title || "New Map"}}<i class="glyphicon pull-right" data-target="#saveMap" ng-class="{'hide': !configService.username}" data-toggle="modal"></i></em>
           <span ng-class="{'hidden': !notificationsPanel}" class="loom-notification-badge pull-right"></span>
         </div>
       </div>
@@ -100,6 +98,10 @@
 </div>
 <div loom-feature-info-box id="info-box" ng-show="featureManagerService.getSelectedItem()"
      class="feature-info-box-popup">
+</div>
+<div loom-modal id="saveMap" modal-title="Save this map.">
+    <div loom-save-map id="save-map">
+    </div>
 </div>
 
 <div id="blueimp-gallery" class="blueimp-gallery">
