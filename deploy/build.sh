@@ -9,8 +9,9 @@ git checkout master
 # get the new index.html file and use it to make the partial
 sed -n '/body>/,/body>/p' ../../maploom/lastSuccessful/archive/bin/index.html > index_body.html
 sed '/body/d' ./index_body.html > index_body_no_tag.html
-echo '{% load staticfiles i18n %}' > _maploom_map.html
+echo '{% load staticfiles i18n %}{% verbatim %}' > _maploom_map.html
 cat index_body_no_tag.html >> _maploom_map.html
+echo '{% endverbatim %}' >> _maploom_map.html
 rm index_body.html
 rm index_body_no_tag.html
 
