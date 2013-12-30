@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2013-12-18
+ * MapLoom - v0.0.1 - 2013-12-30
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2013 LMN Solutions
@@ -63523,7 +63523,8 @@ ol.tilegrid.XYZOptions;
     'loom_merge',
     'loom_sync',
     'loom_legend',
-    'loom_utils'
+    'loom_utils',
+    'loom_refresh'
   ]);
 }());
 (function () {
@@ -63694,7 +63695,7 @@ ol.tilegrid.XYZOptions;
       'edit_geometry': 'Edit Geometry',
       'edit_attributes': 'Edit Attributes',
       'delete_feature': 'Delete Feature',
-      'feature_diff_error': 'Unable to retrieve all the differences for the feature.' + 'Check network connection and try again.',
+      'feature_diff_error': 'Unable to retrieve all the differences for the feature. ' + 'Check network connection and try again.',
       'no_local_branches': 'Repository had no local branches.',
       'unable_to_get_branches': 'Unable to get the repository\'s branches. Try re-adding the layer.',
       'unable_to_get_remotes': 'Unable to get the repository\'s remotes. Try re-adding the layer.',
@@ -63712,6 +63713,7 @@ ol.tilegrid.XYZOptions;
       'btn_ok': 'OK',
       'summary_of_changes': 'Summary of Changes',
       'too_many_changes': 'There were too many changes to display. If possible, narrow the range.',
+      'too_many_changes_refresh': 'There were too many changes to display.  Only the first ' + '{{value}} changes will be shown',
       'no_changes_in_time_range': 'No changes were made to the layer in the specified time frame.',
       'no_changes_in_commit': 'No changes were made to the layer in the specified commit.',
       'diff_unknown_error': 'An unknown error occurred while summarizing the differences.  Please try again.',
@@ -63764,7 +63766,10 @@ ol.tilegrid.XYZOptions;
       'zoom_world': 'Zoom To World',
       'toggle_legend': 'Toggle Legend',
       'refresh_layers': 'Refresh Layers',
-      'sure_remove_layer': 'Are you sure that you want to remove this layer?'
+      'sure_remove_layer': 'Are you sure that you want to remove this layer?',
+      'pull_unknown_error': 'An unknown error occurred when pulling from the remote.  Please try again.',
+      'local': 'Local',
+      'pull_conflicts': 'Pull Conflicts'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -63799,7 +63804,7 @@ ol.tilegrid.XYZOptions;
       'conflict': 'CONFLICTO',
       'synchronization': 'Sincronizaci\xf3n',
       'add_sync': 'A\xf1adir Sinc',
-      'merge': 'Unir',
+      'merge': 'Fusionar',
       'config': 'Configuraci\xf3n',
       'repo': 'Repo',
       'remote': 'Remoto',
@@ -63810,112 +63815,116 @@ ol.tilegrid.XYZOptions;
       'repo_username': 'Nombre de Usuario',
       'repo_password': 'Contrase\xf1a',
       'toggle_menu': 'Men\xfa Palanca',
-      'single': 'Una Vez',
+      'single': 'Unico',
       'continuous': 'Continuo',
       'into': 'a',
-      'error': 'es_Error',
-      'warning': 'es_Warning',
-      'failed_get_capabilities': 'es_Failed to get capabilities: ',
-      'fixed': 'es_FIXED',
-      'adds': 'es_Adds',
-      'modifications': 'es_Modifications',
-      'deletes': 'es_Deletes',
-      'merges': 'es_Merges',
-      'cancel_merge': 'es_Cancel the merge',
-      'complete_merge': 'es_Complete the merge',
-      'save_btn': 'es_Save',
-      'single_conflict': 'es_1 conflict remains',
-      'multiple_conflicts': 'es_{{value}} conflicts remain',
-      'sure_cancel_merge': 'es_Are you sure you want to cancel the merge process?',
-      'sure_commit_merge': 'es_Are you sure you want to finalize and commit the merge?',
-      'commit_merge': 'es_Commit Merge',
-      'yes_btn': 'es_Yes',
-      'no_btn': 'es_No',
-      'differences': 'es_Differences',
-      'from': 'es_From',
-      'to': 'es_To',
-      'new_feature': 'es_New Feature',
-      'changed_feature': 'es_Changed Feature',
-      'original_feature': 'es_Original Feature',
-      'removed_feature': 'es_Removed Feature',
-      'merged_feature': 'es_Merged Feature',
-      'location_lon_lat': 'es_Location ( lon, lat )',
-      'show_history': 'es_Show History',
-      'show_pics': 'es_Show Photos',
-      'edit_geometry': 'es_Edit Geometry',
-      'edit_attributes': 'es_Edit Attributes',
-      'delete_feature': 'es_Delete Feature',
-      'feature_diff_error': 'es_Unable to retrieve all the differences for the feature.' + 'Check network connection and try again.',
-      'no_local_branches': 'es_Repository had no local branches.',
-      'unable_to_get_branches': 'es_Unable to get the repository\'s branches. Try re-adding the layer.',
-      'unable_to_get_remotes': 'es_Unable to get the repository\'s remotes. Try re-adding the layer.',
-      'unable_to_get_datastore': 'es_Unable to get the datastore.',
-      'unable_to_add_remote': 'es_Unable to add the GeoGit remote: ',
-      'unable_to_get_feature_type': 'es_Unable to get feature type of data store.',
-      'unable_to_get_datastore_name': 'es_Unable to determine the data store name.',
-      'layer_was_layer_group': 'es_Unable to determine if the layer was a layer group.',
-      'start_date': 'es_Start Date:',
-      'end_date': 'es_End Date:',
-      'summarize_btn': 'es_Summarize',
-      'anonymous': 'es_Anonymous',
-      'history_failed': 'es_Failed to fetch the history of the layer. Please try again.',
-      'history': 'es_History',
-      'btn_ok': 'es_OK',
-      'summary_of_changes': 'es_Summary of Changes',
-      'too_many_changes': 'es_There were too many changes to display. If possible, narrow the range.',
-      'no_changes_in_time_range': 'es_No changes were made to the layer in the specified time frame.',
-      'no_changes_in_commit': 'es_No changes were made to the layer in the specified commit.',
-      'diff_unknown_error': 'es_An unknown error occurred while summarizing the differences.  Please try again.',
-      'in_lower_case': 'es_in',
-      'to_lower_case': 'es_to',
-      'from_lower_case': 'es_from',
-      'history_for': 'es_History for {{value}}',
-      'drag_zoom_not_supported': 'es_Drag zoom interaction is not supported on this map.',
-      'repository': 'es_Repository',
-      'transaction': 'es_Transaction',
-      'abort': 'es_Abort',
-      'resolve_conflicts': 'es_Resolve Conflicts',
-      'merge_conflicts': 'es_Merge Conflicts',
-      'conflicts_encountered': 'es_Some conflicts were encountered when performing the operation,' + ' would you like to resolve these or abort the merge?',
-      'conflict_unknown_error': 'es_An unknown error occurred when finalizing the transaction.  Please try again.',
-      'unable_to_resolve_conflicts': 'es_Unable to resolve {{value}} conflicts.  Please try again.',
-      'merge_unknown_error': 'es_An unknown error occurred when performing the merge.  Please try again.',
-      'merge_successful': 'es_Merge Successful',
-      'merge_no_changes': 'es_The merge resulted in no changes.',
-      'select_date_range': 'es_Select Date Range',
-      'link': 'es_Link',
-      'link_already_exists': 'es_The link already exists.',
-      'synchronize': 'es_Synchronize',
-      'no_email': 'es_No Email',
-      'added': 'es_Added',
-      'removed': 'es_Removed',
-      'modified': 'es_Modified',
-      'feature': 'es_feature',
-      'features': 'es_features',
-      'conflicted_features_resolved': 'es_Conflicted features resolved: ',
-      'id': 'es_ID',
-      'author_name': 'es_Author Name',
-      'author_email': 'es_Author Email',
-      'committer_name': 'es_Committer Name',
-      'committer_email': 'es_Committer Email',
-      'commit_time': 'es_Commit Time',
-      'message': 'es_Message',
-      'export_csv': 'es_Export CSV',
-      'sure_delete_feature': 'es_Are you sure you want to delete this feature?',
-      'drawing_geometry': 'es_Drawing Geometry',
-      'adding_feature': 'es_Adding Feature',
-      'must_create_feature': 'es_You must create a feature before continuing.',
-      'editing_geometry': 'es_Editing Geometry',
-      'save_attributes': 'es_Save Attributes',
-      'invalid_fields': 'es_There are {{value}} invalid fields, you must fix these problems before you can save.',
-      'add_feature': 'es_Add Feature',
-      'toggle_visibility': 'es_Toggle Visibility',
-      'remote_options': 'es_Remote Options',
-      'history_summary': 'es_History Summary',
-      'zoom_world': 'es_Zoom To World',
-      'toggle_legend': 'es_Toggle Legend',
-      'refresh_layers': 'es_Refresh Layers',
-      'sure_remove_layer': 'es_Are you sure that you want to remove this layer?'
+      'error': 'Error',
+      'warning': 'Advertencia',
+      'failed_get_capabilities': 'No se encontraron capacidades: ',
+      'fixed': 'ARREGLADO',
+      'adds': 'Adiciones',
+      'modifications': 'Modificaciones',
+      'deletes': 'Eliminados',
+      'merges': 'Fusiones',
+      'cancel_merge': 'Cancelar la fusion',
+      'complete_merge': 'Completar la fusion',
+      'save_btn': 'Guardar',
+      'single_conflict': '1 conflicto pendiente',
+      'multiple_conflicts': '{{value}} conflictos pendientes',
+      'sure_cancel_merge': 'Esta seguro que desea cancelar el proceso de fusion?',
+      'sure_commit_merge': 'Esta seguro que desea finalizar y confirmar la fusion?',
+      'commit_merge': 'Confirmar Fusion',
+      'yes_btn': 'Si',
+      'no_btn': 'No',
+      'differences': 'Diferencias',
+      'from': 'De',
+      'to': 'A',
+      'new_feature': 'Nuevo Elemento',
+      'changed_feature': 'Elemento Modificada',
+      'original_feature': 'Elemento Original',
+      'removed_feature': 'Elemento Eliminada',
+      'merged_feature': 'Elemento Fusionada',
+      'location_lon_lat': 'Ubicacion ( lon, lat )',
+      'show_history': 'Mostrar Historial',
+      'show_pics': 'Mostrar Imagenes',
+      'edit_geometry': 'Editar Geometria',
+      'edit_attributes': 'Editar Atributos',
+      'delete_feature': 'Remover Elemento',
+      'feature_diff_error': 'No se pudo retirar todas las diferencias para los elementos. ' + 'Revisar la coneccion de red e intente nuevamente.',
+      'no_local_branches': 'El deposito no tenia ramas locales.',
+      'unable_to_get_branches': 'No se pudo identificar ramas del deposito. Intentar re a\xf1adir la capa.',
+      'unable_to_get_remotes': 'No se pudo identificar los remotos del deposito. Intentar re a\xf1adir la capa.',
+      'unable_to_get_datastore': 'No se pudo lograr el deposito de datos.',
+      'unable_to_add_remote': 'No se pudo a\xf1adir el remoto de GeoGit: ',
+      'unable_to_get_feature_type': 'No se pudo retirar el tipo de elemento del almacenaje de datos.',
+      'unable_to_get_datastore_name': 'No se pudo determinar el nombre del almacenador de datos.',
+      'layer_was_layer_group': 'No se pudo determinar si la capa era una capa grupal.',
+      'start_date': 'Fecha de Inicio:',
+      'end_date': 'Fecha de Conclusion:',
+      'summarize_btn': 'Resumir',
+      'anonymous': 'Anonimo',
+      'history_failed': 'No se pudo buscar el historial de la capa. Favor intentar de nuevo.',
+      'history': 'Historial',
+      'btn_ok': 'Aceptar',
+      'summary_of_changes': 'Resumen de Cambios',
+      'too_many_changes': 'Se encontraron demasiados cambios para ser mostrados. De ser posible, minimice el rango.',
+      'too_many_changes_refresh': 'Se realizaron demasiados cambios para ser mostrados. ' + 'Solamente los primeros cambios {{value}} seran mostrados.',
+      'no_changes_in_time_range': 'No se realizaron cambios a la capa dentro del marco de tiempo especificado.',
+      'no_changes_in_commit': 'No se realizaron cambios a la capa.',
+      'diff_unknown_error': 'Un error desconocido ocurrio al resumir las diferencias. Favor intentar nuevamente.',
+      'in_lower_case': 'en',
+      'to_lower_case': 'a',
+      'from_lower_case': 'de',
+      'history_for': 'Historial para {{value}}',
+      'drag_zoom_not_supported': 'No existen las operaciones de "drag zoom" en este mapa.',
+      'repository': 'Deposito',
+      'transaction': 'Transaccion',
+      'abort': 'Abortar',
+      'resolve_conflicts': 'Resolver Conflictos',
+      'merge_conflicts': 'Fusionar Conflictos',
+      'conflicts_encountered': 'Se identificaron algunos problemas al realizar la operacion, ' + 'desea resolverlos o desea abortar la fusion?',
+      'conflict_unknown_error': 'Un error desconocido ocurrio al finalizar la transaccion. Favor intentar nuevamente.',
+      'unable_to_resolve_conflicts': 'No se pudo resolver conflictos {{value}}. Favor intentar nuevamente.',
+      'merge_unknown_error': 'Un error desconocido ocurrio al realizar la fusion. Favor intentar nuevamente.',
+      'merge_successful': 'Fusion Exitosa',
+      'merge_no_changes': 'La fusion resulto en ningun cambio.',
+      'select_date_range': 'Seleccionar el Rango de Datos',
+      'link': 'Enlace',
+      'link_already_exists': 'El enlace ya existe.',
+      'synchronize': 'Sincronizar',
+      'no_email': 'No Tiene Email',
+      'added': 'Agregado',
+      'removed': 'Removido',
+      'modified': 'Modificado',
+      'feature': 'elemento',
+      'features': 'elementos',
+      'conflicted_features_resolved': 'Elementos en conflicto resueltos: ',
+      'id': 'ID',
+      'author_name': 'Nombre del Autor',
+      'author_email': 'Email del Autor',
+      'committer_name': 'Nombre del Destinatario',
+      'committer_email': 'Email del Destinatario',
+      'commit_time': 'Tiempo de Destino',
+      'message': 'Mensaje',
+      'export_csv': 'Exportar CSV',
+      'sure_delete_feature': 'Esta seguro de querer eliminar este elemento?',
+      'drawing_geometry': 'Dibujando la Geometria',
+      'adding_feature': 'A\xf1adiendo el Elemento',
+      'must_create_feature': 'Debe crear un elemento antes de continuar.',
+      'editing_geometry': 'Editando Geometria',
+      'save_attributes': 'Guardar Atributos',
+      'invalid_fields': 'Existen campos invalidos {{value}}. Debe solucionar estos problemas previo a poder guardar.',
+      'add_feature': 'A\xf1adir Elemento',
+      'toggle_visibility': 'Modificar la Visibilidad',
+      'remote_options': 'Opciones Remotas',
+      'history_summary': 'Resumen de Historial',
+      'zoom_world': 'Regresar a Mapa Mundial',
+      'toggle_legend': 'Modificar la Descripcion',
+      'refresh_layers': 'Refrescar Capas',
+      'sure_remove_layer': 'Esta seguro de querer eliminar esta capa?',
+      'pull_unknown_error': 'Un error desconocido ocurrio al realizar el retiro del remoto. Favor intentar nuevamente.',
+      'local': 'Local',
+      'pull_conflicts': 'Extraer Conflictos'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -63928,19 +63937,20 @@ ol.tilegrid.XYZOptions;
 (function () {
   var module = angular.module('loom_addlayers_directive', []);
   module.directive('loomAddlayers', [
+    '$rootScope',
     'serverService',
     'mapService',
     'geogitService',
     '$translate',
-    function (serverService, mapService, geogitService, $translate) {
+    function ($rootScope, serverService, mapService, geogitService, $translate) {
       return {
         templateUrl: 'addlayers/partials/addlayers.tpl.html',
         link: function (scope, element) {
           scope.serverService = serverService;
-          scope.currentServerIndex = serverService.getServer('Local Geoserver').id;
+          scope.currentServerIndex = serverService.getServerByName('Local Geoserver').id;
           angular.element('#layer-filter')[0].attributes.placeholder.value = $translate('filter_layers');
           scope.addLayers = function () {
-            var currentServer = serverService.getServer(scope.currentServerIndex);
+            var currentServer = serverService.getServerByIndex(scope.currentServerIndex);
             var layers = scope.serverService.populateLayers(scope.currentServerIndex);
             if (currentServer.type === 'fakeType') {
               if (layers[0].add) {
@@ -63979,7 +63989,9 @@ ol.tilegrid.XYZOptions;
             scope.currentServerIndex = index;
           };
           scope.$on('layers-loaded', function () {
-            scope.$apply();
+            if (!scope.$$phase && !$rootScope.$$phase) {
+              scope.$apply();
+            }
           });
           var layerRemoved = function (event, layer) {
             var layers = scope.serverService.populateLayers(layer.get('metadata').serverId);
@@ -64031,44 +64043,81 @@ var SERVER_SERVICE_USE_PROXY = true;
   var rootScope_ = null;
   var dialogService_ = null;
   var translate_ = null;
+  var http_ = null;
   module.provider('serverService', function () {
     this.$get = [
       '$rootScope',
+      '$http',
       '$location',
       '$translate',
       'dialogService',
-      function ($rootScope, $location, $translate, dialogService) {
+      function ($rootScope, $http, $location, $translate, dialogService) {
         rootScope_ = $rootScope;
         dialogService_ = dialogService;
         translate_ = $translate;
+        http_ = $http;
         return this;
       }
     ];
     this.getServers = function () {
       return servers;
     };
-    this.getServer = function (indexOrName) {
-      if (!goog.isDefAndNotNull(indexOrName)) {
+    this.getServerByIndex = function (index) {
+      var server = null;
+      if (!goog.isDefAndNotNull(index)) {
         throw {
           name: 'serverService',
           level: 'High',
-          message: 'undefined server.',
+          message: 'undefined server index.',
           toString: function () {
             return this.name + ': ' + this.message;
           }
         };
       }
-      if (typeof indexOrName !== 'string') {
-        return servers[indexOrName];
-      } else if (!isNaN(parseInt(indexOrName, 10)) && parseInt(indexOrName, 10).toString() === indexOrName) {
-        return servers[parseInt(indexOrName, 10)];
-      } else {
-        for (var index = 0; index < servers.length; index += 1) {
-          if (servers[index].name.toLocaleLowerCase() === indexOrName.toLowerCase()) {
-            return servers[index];
+      if (index >= 0 && index < servers.length) {
+        server = servers[index];
+      }
+      return server;
+    };
+    this.getServerById = function (id) {
+      var server = null;
+      if (!goog.isDefAndNotNull(id)) {
+        throw {
+          name: 'serverService',
+          level: 'High',
+          message: 'undefined server id.',
+          toString: function () {
+            return this.name + ': ' + this.message;
           }
+        };
+      }
+      for (var index = 0; index < servers.length; index += 1) {
+        if (servers[index].id === id) {
+          server = servers[index];
+          break;
         }
       }
+      return server;
+    };
+    this.getServerByName = function (name) {
+      var server = null;
+      if (!goog.isDefAndNotNull(name)) {
+        throw {
+          name: 'serverService',
+          level: 'High',
+          message: 'undefined server name.',
+          toString: function () {
+            return this.name + ': ' + this.message;
+          }
+        };
+      }
+      for (var index = 0; index < servers.length; index += 1) {
+        if (servers[index].name.toLocaleLowerCase() === name.toLowerCase()) {
+          server = servers[index];
+          break;
+        }
+      }
+      return server;
     };
     this.addServer = function (serverInfo) {
       var server = {
@@ -64088,16 +64137,12 @@ var SERVER_SERVICE_USE_PROXY = true;
       }
       if (!goog.isDefAndNotNull(server.layers) && goog.isDefAndNotNull(server.url)) {
         console.log('Sending GetCapabilities.server: ', server, ', index:', index);
+        server.layers = [];
         var parser = new ol.parser.ogc.WMSCapabilities();
         var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
-        if (SERVER_SERVICE_USE_PROXY) {
-          url = '/proxy/?url=' + encodeURIComponent(url);
-        }
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onload = function () {
+        http_.get(url).then(function (xhr) {
           if (xhr.status == 200) {
-            var response = parser.read(xhr.response);
+            var response = parser.read(xhr.data);
             if (goog.isDefAndNotNull(response.capability) && goog.isDefAndNotNull(response.capability.layers)) {
               server.layers = response.capability.layers;
               for (var index = 0; index < server.layers.length; index += 1) {
@@ -64106,11 +64151,13 @@ var SERVER_SERVICE_USE_PROXY = true;
               rootScope_.$broadcast('layers-loaded');
             }
           } else {
-            dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + xhr.status.toString() + ' ' + xhr.statusText);
+            dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
             server.layers = [];
           }
-        };
-        xhr.send();
+        }, function (xhr) {
+          dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
+          server.layers = [];
+        });
       }
       return server.layers;
     };
@@ -64119,14 +64166,9 @@ var SERVER_SERVICE_USE_PROXY = true;
       if (goog.isDefAndNotNull(server) && goog.isDefAndNotNull(server.layers)) {
         var parser = new ol.parser.ogc.WMSCapabilities();
         var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
-        if (SERVER_SERVICE_USE_PROXY) {
-          url = '/proxy/?url=' + encodeURIComponent(url);
-        }
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.onload = function () {
+        http_.get(url).then(function (xhr) {
           if (xhr.status == 200) {
-            var response = parser.read(xhr.responseXML);
+            var response = parser.read(xhr.data);
             if (goog.isDefAndNotNull(response.capability) && goog.isDefAndNotNull(response.capability.layers)) {
               var serverLayers = [];
               var index;
@@ -64151,10 +64193,11 @@ var SERVER_SERVICE_USE_PROXY = true;
               rootScope_.$broadcast('layers-loaded');
             }
           } else {
-            dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + xhr.status.toString() + ' ' + xhr.statusText);
+            dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
           }
-        };
-        xhr.send();
+        }, function (xhr) {
+          dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
+        });
       }
       return server.layers;
     };
@@ -64225,9 +64268,32 @@ var SERVER_SERVICE_USE_PROXY = true;
 }());
 (function () {
   var module = angular.module('loom_config_service', []);
-  angular.module('loom').config([
+  var service_ = null;
+  module.factory('httpRequestInterceptor', [
+    '$cookieStore',
+    function ($cookieStore) {
+      return {
+        request: function (config) {
+          if (goog.isDefAndNotNull(config) && (config.method.toLowerCase() === 'post' || config.method.toLowerCase() === 'put')) {
+            config.headers['X-CSRFToken'] = service_.csrfToken;
+          }
+          if (goog.isDefAndNotNull(config) && goog.isDefAndNotNull(config.url) && config.url.indexOf('http') === 0) {
+            var configCopy = $.extend(true, {}, config);
+            var proxy = service_.configuration.proxy;
+            if (goog.isDefAndNotNull(proxy)) {
+              configCopy.url = proxy + encodeURIComponent(configCopy.url);
+            }
+            return configCopy;
+          }
+          return config;
+        }
+      };
+    }
+  ]);
+  module.config([
     '$httpProvider',
     function ($httpProvider) {
+      $httpProvider.interceptors.push('httpRequestInterceptor');
       $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     }
   ]);
@@ -64239,6 +64305,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       '$cookies',
       '$location',
       function ($window, $http, $cookies, $location) {
+        service_ = this;
         this.configuration = {
           about: {
             title: 'New Map',
@@ -64277,8 +64344,10 @@ var SERVER_SERVICE_USE_PROXY = true;
           ],
           userprofilename: 'Anonymous',
           userprofileemail: '',
+          username: '',
+          authStatus: 401,
           id: 0,
-          proxy: '/proxy?url='
+          proxy: '/proxy/?url='
         };
         if (goog.isDefAndNotNull($window.config)) {
           goog.object.extend(this.configuration, $window.config, {});
@@ -64286,6 +64355,7 @@ var SERVER_SERVICE_USE_PROXY = true;
         this.username = this.configuration.username;
         this.user_profile_name = this.configuration.userprofilename;
         this.user_profile_email = this.configuration.userprofileemail;
+        this.user_name = this.configuration.username;
         this.proxy = this.configuration.proxy;
         this.csrfToken = $cookies.csrftoken;
         if (goog.isDefAndNotNull(this.configuration.map.zoom) && this.configuration.map.zoom === 0) {
@@ -64294,6 +64364,9 @@ var SERVER_SERVICE_USE_PROXY = true;
         return this;
       }
     ];
+    this.isAuthenticated = function () {
+      return service_.configuration.authStatus == 200;
+    };
   });
 }());
 var DiffColorMap = {
@@ -64825,6 +64898,7 @@ var DiffColorMap = {
     this.change = null;
     this.leftName = null;
     this.rightName = null;
+    this.schema = null;
     this.$get = [
       '$rootScope',
       'mapService',
@@ -64882,6 +64956,7 @@ var DiffColorMap = {
       service_.merged.clearFeature();
       service_.leftName = null;
       service_.rightName = null;
+      service_.schema = null;
     };
     this.chooseGeometry = function (panel) {
       this.merged.geometry = panel.geometry;
@@ -64891,7 +64966,10 @@ var DiffColorMap = {
       rootScope_.$broadcast('merge-feature-modified');
     };
     this.chooseAttribute = function (index, panel) {
+      var type = this.merged.attributes[index].type;
       this.merged.attributes[index] = $.extend(true, {}, panel.attributes[index]);
+      this.merged.attributes[index].type = type;
+      assignAttributeTypes(this.merged.attributes, true);
     };
     this.choose = function (panel) {
       for (var i = 0; i < panel.attributes.length; i++) {
@@ -64964,6 +65042,9 @@ var DiffColorMap = {
           if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === repoName) {
             var splitFeature = feature.id.split('/');
             if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
+              if (goog.isDefAndNotNull(layer.get('metadata').schema)) {
+                service_.schema = layer.get('metadata').schema;
+              }
               if (goog.isDefAndNotNull(metadata.projection)) {
                 crs_ = metadata.projection;
               }
@@ -65073,6 +65154,7 @@ var DiffColorMap = {
         newBounds[3] += y;
         panel.bounds = newBounds;
         diffsNeeded_ -= 1;
+        assignAttributeTypes(panel.attributes, false);
         if (diffsNeeded_ === 0) {
           if (diffsInError_ > 0) {
             dialogService_.error(translate_('error'), translate_('feature_diff_error'));
@@ -65098,8 +65180,10 @@ var DiffColorMap = {
                     service_.updateChangeType(service_.merged.attributes[i]);
                   }
                 }
+                assignAttributeTypes(service_.merged.attributes, true);
               } else {
                 service_.choose(service_.left);
+                assignAttributeTypes(service_.merged.attributes, true);
               }
             }
             rootScope_.$broadcast('feature-diff-performed');
@@ -65145,6 +65229,18 @@ var DiffColorMap = {
       })
     });
   }
+  function assignAttributeTypes(properties, editable) {
+    if (goog.isDefAndNotNull(service_.schema)) {
+      for (var propertyIndex = 0; propertyIndex < properties.length; propertyIndex++) {
+        properties[propertyIndex].type = service_.schema[properties[propertyIndex].attributename]._type;
+        if (properties[propertyIndex].type === 'simpleType') {
+          properties[propertyIndex].enum = service_.schema[properties[propertyIndex].attributename].simpleType.restriction.enumeration;
+        }
+        properties[propertyIndex].valid = true;
+        properties[propertyIndex].editable = editable;
+      }
+    }
+  }
 }());
 (function () {
   var module = angular.module('loom_feature_panel_directive', []);
@@ -65183,6 +65279,11 @@ var DiffColorMap = {
               $rootScope.$broadcast('merge-feature-modified');
             }, true);
           }
+          scope.selectValue = function (property, index) {
+            property.newvalue = property.enum[index]._value;
+          };
+          scope.validateInteger = validateInteger;
+          scope.validateDouble = validateDouble;
           scope.$on('feature-diff-performed', updateVariables);
         }
       };
@@ -65293,22 +65394,8 @@ var DiffColorMap = {
             scope.coordinates = null;
             scope.inserting = false;
           };
-          scope.validateInteger = function (form, index) {
-            var nonNumbers = /^[-+]?[0-9]*$/;
-            var valid = true;
-            if (!nonNumbers.test(scope.properties[index][1])) {
-              valid = false;
-            }
-            scope.properties[index].valid = valid;
-          };
-          scope.validateDouble = function (form, index) {
-            var nonNumbers = /^[-+]?[0-9]*\.?[0-9]+$/;
-            var valid = true;
-            if (scope.properties[index][1] !== null && scope.properties[index][1] !== '' && !nonNumbers.test(scope.properties[index][1])) {
-              valid = false;
-            }
-            scope.properties[index].valid = valid;
-          };
+          scope.validateInteger = validateInteger;
+          scope.validateDouble = validateDouble;
           var parentModal = element.closest('.modal');
           var closeModal = function (event, element) {
             if (parentModal[0] === element[0]) {
@@ -65916,10 +66003,13 @@ var DiffColorMap = {
           success: function (featureInfoByLayer) {
             var infoPerLayer = [];
             featureInfoByLayer.forEach(function (elm, index) {
-              var layerInfo = JSON.parse(elm);
-              if (layerInfo.features && layerInfo.features.length > 0) {
-                layerInfo.layer = layers[index];
-                goog.array.insert(infoPerLayer, layerInfo);
+              try {
+                var layerInfo = JSON.parse(elm);
+                if (layerInfo.features && layerInfo.features.length > 0 && goog.isDefAndNotNull(layers[index])) {
+                  layerInfo.layer = layers[index];
+                  goog.array.insert(infoPerLayer, layerInfo);
+                }
+              } catch (e) {
               }
             });
             if (infoPerLayer.length > 0) {
@@ -65980,11 +66070,8 @@ var DiffColorMap = {
       }
     }
     var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.1.0" ' + 'handle="' + commitMsg + '" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd"> ' + wfsRequestTypePartial + '</wfs:Transaction>';
-    http_({
-      url: '/geoserver/wfs/WfsDispatcher',
-      method: 'POST',
-      data: wfsRequestData
-    }).success(function (data, status, headers, config) {
+    var url = selectedLayer_.get('metadata').url + '/wfs/WfsDispatcher';
+    http_.post(url, wfsRequestData).success(function (data, status, headers, config) {
       if (postType === wfsPostTypes_.INSERT) {
         var x2js = new X2JS();
         var json = x2js.xml_str2json(data);
@@ -66151,7 +66238,7 @@ var GeoGitDiffOptions = function () {
   this.pathFilter = null;
   this.showGeometryChanges = null;
   this.page = null;
-  this.elementsPerPage = null;
+  this.show = null;
 };
 var GeoGitLogOptions = function () {
   this.limit = null;
@@ -66321,7 +66408,6 @@ var GeoGitLogOptions = function () {
         branchOptions.list = true;
         branchOptions.remotes = true;
         service_.command(repo.id, 'branch', branchOptions).then(function (response) {
-          var index;
           var remoteIndex;
           if (goog.isDefAndNotNull(response.Local.Branch)) {
             forEachArrayish(response.Local.Branch, function (branch) {
@@ -66334,18 +66420,15 @@ var GeoGitLogOptions = function () {
             return;
           }
           if (goog.isDefAndNotNull(response.Remote.Branch)) {
-            if (goog.isDefAndNotNull(response.Remote.Branch.length)) {
-              for (index = 0; index < response.Remote.Branch.length; index++) {
-                if (response.Remote.Branch[index].name === 'HEAD') {
-                  continue;
-                }
+            forEachArrayish(response.Remote.Branch, function (branch) {
+              if (branch.name !== 'HEAD') {
                 for (remoteIndex = 0; remoteIndex < repo.remotes.length; remoteIndex++) {
-                  if (repo.remotes[remoteIndex].name === response.Remote.Branch[index].remoteName) {
-                    repo.remotes[remoteIndex].branches.push(response.Remote.Branch[index].name);
+                  if (repo.remotes[remoteIndex].name === branch.remoteName) {
+                    repo.remotes[remoteIndex].branches.push(branch.name);
                   }
                 }
               }
-            }
+            });
           }
           result.resolve(repo);
         }, function (reject) {
@@ -66397,9 +66480,6 @@ var GeoGitLogOptions = function () {
     this.isNotLayerGroup = function (layer) {
       var featureType = layer.get('metadata').name;
       var url = layer.get('metadata').url + '/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=DescribeLayer&layers=' + featureType;
-      if (SERVER_SERVICE_USE_PROXY) {
-        url = '/proxy/?url=' + encodeURIComponent(url);
-      }
       var deferredResponse = q.defer();
       http.get(url).then(function (response) {
         var strings = response.data.split('</LayerDescription>');
@@ -66474,6 +66554,31 @@ var GeoGitLogOptions = function () {
       });
       return deferredResponse.promise;
     };
+    this.getCommitId = function (layer) {
+      var url = layer.get('metadata').url + '/geogit/' + layer.get('metadata').workspace + ':' + layer.get('metadata').geogitStore + '/repo/manifest';
+      var deferredResponse = q.defer();
+      http.get(url).then(function (response) {
+        var branchArray = response.data.split('\n');
+        var branchData;
+        var commitId = -1;
+        for (var branch in branchArray) {
+          branchData = branchArray[branch].split(' ');
+          if (branchData.length != 2) {
+            continue;
+          }
+          var branchNameIndex = branchData[0].indexOf('/' + layer.get('metadata').branchName);
+          var branchNameSubString = branchData[0].slice(branchNameIndex + 1);
+          if (branchNameIndex !== -1 && branchNameSubString.length === layer.get('metadata').branchName.length) {
+            commitId = branchData[1];
+            break;
+          }
+        }
+        deferredResponse.resolve(commitId);
+      }, function (reject) {
+        deferredResponse.reject(reject);
+      });
+      return deferredResponse.promise;
+    };
     this.isGeoGit = function (layer) {
       if (goog.isDefAndNotNull(layer)) {
         var metadata = layer.get('metadata');
@@ -66485,6 +66590,10 @@ var GeoGitLogOptions = function () {
                   if (dataStore.type === 'GeoGIT') {
                     var repoName = dataStore.connectionParameters.entry[0].$;
                     repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
+                    metadata.branchName = dataStore.connectionParameters.entry[1].$;
+                    if (metadata.branchName === 'false') {
+                      metadata.branchName = 'master';
+                    }
                     var promise = service_.addRepo(new GeoGitRepo(metadata.url + '/geogit/' + featureType.workspace + ':' + dataStore.name, dataStore.connectionParameters.entry[1].$, repoName));
                     promise.then(function (repo) {
                       if (goog.isDef(repo.id)) {
@@ -66504,6 +66613,9 @@ var GeoGitLogOptions = function () {
                   metadata.projection = featureType.srs;
                   metadata.workspace = featureType.workspace;
                   metadata.nativeName = featureType.nativeName;
+                  service_.getCommitId(layer).then(function (response) {
+                    metadata.repoCommitId = response;
+                  });
                 }, function (rejected) {
                   dialogService_.error(translate_('error'), translate_('unable_to_get_feature_type') + ' (' + rejected.status + ')');
                 });
@@ -66531,9 +66643,8 @@ var GeoGitLogOptions = function () {
     'diffService',
     'pulldownService',
     'dialogService',
-    '$http',
     '$window',
-    function ($rootScope, historyService, $translate, geogitService, diffService, pulldownService, dialogService, $http, $window) {
+    function ($rootScope, historyService, $translate, geogitService, diffService, pulldownService, dialogService, $window) {
       return {
         templateUrl: 'history/partial/historydiff.tpl.html',
         link: function (scope, element, attrs) {
@@ -67055,6 +67166,12 @@ var GeoGitLogOptions = function () {
               }, 350);
             }
           };
+          scope.getLegendUrl = function (layer) {
+            var url = null;
+            var server = serverService.getServerById(layer.get('metadata').serverId);
+            url = server.url + '?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=' + layer.get('metadata').name + '&transparent=true&legend_options=fontColor:0xFFFFFF;' + 'fontAntiAliasing:true;fontSize:14;fontStyle:bold;';
+            return url;
+          };
         }
       };
     }
@@ -67233,7 +67350,7 @@ var GeoGitLogOptions = function () {
         dialogService_.open(translate_('error'), translate_('drag_zoom_not_supported'));
         return;
       }
-      this.map.getInteractions().getArray()[index].condition_ = ol.interaction.condition.always;
+      this.map.getInteractions().getArray()[index].condition_ = ol.events.condition.always;
       dragZoomActive = true;
     };
     this.dumpTileCache = function () {
@@ -67278,7 +67395,7 @@ var GeoGitLogOptions = function () {
       return layers;
     };
     this.addLayer = function (config, doNotAddToMap) {
-      var server = serverService_.getServer(config.source);
+      var server = serverService_.getServerByIndex(config.source);
       console.log('server for layer: ', server);
       var layer = null;
       if (server.ptype === 'gxp_osmsource') {
@@ -67347,7 +67464,7 @@ var GeoGitLogOptions = function () {
     };
     this.addBaseLayer = function (title, doNotAddToMap) {
       var layer = null;
-      var serverId = serverService_.getServer('OpenStreetMap').id;
+      var serverId = serverService_.getServerByName('OpenStreetMap').id;
       console.log('____ serverId for baselayer: ', serverId);
       if (title === 'OpenStreetMap') {
         layer = new ol.layer.Tile({
@@ -67596,7 +67713,7 @@ var GeoGitLogOptions = function () {
           dialogService_.open(translate_('error'), translate_('drag_zoom_not_supported'));
           return;
         }
-        this.getInteractions().getArray()[index].condition_ = ol.interaction.condition.shiftKeyOnly;
+        this.getInteractions().getArray()[index].condition_ = ol.events.condition.shiftKeyOnly;
         dragZoomActive = false;
       });
       return map;
@@ -67629,6 +67746,7 @@ var GeoGitLogOptions = function () {
   var dialogService_ = null;
   var geogitService_ = null;
   var translate_ = null;
+  var configService_ = null;
   module.provider('conflictService', function () {
     this.features = null;
     this.ours = null;
@@ -67646,11 +67764,12 @@ var GeoGitLogOptions = function () {
       '$translate',
       'diffService',
       'pulldownService',
+      'configService',
       'featureDiffService',
       'mapService',
       'dialogService',
       'geogitService',
-      function ($rootScope, $location, $translate, diffService, pulldownService, featureDiffService, mapService, dialogService, geogitService) {
+      function ($rootScope, $location, $translate, diffService, pulldownService, configService, featureDiffService, mapService, dialogService, geogitService) {
         diffService_ = diffService;
         pulldownService_ = pulldownService;
         featureDiffService_ = featureDiffService;
@@ -67658,6 +67777,7 @@ var GeoGitLogOptions = function () {
         dialogService_ = dialogService;
         geogitService_ = geogitService;
         translate_ = $translate;
+        configService_ = configService;
         service_ = this;
         return this;
       }
@@ -67684,6 +67804,9 @@ var GeoGitLogOptions = function () {
       diffService_.resolveFeature(this.currentFeature);
     };
     this.beginResolution = function () {
+      if (!goog.isArray(service_.features)) {
+        service_.features = [service_.features];
+      }
       diffService_.setTitle(translate_('merge_results'));
       diffService_.clickCallback = featureClicked;
       diffService_.mergeDiff = true;
@@ -67776,6 +67899,8 @@ var GeoGitLogOptions = function () {
           var commitOptions = new GeoGitCommitOptions();
           commitOptions.all = true;
           commitOptions.message = service_.buildMergeMessage(response, service_.mergeBranch, true);
+          commitOptions.authorName = configService_.configuration.userprofilename;
+          commitOptions.authorEmail = configService_.configuration.userprofileemail;
           service_.transaction.command('commit', commitOptions).then(function () {
             service_.transaction.finalize().then(function () {
               diffService_.clearDiff();
@@ -67859,7 +67984,8 @@ var GeoGitLogOptions = function () {
     'conflictService',
     'mapService',
     'featureDiffService',
-    function ($translate, geogitService, dialogService, notificationService, conflictService, mapService, featureDiffService) {
+    'configService',
+    function ($translate, geogitService, dialogService, notificationService, conflictService, mapService, featureDiffService, configService) {
       return {
         templateUrl: 'merge/partials/merge.tpl.html',
         link: function (scope, element, attrs) {
@@ -67889,11 +68015,15 @@ var GeoGitLogOptions = function () {
                 var mergeOptions = new GeoGitMergeOptions();
                 mergeOptions.commit = scope.sourceBranch;
                 mergeOptions.noCommit = true;
+                mergeOptions.authorName = configService.configuration.userprofilename;
+                mergeOptions.authorEmail = configService.configuration.userprofileemail;
                 transaction.command('merge', mergeOptions).then(function (mergeResult) {
                   transaction.command('status').then(function (statusResult) {
                     var commitOptions = new GeoGitCommitOptions();
                     commitOptions.all = true;
                     commitOptions.message = conflictService.buildMergeMessage(statusResult, scope.sourceBranch, false);
+                    commitOptions.authorName = configService.configuration.userprofilename;
+                    commitOptions.authorEmail = configService.configuration.userprofileemail;
                     transaction.command('commit', commitOptions).then(function (commitResponse) {
                       transaction.finalize().then(function () {
                         var leftName = scope.destinationBranch;
@@ -68124,14 +68254,16 @@ var GeoGitLogOptions = function () {
     '$timeout',
     'pulldownService',
     '$translate',
-    function ($rootScope, notificationService, diffService, mapService, dialogService, $timeout, pulldownService, $translate) {
+    'refreshService',
+    function ($rootScope, notificationService, diffService, mapService, dialogService, $timeout, pulldownService, $translate, refreshService) {
       return {
         restrict: 'C',
         replace: true,
         scope: true,
-        template: '<div class="panel flat">' + '  <div class="btn-group">' + '    <button type="button" ng-click="switchCoords()"' + '      class="btn btn-default">Switch Coords</button>' + '    <button type="button" ng-click="addNotification()"' + '      class="btn btn-default">Post Notification</button>' + '    <button type="button" ng-click="performDiff()"' + '      class="btn btn-default">Perform Diff</button>' + '    <button type="button" ng-click="clearDiff()"' + '      class="btn btn-default">Clear Diff</button>' + '    <button type="button" ng-click="mapService.activateDragZoom()"' + '      class="btn btn-default">Drag Zoom</button>' + '    <button type="button" ng-click="addModal()"' + '      class="btn btn-default">Modal</button>' + '    <button type="button" ng-click="localize()"' + '      class="btn btn-default">Switch Language</button>' + '  </div>' + '</div>',
+        template: '<div class="panel flat">' + '  <div class="btn-group">' + '    <button type="button" ng-click="switchCoords()"' + '      class="btn btn-default">Switch Coords</button>' + '    <button type="button" ng-click="addNotification()"' + '      class="btn btn-default">Post Notification</button>' + '    <button type="button" ng-click="performDiff()"' + '      class="btn btn-default">Perform Diff</button>' + '    <button type="button" ng-click="clearDiff()"' + '      class="btn btn-default">Clear Diff</button>' + '    <button type="button" ng-click="mapService.activateDragZoom()"' + '      class="btn btn-default">Drag Zoom</button>' + '    <button type="button" ng-click="addModal()"' + '      class="btn btn-default">Modal</button>' + '    <button type="button" ng-click="localize()"' + '      class="btn btn-default">Switch Language</button>' + '    <button type="button" ng-click="refreshService.refreshLayers()"' + '      class="btn btn-default">Refresh Layers</button>' + '  </div>' + '</div>',
         link: function (scope) {
           scope.mapService = mapService;
+          scope.refreshService = refreshService;
           function addNotification() {
             notificationService.addNotification({
               text: '1 Added, 3 Modified, 1 Deleted',
@@ -68415,6 +68547,122 @@ var GeoGitLogOptions = function () {
   });
 }());
 (function () {
+  angular.module('loom_refresh', ['loom_refresh_service']);
+}());
+(function () {
+  var module = angular.module('loom_refresh_service', []);
+  var mapService_ = null;
+  var dialogService_ = null;
+  var translate_ = null;
+  var notificationService_ = null;
+  var geogitService_ = null;
+  var featureDiffService_ = null;
+  var autoRefresh = false;
+  module.provider('refreshService', function () {
+    this.$get = [
+      'mapService',
+      '$translate',
+      'notificationService',
+      'geogitService',
+      'dialogService',
+      'featureDiffService',
+      function (mapService, $translate, notificationService, geogitService, dialogService, featureDiffService) {
+        mapService_ = mapService;
+        notificationService_ = notificationService;
+        geogitService_ = geogitService;
+        dialogService_ = dialogService;
+        translate_ = $translate;
+        featureDiffService_ = featureDiffService;
+        return this;
+      }
+    ];
+    function refresh(mapService) {
+      if (autoRefresh) {
+        mapService.dumpTileCache();
+        var layers = mapService.getFeatureLayers();
+        forEachArrayish(layers, function (layer) {
+          if (goog.isDefAndNotNull(layer.get('metadata').isGeoGit)) {
+            if (layer.get('metadata').isGeoGit === true) {
+              geogitService_.getCommitId(layer).then(function (idResponse) {
+                if (idResponse === layer.get('metadata').repoCommitId) {
+                  return;
+                }
+                var options = new GeoGitDiffOptions();
+                options.oldRefSpec = layer.get('metadata').repoCommitId;
+                options.newRefSpec = idResponse;
+                options.showGeometryChanges = true;
+                options.show = 1000;
+                geogitService_.command(layer.get('metadata').repoId, 'diff', options).then(function (diffResponse) {
+                  if (goog.isDef(diffResponse.nextPage)) {
+                    dialogService_.warn(translate_('warning'), translate_('too_many_changes_refresh', { value: 1000 }));
+                  }
+                  var added = 0, modified = 0, removed = 0;
+                  forEachArrayish(diffResponse.Feature, function (feature) {
+                    switch (feature.change) {
+                    case 'ADDED':
+                      added++;
+                      break;
+                    case 'MODIFIED':
+                      modified++;
+                      break;
+                    case 'REMOVED':
+                      removed++;
+                      break;
+                    }
+                  });
+                  var notificationText = '';
+                  if (added > 0) {
+                    notificationText += added + ' ' + translate_('added');
+                    if (modified > 0 || removed > 0) {
+                      notificationText += ', ';
+                    }
+                  }
+                  if (modified > 0) {
+                    notificationText += modified + ' ' + translate_('modified');
+                    if (removed > 0) {
+                      notificationText += ', ';
+                    }
+                  }
+                  if (removed > 0) {
+                    notificationText += removed + ' ' + translate_('removed');
+                  }
+                  notificationText += ' ' + translate_('in_lower_case') + ' ' + layer.get('metadata').label;
+                  var oldCommitId = layer.get('metadata').repoCommitId;
+                  notificationService_.addNotification({
+                    text: notificationText,
+                    read: false,
+                    type: 'loom-update-notification',
+                    repos: [{
+                        name: layer.get('metadata').geogitStore,
+                        features: diffResponse.Feature
+                      }],
+                    callback: function (feature) {
+                      featureDiffService_.leftName = 'old';
+                      featureDiffService_.rightName = 'new';
+                      featureDiffService_.setFeature(feature.original, oldCommitId, idResponse, oldCommitId, null, layer.get('metadata').repoId);
+                      $('#feature-diff-dialog').modal('show');
+                    }
+                  });
+                  layer.get('metadata').repoCommitId = idResponse;
+                });
+              });
+            }
+          }
+        });
+        setTimeout(function () {
+          refresh(mapService);
+        }, 60000);
+      }
+    }
+    this.refreshLayers = function () {
+      autoRefresh = !autoRefresh;
+      if (autoRefresh) {
+        refresh(mapService_);
+      }
+    };
+  });
+}());
+(function () {
   var module = angular.module('loom_addsync_directive', []);
   module.directive('loomAddsync', [
     '$translate',
@@ -68627,7 +68875,15 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
   var module = angular.module('loom_sync_service', []);
   var synchronizationLinks_ = [];
   var nextLinkId_ = 0;
-  var service_, dialogService_, rootScope_, geogitService_, q_, translate_ = null;
+  var service_ = null;
+  var dialogService_ = null;
+  var rootScope_ = null;
+  var geogitService_ = null;
+  var q_ = null;
+  var translate_ = null;
+  var conflictService_ = null;
+  var configService_ = null;
+  var timeout_ = null;
   var syncing = false;
   var numSyncingLinks = 0;
   var syncTimeout = null;
@@ -68641,12 +68897,12 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         return a.timeStamp - b.timeStamp;
       });
       if (syncTimeout !== null) {
-        syncTimeout = setTimeout(autoSync, syncInterval);
+        syncTimeout = timeout_(autoSync, syncInterval);
       }
     };
     var error = function (error) {
-      if (syncTimeout !== null) {
-        syncTimeout = setTimeout(autoSync, syncInterval);
+      if (syncTimeout !== null && goog.isDefAndNotNull(error) && error !== false) {
+        syncTimeout = timeout_(autoSync, syncInterval);
       }
     };
     for (var index = 0; index < synchronizationLinks_.length; index++) {
@@ -68656,7 +68912,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           if (link.timeStamp <= time) {
             service_.sync(link).then(success, error);
           } else {
-            syncTimeout = setTimeout(autoSync, syncInterval);
+            syncTimeout = timeout_(autoSync, syncInterval);
           }
         }
         break;
@@ -68680,21 +68936,27 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     for (var index = 0; index < synchronizationLinks_.length; index++) {
       checkStatus(synchronizationLinks_[index]);
     }
-    statusCheckTimeout = setTimeout(checkStatusAll, 60000);
+    statusCheckTimeout = timeout_(checkStatusAll, 60000);
   };
   module.provider('synchronizationService', function () {
     this.$get = [
+      '$timeout',
       '$rootScope',
       '$q',
       '$translate',
       'dialogService',
       'geogitService',
-      function ($rootScope, $q, $translate, dialogService, geogitService) {
+      'conflictService',
+      'configService',
+      function ($timeout, $rootScope, $q, $translate, dialogService, geogitService, conflictService, configService) {
         dialogService_ = dialogService;
         service_ = this;
         rootScope_ = $rootScope;
         geogitService_ = geogitService;
+        conflictService_ = conflictService;
         translate_ = $translate;
+        configService_ = configService;
+        timeout_ = $timeout;
         q_ = $q;
         $rootScope.$on('repoRemoved', function (event, repo) {
           goog.array.forEach(synchronizationLinks_, function (link) {
@@ -68722,8 +68984,9 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       link.id = nextLinkId_;
       nextLinkId_++;
       synchronizationLinks_.push(link);
+      checkStatus(link);
       if (!statusCheckTimeout) {
-        statusCheckTimeout = setTimeout(checkStatusAll, 60000);
+        statusCheckTimeout = timeout_(checkStatusAll, 60000);
       }
     };
     this.removeLink = function (id) {
@@ -68747,11 +69010,13 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     this.toggleAutoSync = function (link) {
       link.isSyncing = !link.isSyncing;
       if (link.isSyncing) {
+        link.continuous = true;
         numSyncingLinks++;
         if (!syncTimeout) {
-          syncTimeout = setTimeout(autoSync, syncInterval);
+          syncTimeout = timeout_(autoSync, syncInterval);
         }
       } else {
+        link.continuous = false;
         numSyncingLinks--;
         if (numSyncingLinks <= 0) {
           clearTimeout(syncTimeout);
@@ -68766,6 +69031,8 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         var pullOptions = new GeoGitPullOptions();
         pullOptions.ref = link.getRemoteBranch() + ':' + link.getLocalBranch();
         pullOptions.remoteName = link.getRemote().name;
+        pullOptions.authorName = configService_.configuration.userprofilename;
+        pullOptions.authorEmail = configService_.configuration.userprofileemail;
         transaction.command('pull', pullOptions).then(function (pullResult) {
           var pushOptions = new GeoGitPushOptions();
           pushOptions.ref = link.getLocalBranch() + ':' + link.getRemoteBranch();
@@ -68786,9 +69053,18 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             transaction.abort();
           });
         }, function (pullFailed) {
-          syncing = false;
-          result.reject(pullFailed);
-          transaction.abort();
+          if (goog.isObject(pullFailed) && goog.isDefAndNotNull(pullFailed.conflicts)) {
+            var branch = link.getRemote().name + '/' + link.getRemoteBranch();
+            link.isSyncing = false;
+            handleConflicts(pullFailed, transaction, link.getRepo().id, translate_('local'), link.getRemote().name, branch);
+            result.reject(false);
+          } else {
+            dialogService_.error(translate_('error'), translate_('pull_unknown_error'));
+            syncing = false;
+            result.reject(pullFailed);
+            transaction.abort();
+            console.log('ERROR: Pull failure: ', pullOptions, pullFailed);
+          }
         });
       }, function (beginTransactionFailed) {
         syncing = false;
@@ -68797,6 +69073,33 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       return result.promise;
     };
   });
+  function handleConflicts(mergeFailure, transaction, repoId, ourName, theirName, mergeBranch) {
+    var myDialog = dialogService_.warn(translate_('pull_conflicts'), translate_('conflicts_encountered'), [
+        translate_('abort'),
+        translate_('resolve_conflicts')
+      ], false);
+    myDialog.then(function (button) {
+      switch (button) {
+      case 0:
+        syncing = false;
+        transaction.abort();
+        break;
+      case 1:
+        conflictService_.ourName = ourName;
+        conflictService_.theirName = theirName;
+        conflictService_.ours = mergeFailure.ours;
+        conflictService_.theirs = mergeFailure.theirs;
+        conflictService_.ancestor = mergeFailure.ancestor;
+        conflictService_.features = mergeFailure.Feature;
+        conflictService_.repoId = repoId;
+        conflictService_.transaction = transaction;
+        conflictService_.mergeBranch = mergeBranch;
+        conflictService_.beginResolution();
+        syncing = false;
+        break;
+      }
+    });
+  }
 }());
 (function () {
   var module = angular.module('loom_update_notification_directive', []);
@@ -68819,37 +69122,38 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         var deletes = [];
         var merges = [];
         var conflicts = [];
-        var i, j, k;
+        var i = 0;
+        var featureHandler = function (repoFeature) {
+          var splitFeature = repoFeature.id.split('/');
+          var feature = {
+              repo: repos[i].name,
+              layer: splitFeature[0],
+              feature: splitFeature[1],
+              original: repoFeature
+            };
+          switch (repoFeature.change) {
+          case 'ADDED':
+            adds.push(feature);
+            break;
+          case 'MODIFIED':
+            modifies.push(feature);
+            break;
+          case 'REMOVED':
+            deletes.push(feature);
+            break;
+          case 'MERGED':
+            merges.push(feature);
+            break;
+          case 'CONFLICT':
+            conflicts.push(feature);
+            break;
+          }
+        };
         for (i = 0; i < repos.length; i += 1) {
           var features = repos[i].features;
           if (goog.isDefAndNotNull(features)) {
             scope.noFeatures = false;
-            for (j = 0; j < features.length; j += 1) {
-              var splitFeature = features[j].id.split('/');
-              var feature = {
-                  repo: repos[i].name,
-                  layer: splitFeature[0],
-                  feature: splitFeature[1],
-                  original: features[j]
-                };
-              switch (features[j].change) {
-              case 'ADDED':
-                adds.push(feature);
-                break;
-              case 'MODIFIED':
-                modifies.push(feature);
-                break;
-              case 'REMOVED':
-                deletes.push(feature);
-                break;
-              case 'MERGED':
-                merges.push(feature);
-                break;
-              case 'CONFLICT':
-                conflicts.push(feature);
-                break;
-              }
-            }
+            forEachArrayish(features, featureHandler);
           } else {
             scope.noFeatures = true;
             scope.message = scope.notification.emptyMessage;
@@ -68936,6 +69240,22 @@ var transformGeometry = function (geometry, crsFrom, crsTo) {
   newGeom.transform(transform);
   return newGeom;
 };
+var validateInteger = function (property, key) {
+  var numbers = /^[-+]?[0-9]*$/;
+  var valid = true;
+  if (!numbers.test(property[key])) {
+    valid = false;
+  }
+  property.valid = valid;
+};
+var validateDouble = function (property, key) {
+  var numbers = /^[-+]?[0-9]*\.?[0-9]+$/;
+  var valid = true;
+  if (property[key] !== null && property[key] !== '' && !numbers.test(property[key])) {
+    valid = false;
+  }
+  property.valid = valid;
+};
 (function () {
   var module = angular.module('loom_utils', []);
   module.directive('stopEvent', function () {
@@ -69001,17 +69321,22 @@ var transformGeometry = function (geometry, crsFrom, crsTo) {
     };
   });
   module.directive('datetimepicker', [
+    '$rootScope',
     '$translate',
-    function ($translate) {
+    function ($rootScope, $translate) {
       return {
         restrict: 'E',
-        template: '<div class="row">' + '<div ng-class="{\'col-md-6\': (time === \'true\'),' + ' \'col-md-12\': (time === \'false\') || (seperateTime === \'false\')}">' + '<div class="form-group">' + '<div class="input-group date datepicker">' + '<input type="text" class="form-control" />' + '<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>' + '</span>' + '</div>' + '</div>' + '</div>' + '<div ng-show="(time === \'true\') && (seperateTime === \'true\')" class="col-md-6">' + '<div class="form-group">' + '<div class="input-group date timepicker">' + '<input type="text" class="form-control" />' + '<span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>' + '</span>' + '</div>' + '</div>' + '</div></div>',
+        template: '<div class="row">' + '<div ng-show="(editable !== \'false\')" ng-class="{\'col-md-6\': (time === \'true\'),' + ' \'col-md-12\': (time === \'false\') || (seperateTime === \'false\')}">' + '<div class="form-group">' + '<div class="input-group date datepicker">' + '<input type="text" class="form-control"/>' + '<span class="input-group-addon">' + '<span class="glyphicon glyphicon-calendar"></span>' + '</span>' + '</div>' + '</div>' + '</div>' + '<div ng-show="(editable !== \'false\') && (time === \'true\') && (seperateTime === \'true\')" +' + 'class="col-md-6">' + '<div class="form-group">' + '<div class="input-group date timepicker">' + '<input type="text" class="form-control"/>' + '<span class="input-group-addon">' + '<span class="glyphicon glyphicon-time"></span>' + '</span>' + '</div>' + '</div>' + '</div>' + '<div ng-show="(editable === \'false\')">' + '<input type="text" ng-model="disabledText" disabled class="disabled-date form-control"/>' + '</div>' + '</div>',
         replace: true,
         scope: {
           dateObject: '=dateObject',
-          dateKey: '=dateKey'
+          dateKey: '=dateKey',
+          editable: '@editable'
         },
         link: function (scope, element, attrs) {
+          if (!goog.isDefAndNotNull(scope.editable)) {
+            scope.editable = 'true';
+          }
           if (!goog.isDefAndNotNull(attrs.time)) {
             scope.time = 'true';
           } else {
@@ -69028,28 +69353,49 @@ var transformGeometry = function (geometry, crsFrom, crsTo) {
             newDate.setFullYear(date.year(), date.month(), date.date());
             if (scope.time === 'true' && scope.seperateTime === 'true') {
               var time = element.find('.timepicker').data('DateTimePicker').getDate();
-              newDate.setHours(time.hour(), time.minute(), time.second(), time.millisecond());
+              if (goog.isDefAndNotNull(time)) {
+                newDate.setHours(time.hour(), time.minute(), time.second(), time.millisecond());
+              } else {
+                newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
+              }
             } else {
               newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
             }
-            scope.dateObject[scope.dateKey] = newDate.toISOString();
+            if (!scope.$$phase && !$rootScope.$$phase) {
+              scope.$apply(function () {
+                scope.dateObject[scope.dateKey] = newDate.toISOString();
+                scope.disabledText = newDate.toISOString();
+              });
+            } else {
+              scope.dateObject[scope.dateKey] = newDate.toISOString();
+              scope.disabledText = newDate.toISOString();
+            }
           };
           var dateOptions = {
               pickTime: scope.time === 'true' && scope.seperateTime === 'false',
-              defaultDate: scope.dateObject[scope.dateKey],
               language: $translate.uses()
             };
           var timeOptions = {
               pickDate: false,
-              defaultDate: scope.dateObject[scope.dateKey],
               language: $translate.uses()
             };
+          if (goog.isDefAndNotNull(scope.dateObject[scope.dateKey])) {
+            dateOptions.defaultDate = scope.dateObject[scope.dateKey];
+            timeOptions.defaultDate = scope.dateObject[scope.dateKey];
+          }
           var setUpPickers = function () {
             element.find('.datepicker').datetimepicker(dateOptions);
             element.find('.datepicker').on('change.dp', updateDateTime);
             if (scope.time === 'true' && scope.seperateTime === 'true') {
               element.find('.timepicker').datetimepicker(timeOptions);
               element.find('.timepicker').on('change.dp', updateDateTime);
+            }
+            if (goog.isDefAndNotNull(dateOptions.defaultDate)) {
+              var date = moment(new Date(dateOptions.defaultDate));
+              date.lang($translate.uses());
+              scope.disabledText = date.format('L') + ' ' + date.format('LT');
+            } else {
+              scope.disabledText = '';
             }
           };
           setUpPickers();
@@ -69167,7 +69513,7 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "      <div class=\"btn-group custom-width-100\">\n" +
     "        <div class=\"btn-group custom-width-88\">\n" +
     "          <button type=\"button\" class=\"btn btn-default dropdown-toggle custom-width-100\" data-toggle=\"dropdown\">\n" +
-    "            <span class=\"pull-left\"> {{serverService.getServer(currentServerIndex).name}} </span>\n" +
+    "            <span class=\"pull-left\"> {{serverService.getServerByIndex(currentServerIndex).name}} </span>\n" +
     "            <span class=\"caret right-and-center\"></span>\n" +
     "          </button>\n" +
     "          <ul id=\"server-list\" class=\"dropdown-menu col-md-12\">\n" +
@@ -69362,12 +69708,60 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "  <div id=\"preview-map-{{mapid}}\" class=\"preview-map map\"></div>\n" +
     "  <span ng-repeat=\"attribute in panel.attributes\" class=\"\">\n" +
     "    <span class=\"info-box-attribute\">{{attribute.attributename}}</span>\n" +
-    "    <input ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\" ng-disabled=\"!isMergePanel\" placeholder=\"\"\n" +
-    "           ng-class=\"{\n" +
+    "            <div ng-switch on=\"attribute.type\">\n" +
+    "              <div ng-switch-when=\"xsd:dateTime\" ng-class=\"{\n" +
+    "                        'attr-added': attribute.changetype == 'ADDED',\n" +
+    "                        'attr-modified': attribute.changetype == 'MODIFIED',\n" +
+    "                        'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
+    "                      }\">\n" +
+    "                <datetimepicker ng-disabled=\"!isMergePanel\" class=\"merge-datetime attr-none\" editable=\"{{attribute.editable}}\"\n" +
+    "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\"></datetimepicker>\n" +
+    "              </div>\n" +
+    "              <div ng-switch-when=\"simpleType\" class=\"merge-select\" ng-class=\"{'input-group': attribute.editable}\">\n" +
+    "                <div ng-if=\"attribute.editable\" class=\"input-group-btn\">\n" +
+    "                  <button ng-disabled=\"!isMergePanel\" type=\"button\" class=\"btn btn-default dropdown-toggle attr-none\"\n" +
+    "                          data-toggle=\"dropdown\">\n" +
+    "                    <span class=\"caret\"></span>\n" +
+    "                  </button>\n" +
+    "                  <ul class=\"dropdown-menu\">\n" +
+    "                    <li ng-repeat=\"enum in attribute.enum\">\n" +
+    "                      <a ng-click=\"selectValue(attribute, $index)\">{{enum._value}}</a>\n" +
+    "                    </li>\n" +
+    "                  </ul>\n" +
+    "                </div>\n" +
+    "                <input ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\" disabled ng-class=\"{\n" +
+    "                      'attr-added': attribute.changetype == 'ADDED',\n" +
+    "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
+    "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
+    "                      'form-control' : attribute.editable\n" +
+    "                    }\"/>\n" +
+    "              </div>\n" +
+    "              <div ng-switch-when=\"xsd:int\" ng-class=\"{'has-error': !attribute.valid}\">\n" +
+    "                <input ng-disabled=\"!isMergePanel\" ng-model=\"attribute.newvalue\" type=\"text\"\n" +
+    "                       class=\"form-control attr-none\"\n" +
+    "                       ng-change=\"validateInteger(attribute, 'newvalue')\" ng-class=\"{\n" +
+    "                      'attr-added': attribute.changetype == 'ADDED',\n" +
+    "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
+    "                      'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
+    "                    }\"/>\n" +
+    "              </div>\n" +
+    "              <div ng-switch-when=\"xsd:double\" ng-class=\"{'has-error': !attribute.valid}\">\n" +
+    "                <input ng-disabled=\"!isMergePanel\" ng-model=\"attribute.newvalue\" type=\"text\"\n" +
+    "                       class=\"form-control attr-none\"\n" +
+    "                       ng-change=\"validateDouble(attribute, 'newvalue')\" ng-class=\"{\n" +
+    "                      'attr-added': attribute.changetype == 'ADDED',\n" +
+    "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
+    "                      'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
+    "                    }\"/>\n" +
+    "              </div>\n" +
+    "              <input ng-switch-default ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\"\n" +
+    "                     ng-disabled=\"!isMergePanel\" placeholder=\"\"\n" +
+    "                     ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
     "                      'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
     "                    }\">\n" +
+    "            </div>\n" +
     "  </span>\n" +
     "</div>");
 }]);
@@ -69418,10 +69812,10 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" disabled/>\n" +
     "          </div>\n" +
     "          <div ng-switch-when=\"xsd:int\" ng-class=\"{'has-error': !prop.valid}\">\n" +
-    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateInteger(editfeatureform, $index)\"/>\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateInteger(prop, 1)\"/>\n" +
     "          </div>\n" +
     "          <div ng-switch-when=\"xsd:double\" ng-class=\"{'has-error': !prop.valid}\">\n" +
-    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateDouble(editfeatureform, $index)\"/>\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateDouble(prop, 1)\"/>\n" +
     "          </div>\n" +
     "          <autotextarea ng-switch-default ng-model=\"prop[1]\" class=\"form-control custom-form-control auto-text-area\"></autotextarea>\n" +
     "        </div>\n" +
@@ -69664,8 +70058,8 @@ angular.module("legend/partial/legend.tpl.html", []).run(["$templateCache", func
     "                <div class=\"panel-heading legend-item-header\" data-toggle=\"collapse\"\n" +
     "                    data-target=\"{{'#' + layer.get('metadata').label + 'legend'}}\">{{layer.get('metadata').label}}\n" +
     "                </div>\n" +
-    "                <div class=\"panel-collapse legend-item in legend-panel-body\" id=\"{{layer.get('metadata').label + 'legend'}}\">\n" +
-    "                    <img ng-src=\"{{serverService.getServer(layer.get('metadata').serverId).url}}?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer={{layer.get('metadata').name}}&transparent=true&legend_options=fontColor:0xFFFFFF;fontAntiAliasing:true;fontSize:14;fontStyle:bold;\">\n" +
+    "                <div class=\"panel-collapse legend-item in legend-panel-body\" id=\"{{layer.get('metadata').label + '_legend'}}\">\n" +
+    "                    <img ng-src=\"{{getLegendUrl(layer)}}\">\n" +
     "                </div>\n" +
     "            </div>\n" +
     "        </div>\n" +
@@ -69963,14 +70357,14 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
     "        <div class=\"col-md-8 ellipsis\">{{link.name}}</div>\n" +
     "        <div class=\"col-md-4\">\n" +
     "          <div class=\"btn-group pull-left\" stop-event=\"click\">\n" +
-    "            <button ng-hide=\"link.continuous\" ng-click=\"singleSync(link)\" data-toggle=\"button\" class=\"btn btn-xs btn-default\">\n" +
+    "            <button ng-click=\"singleSync(link)\" ng-disabled=\"link.continuous\" data-toggle=\"button\" class=\"btn btn-xs btn-default\">\n" +
     "              <i class=\"glyphicon glyphicon-sort\"></i>\n" +
     "            </button>\n" +
-    "            <div ng-show=\"link.continuous\" ng-click=\"syncService.toggleAutoSync(link)\" stop-event=\"click mousedown\"\n" +
-    "                 class=\"btn btn-xs btn-default auto-sync-button\" ng-class=\"{'sync-on': link.isSyncing}\">\n" +
+    "            <div ng-click=\"syncService.toggleAutoSync(link)\" stop-event=\"click mousedown\"\n" +
+    "                 class=\"btn btn-xs btn-default\" ng-class=\"{'sync-on': link.isSyncing}\">\n" +
     "              <i class=\"glyphicon glyphicon-retweet\"></i>\n" +
     "            </div>\n" +
-    "            <button type=\"button\" class=\"btn btn-xs btn-default dropdown-toggle\" ng-class=\"{'disabled': link.isSyncing}\" data-toggle=\"dropdown\">\n" +
+    "            <!--<button type=\"button\" class=\"btn btn-xs btn-default dropdown-toggle\" ng-class=\"{'disabled': link.isSyncing}\" data-toggle=\"dropdown\">\n" +
     "              <span class=\"caret\"></span>\n" +
     "            </button>\n" +
     "            <ul class=\"dropdown-menu\">\n" +
@@ -69987,7 +70381,7 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
     "                  <span translate=\"continuous\">Continuous</span>\n" +
     "                </a>\n" +
     "              </li>\n" +
-    "            </ul>\n" +
+    "            </ul>-->\n" +
     "          </div>\n" +
     "          <i ng-class=\"{'remote-up': link.getIsActive()}\" class=\"glyphicon glyphicon-certificate remote pull-right\"></i>\n" +
     "        </div>\n" +
