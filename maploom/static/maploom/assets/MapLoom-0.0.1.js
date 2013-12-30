@@ -64281,7 +64281,6 @@ var SERVER_SERVICE_USE_PROXY = true;
             var configCopy = $.extend(true, {}, config);
             var proxy = service_.configuration.proxy;
             if (goog.isDefAndNotNull(proxy)) {
-              configCopy.url = proxy + encodeURIComponent(configCopy.url);
             }
             return configCopy;
           }
@@ -65451,6 +65450,7 @@ var DiffColorMap = {
   var title_ = '';
   var buttons_ = [];
   var pulldownService_ = null;
+  var enabled_ = false;
   module.provider('exclusiveModeService', function () {
     this.$get = [
       'pulldownService',
@@ -65474,12 +65474,16 @@ var DiffColorMap = {
     this.getButtonTwo = function () {
       return buttons_[1];
     };
+    this.isEnabled = function () {
+      return enabled_;
+    };
     this.startExclusiveMode = function (title, buttonOne, buttonTwo) {
       title_ = title;
       buttons_ = [
         buttonOne,
         buttonTwo
       ];
+      enabled_ = true;
       angular.element('#pulldown-menu').collapse('hide');
       pulldownService_.toggleEnabled = false;
       setTimeout(function () {
@@ -65489,6 +65493,7 @@ var DiffColorMap = {
     this.endExclusiveMode = function () {
       angular.element('#exclusive-mode-container').collapse('hide');
       pulldownService_.toggleEnabled = true;
+      enabled_ = false;
       setTimeout(function () {
         angular.element('#pulldown-menu').collapse('show');
         title_ = '';
@@ -65606,6 +65611,14 @@ var DiffColorMap = {
         exclusiveModeService_ = exclusiveModeService;
         dialogService_ = dialogService;
         registerOnMapClick($rootScope, $compile);
+        mapService_.editLayer.on(ol.layer.VectorEventType.ADD, function () {
+          if (exclusiveModeService_.isEnabled()) {
+            mapService_.map.removeInteraction(draw_);
+            mapService_.selectFeature(mapService_.editLayer.getFeatures()[0]);
+            modify_ = new ol.interaction.Modify();
+            mapService_.map.addInteraction(modify_);
+          }
+        });
         overlay_ = new ol.Overlay({
           insertFirst: false,
           element: document.getElementById('info-box')
@@ -65730,7 +65743,7 @@ var DiffColorMap = {
         }
         if (getItemType(selectedItem_) === 'feature') {
           selectedLayer_ = this.getSelectedItemLayer().layer;
-          mapService_.selectFeature(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+          mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
         } else {
           mapService_.clearSelectedFeature();
         }
@@ -65856,6 +65869,7 @@ var DiffColorMap = {
       rootScope_.$broadcast('startFeatureInsert');
     };
     this.endFeatureInsert = function (save, properties, coords) {
+      exclusiveModeService_.endExclusiveMode();
       if (save) {
         var propertyXmlPartial = '';
         var featureGML = '';
@@ -65893,23 +65907,23 @@ var DiffColorMap = {
           }
         });
         issueWFSPost(wfsPostTypes_.INSERT, propertyXmlPartial, properties, coords, newPos);
-        mapService_.selectFeature(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+        mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
       } else {
+        mapService_.map.removeInteraction(draw_);
         service_.hide();
       }
+      mapService_.map.removeInteraction(modify_);
       enabled_ = true;
-      mapService_.map.removeInteraction(draw_);
-      exclusiveModeService_.endExclusiveMode();
       rootScope_.$broadcast('endFeatureInsert', save);
     };
     this.startGeometryEditing = function () {
       rootScope_.$broadcast('startGeometryEdit');
       exclusiveModeService_.startExclusiveMode(translate_('editing_geometry'), exclusiveModeService_.button(translate_('save_btn'), function () {
+        exclusiveModeService_.endExclusiveMode();
         service_.endGeometryEditing(true);
-        exclusiveModeService_.endExclusiveMode();
       }), exclusiveModeService_.button(translate_('cancel_btn'), function () {
-        service_.endGeometryEditing(false);
         exclusiveModeService_.endExclusiveMode();
+        service_.endGeometryEditing(false);
       }));
       modify_ = new ol.interaction.Modify();
       mapService_.map.addInteraction(modify_);
@@ -65941,7 +65955,7 @@ var DiffColorMap = {
         }
       } else {
         mapService_.clearSelectedFeature();
-        mapService_.selectFeature(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+        mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
       }
       rootScope_.$broadcast('endGeometryEdit', save);
       mapService_.map.removeInteraction(modify_);
@@ -67718,8 +67732,8 @@ var GeoGitLogOptions = function () {
       });
       return map;
     };
-    this.selectFeature = function (geom, crs) {
-      this.editLayer.clear();
+    this.selectFromGeom = function (geom, crs) {
+      this.clearSelectedFeature();
       var newFeature = new ol.Feature();
       var newGeom = transformGeometry(geom, crs, this.map.getView().getView2D().getProjection());
       newFeature.setGeometry(newGeom);
@@ -67728,6 +67742,11 @@ var GeoGitLogOptions = function () {
       select.select(this.map, [[newFeature]], [this.editLayer], false);
       this.map.addInteraction(select);
       this.map.addLayer(this.editLayer);
+    };
+    this.selectFeature = function (feature) {
+      select = new ol.interaction.Select();
+      select.select(this.map, [[feature]], [this.editLayer], false);
+      this.map.addInteraction(select);
     };
     this.clearSelectedFeature = function () {
       this.editLayer.clear();
