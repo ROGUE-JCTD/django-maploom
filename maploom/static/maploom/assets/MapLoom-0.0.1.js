@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2013-12-30
+ * MapLoom - v0.0.1 - 2013-12-31
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2013 LMN Solutions
@@ -65890,6 +65890,7 @@ var DiffColorMap = {
           } else {
             featureGML = getGeometryGMLFromFeature(feature);
             newPos = feature.getGeometry().getCoordinates();
+            mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
           }
         } else {
           featureGML = getGeometryGMLFromFeature(feature);
@@ -65899,15 +65900,15 @@ var DiffColorMap = {
           } else if (feature.getGeometry().getType() == 'multipolygon') {
             newPos = feature.getGeometry().getComponents()[0].getRings()[0].getCoordinates()[0];
           }
+          mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
         }
         propertyXmlPartial += '<feature:' + selectedItem_.geometry_name + '>' + featureGML + '</feature:' + selectedItem_.geometry_name + '>';
         goog.array.forEach(properties, function (property, index) {
-          if (properties[index][1] !== selectedItemProperties_[index][1]) {
+          if (properties[index][1] !== selectedItemProperties_[index][1] && property[1] !== '') {
             propertyXmlPartial += '<feature:' + property[0] + '>' + property[1] + '</feature:' + property[0] + '>';
           }
         });
         issueWFSPost(wfsPostTypes_.INSERT, propertyXmlPartial, properties, coords, newPos);
-        mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
       } else {
         mapService_.map.removeInteraction(draw_);
         service_.hide();
@@ -69818,7 +69819,7 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "        <div ng-switch on=\"prop.type\">\n" +
     "          <datetimepicker ng-switch-when=\"xsd:dateTime\" date-object=\"prop\" date-key=\"1\"></datetimepicker>\n" +
     "          <div ng-switch-when=\"simpleType\" class=\"input-group\">\n" +
-    "            <div class=\"input-group-btn\">\n" +
+    "            <div class=\"input-group-btn\" ng-class=\"{'dropup': $last}\">\n" +
     "              <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">\n" +
     "                <span class=\"caret\"></span>\n" +
     "              </button>\n" +
@@ -69915,8 +69916,8 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "        <button type=\"button\" ng-click=\"showFeatureHistory()\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\"\n" +
     "                tooltip=\"{{'show_history' | translate}}\"\n" +
     "                class=\"btn btn-sm btn-default glyphicon glyphicon-time\"></button>\n" +
-    "        <button type=\"button\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'show_pics' | translate}}\"\n" +
-    "                class=\"btn btn-sm btn-default glyphicon glyphicon-camera\"></button>\n" +
+    "        <!--<button type=\"button\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'show_pics' | translate}}\"\n" +
+    "                class=\"btn btn-sm btn-default glyphicon glyphicon-camera\"></button>-->\n" +
     "        <button type=\"button\" ng-click=\"featureManagerService.startAttributeEditing()\"\n" +
     "                tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'edit_attributes' | translate}}\"\n" +
     "                class=\"btn btn-sm btn-default glyphicon glyphicon-list\"></button>\n" +
