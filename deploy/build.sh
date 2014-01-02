@@ -1,3 +1,4 @@
+#!/bin/bash
 ## this script is used by jenkins to update the django-maploom project after building latest maploom
 # exit if anything returns failure
 set -e
