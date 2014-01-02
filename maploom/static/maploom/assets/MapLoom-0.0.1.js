@@ -1,8 +1,8 @@
 /**
- * MapLoom - v0.0.1 - 2013-12-31
+ * MapLoom - v0.0.1 - 2014-01-02
  * http://www.lmnsolutions.com
  *
- * Copyright (c) 2013 LMN Solutions
+ * Copyright (c) 2014 LMN Solutions
  * Licensed BSD <http://www.tldrlegal.com/license/bsd-2-clause-license-(freebsd)>
  */
 /*! jQuery v2.0.3 | (c) 2005, 2013 jQuery Foundation, Inc. | jquery.org/license
