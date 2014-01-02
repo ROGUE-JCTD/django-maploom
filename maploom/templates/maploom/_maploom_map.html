@@ -42,6 +42,7 @@
               <span translate="synchronization">Synchronization</span>
 
               <div stop-event='click' ng-controller="modalToggle" ng-click="toggleModal('#configWindow')"
+                   tooltip-placement="top" tooltip="{{'remote_options' | translate}}" tooltip-append-to-body="true"
                    class="glyphicon glyphicon-cog panel-header-button pull-right"></div>
             </div>
             <div id="syncronization-panel" class="panel-collapse collapse">
@@ -56,6 +57,7 @@
               <div stop-event='click' ng-click="clearHistory()"
                    class="glyphicon glyphicon-remove pull-right panel-header-button"></div>
               <div stop-event='click' ng-controller="modalToggle" ng-click="toggleModal('#historyDiffWindow')"
+                   tooltip-placement="top" tooltip="{{'history_summary' | translate}}" tooltip-append-to-body="true"
                    class="glyphicon glyphicon-list-alt pull-right panel-header-button"></div>
             </div>
             <div id="history-panel" class="loom-history-panel panel-collapse collapse pulldown-panel">History goes
@@ -83,6 +85,7 @@
   <div class="loom-notification-poster"></div>
   <div class="loom-legend"></div>
   <div class="loom-exclusive-mode"></div>
+  <div id="zoom-to-world-border" class="map-btn-border" tooltip-append-to-body="true"
        tooltip-placement="left" tooltip="{{'zoom_world' | translate}}">
     <div id="zoom-to-world" ng-click="mapService.zoomToExtent()">
       <i class="glyphicon glyphicon-globe"></i>
@@ -130,6 +133,7 @@
     </div>
 </div>
 
+<!-- The Bootstrap Image Gallery lightbox, should be a child element of the document body -->
 <div id="blueimp-gallery" class="blueimp-gallery">
   <!-- The container for the modal slides -->
   <div class="slides"></div>
@@ -148,6 +152,7 @@
           <button type="button" class="close" aria-hidden="true">&times;</button>
           <h4 class="modal-title"></h4>
         </div>
+        <div class="modal-body next"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default pull-left prev">
             <i class="glyphicon glyphicon-chevron-left"></i>
