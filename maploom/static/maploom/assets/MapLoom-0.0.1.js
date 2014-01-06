@@ -66424,9 +66424,8 @@ var DiffColorMap = {
             });
           });
           scope.showFeatureHistory = function () {
-            var layer = featureManagerService.getSelectedItemLayer();
-            if (goog.isDefAndNotNull(layer.layer)) {
-              layer = layer.layer;
+            var layer = featureManagerService.getSelectedLayer();
+            if (goog.isDefAndNotNull(layer)) {
               var metadata = layer.get('metadata');
               if (goog.isDefAndNotNull(metadata)) {
                 if (goog.isDefAndNotNull(metadata.isGeoGit) && metadata.isGeoGit) {
@@ -66871,7 +66870,7 @@ var DiffColorMap = {
       } else if (save) {
         var propertyXmlPartial = '';
         goog.array.forEach(properties, function (property, index) {
-          if (properties[index][1] !== selectedItemProperties_[index][1]) {
+          if (properties[index][1] !== selectedItemProperties_[index][1] && property[1] !== '') {
             propertyXmlPartial += '<wfs:Property><wfs:Name>' + property[0] + '</wfs:Name><wfs:Value>' + property[1] + '</wfs:Value></wfs:Property>';
           }
         });
@@ -67522,6 +67521,7 @@ var GeoGitLogOptions = function () {
                     });
                     metadata.isGeoGit = true;
                     metadata.geogitStore = dataStore.name;
+                    metadata.repoName = repoName;
                   } else {
                     metadata.isGeoGit = false;
                   }
