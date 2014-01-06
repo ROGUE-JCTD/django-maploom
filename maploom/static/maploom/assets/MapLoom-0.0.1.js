@@ -65715,7 +65715,10 @@ var DiffColorMap = {
           scope.save = function () {
             featureDiffService.feature.olFeature.setGeometry(featureDiffService.merged.olFeature.getGeometry());
             featureDiffService.feature.olFeature.set('change', DiffColorMap.MERGED);
-            conflictService.resolveConflict(featureDiffService.getMerges());
+            var merges = featureDiffService.getMerges();
+            var geomattributename = featureDiffService.merged.geometry.attributename;
+            var geomMergeValue = merges[geomattributename];
+            conflictService.resolveConflict(featureDiffService.getMerges(), featureDiffService.merged.geometry.changetype === 'REMOVED' ? geomMergeValue : null);
             featureDiffService.clear();
             scope.leftPanel = false;
             scope.rightPanel = false;
@@ -65862,9 +65865,19 @@ var DiffColorMap = {
       this.merged.bounds = panel.bounds;
       this.merged.olFeature.setGeometry(panel.olFeature.getGeometry());
       this.merged.olFeature.set('MapLoomChange', panel.olFeature.get('MapLoomChange'));
+      if (this.merged.geometry.changetype === 'REMOVED') {
+        this.merged.attributes = $.extend(true, [], panel.attributes);
+      }
       rootScope_.$broadcast('merge-feature-modified');
     };
     this.chooseAttribute = function (index, panel) {
+      if (goog.isDefAndNotNull(service_.merged.geometry)) {
+        if (goog.isDefAndNotNull(service_.merged.geometry.changetype)) {
+          if (service_.merged.geometry.changetype === 'REMOVED') {
+            return;
+          }
+        }
+      }
       var type = this.merged.attributes[index].type;
       this.merged.attributes[index] = $.extend(true, {}, panel.attributes[index]);
       this.merged.attributes[index].type = type;
@@ -68718,8 +68731,9 @@ var GeoGitLogOptions = function () {
     this.selectFeature = function (index) {
       this.currentFeature = this.features[index];
     };
-    this.resolveConflict = function (merges) {
+    this.resolveConflict = function (merges, removed) {
       this.currentFeature.resolved = true;
+      this.currentFeature.removed = removed;
       this.currentFeature.merges = merges;
       diffService_.resolveFeature(this.currentFeature);
     };
@@ -68848,26 +68862,49 @@ var GeoGitLogOptions = function () {
       }
     } else {
       var conflict = conflictList.pop();
-      var resolveConflict = {
-          path: conflict.id,
-          ours: service_.ours,
-          theirs: service_.theirs,
-          merges: conflict.merges
-        };
-      geogitService_.post(service_.repoId, 'repo/mergefeature', resolveConflict).then(function (response) {
-        var resolveConflictOptions = new GeoGitResolveConflictOptions();
-        resolveConflictOptions.path = conflict.id;
-        resolveConflictOptions.objectid = response.data;
-        service_.transaction.command('resolveconflict', resolveConflictOptions).then(function () {
-          commitInternal(conflictList, conflictsInError);
+      if (goog.isDefAndNotNull(conflict.removed)) {
+        var checkoutOptions = new GeoGitCheckoutOptions();
+        checkoutOptions.path = conflict.id;
+        if (conflict.removed === '__OURS__') {
+          checkoutOptions.ours = true;
+        } else {
+          checkoutOptions.theirs = true;
+        }
+        service_.transaction.command('checkout', checkoutOptions).then(function () {
+          var addOptions = new GeoGitAddOptions();
+          addOptions.path = conflict.id.split('/')[0];
+          service_.transaction.command('add', addOptions).then(function () {
+            commitInternal(conflictList, conflictsInError);
+          }, function (reject) {
+            commitInternal(conflictList, conflictsInError + 1);
+            console.log('ERROR: Failed to add resolved conflicts to the tree: ', conflict, reject);
+          });
         }, function (reject) {
           commitInternal(conflictList, conflictsInError + 1);
-          console.log('ERROR: Failed to resolve the conflict: ', conflict, reject);
+          console.log('ERROR: Failed to checkout conflicted feature: ', conflict, reject);
         });
-      }, function (reject) {
-        commitInternal(conflictList, conflictsInError + 1);
-        console.log('ERROR: Failed to merge the conflicted feature: ', conflict, reject);
-      });
+      } else {
+        var resolveConflict = {
+            path: conflict.id,
+            ours: service_.ours,
+            theirs: service_.theirs,
+            merges: conflict.merges
+          };
+        geogitService_.post(service_.repoId, 'repo/mergefeature', resolveConflict).then(function (response) {
+          var resolveConflictOptions = new GeoGitResolveConflictOptions();
+          resolveConflictOptions.path = conflict.id;
+          resolveConflictOptions.objectid = response.data;
+          service_.transaction.command('resolveconflict', resolveConflictOptions).then(function () {
+            commitInternal(conflictList, conflictsInError);
+          }, function (reject) {
+            commitInternal(conflictList, conflictsInError + 1);
+            console.log('ERROR: Failed to resolve the conflict: ', conflict, reject);
+          });
+        }, function (reject) {
+          commitInternal(conflictList, conflictsInError + 1);
+          console.log('ERROR: Failed to merge the conflicted feature: ', conflict, reject);
+        });
+      }
     }
   }
   function handleConflicts(mergeFailure) {
@@ -70632,7 +70669,8 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "              <div ng-switch-when=\"xsd:dateTime\" ng-class=\"{\n" +
     "                        'attr-added': attribute.changetype == 'ADDED',\n" +
     "                        'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                        'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
+    "                        'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
+    "                        'attr-removed' : panel.geometry.changetype == 'REMOVED'\n" +
     "                      }\">\n" +
     "                <datetimepicker ng-disabled=\"!isMergePanel\" class=\"merge-datetime attr-none\" editable=\"{{attribute.editable}}\"\n" +
     "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\"></datetimepicker>\n" +
@@ -70653,6 +70691,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
     "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
+    "                      'attr-removed' : panel.geometry.changetype == 'REMOVED',\n" +
     "                      'form-control' : attribute.editable\n" +
     "                    }\"/>\n" +
     "              </div>\n" +
@@ -70662,7 +70701,8 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                       ng-change=\"validateInteger(attribute, 'newvalue')\" ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                      'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
+    "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
+    "                      'attr-removed' : panel.geometry.changetype == 'REMOVED'\n" +
     "                    }\"/>\n" +
     "              </div>\n" +
     "              <div ng-switch-when=\"xsd:double\" ng-class=\"{'has-error': !attribute.valid}\">\n" +
@@ -70671,7 +70711,8 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                       ng-change=\"validateDouble(attribute, 'newvalue')\" ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                      'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
+    "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
+    "                      'attr-removed' : panel.geometry.changetype == 'REMOVED'\n" +
     "                    }\"/>\n" +
     "              </div>\n" +
     "              <input ng-switch-default ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\"\n" +
@@ -70679,7 +70720,8 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                     ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                      'attr-removed' : attribute.chantetype == 'REMOVED'\n" +
+    "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
+    "                      'attr-removed' : panel.geometry.changetype == 'REMOVED'\n" +
     "                    }\">\n" +
     "            </div>\n" +
     "  </span>\n" +
