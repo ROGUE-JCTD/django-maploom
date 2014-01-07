@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-01-06
+ * MapLoom - v0.0.1 - 2014-01-07
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -67465,7 +67465,7 @@ var GeoGitLogOptions = function () {
           var x2js = new X2JS();
           var json = x2js.xml_str2json(response.data);
           var schema = [];
-          goog.array.forEach(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
+          forEachArrayish(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
             schema[obj._name] = obj;
             if (goog.isDefAndNotNull(obj.simpleType)) {
               schema[obj._name]._type = 'simpleType';
