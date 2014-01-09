@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-01-08
+ * MapLoom - v0.0.1 - 2014-01-09
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -64331,6 +64331,134 @@ ol.tilegrid.XYZOptions;
 
 }));
 
+/* TINY SORT modified according to this https://github.com/Sjeiti/TinySort/pull/51*/
+(function (e, t) { function h(e) { return e && e.toLowerCase ? e.toLowerCase() : e } function p(e, t) { for (var r = 0, i = e.length; r < i; r++) if (e[r] == t) return !n; return n } var n = !1, r = null, i = parseFloat, s = Math.min, o = /(-?\d+\.?\d*)$/g, u = /(\d+\.?\d*)$/g, a = [], f = [], l = function (e) { return typeof e == "string" }, c = Array.prototype.indexOf || function (e) { var t = this.length, n = Number(arguments[1]) || 0; n = n < 0 ? Math.ceil(n) : Math.floor(n); if (n < 0) n += t; for (; n < t; n++) { if (n in this && this[n] === e) return n } return -1 }; e.tinysort = { id: "TinySort", version: "1.5.2", copyright: "Copyright (c) 2008-2013 Ron Valstar", uri: "http://tinysort.sjeiti.com/", licensed: { MIT: "http://www.opensource.org/licenses/mit-license.php", GPL: "http://www.gnu.org/licenses/gpl.html" }, plugin: function () { var e = function (e, t) { a.push(e); f.push(t) }; e.indexOf = c; return e }(), defaults: { order: "asc", attr: r, data: r, useVal: n, place: "start", returns: n, cases: n, forceStrings: n, ignoreDashes: n, sortFunction: r } }; e.fn.extend({ tinysort: function () { var d, v, m = this, g = [], y = [], b = [], w = [], E = 0, S, x = [], T = [], N = function (t) { e.each(a, function (e, n) { n.call(n, t) }) }, C = function (t, r) { var s = 0; if (E !== 0) E = 0; while (s === 0 && E < S) { var a = w[E], c = a.oSettings, p = c.ignoreDashes ? u : o; N(c); if (c.sortFunction) { s = c.sortFunction(t, r) } else if (c.order == "rand") { s = Math.random() < .5 ? 1 : -1 } else { var d = n, v = !c.cases ? h(t.s[E]) : t.s[E], m = !c.cases ? h(r.s[E]) : r.s[E]; v = v.replace(/^\s*/i, "").replace(/\s*$/i, ""); m = m.replace(/^\s*/i, "").replace(/\s*$/i, ""); if (!A.forceStrings) { var g = l(v) ? v && v.match(p) : n, y = l(m) ? m && m.match(p) : n; if (g && y) { var b = v.substr(0, v.length - g[0].length), x = m.substr(0, m.length - y[0].length); if (b == x) { d = !n; v = i(g[0]); m = i(y[0]) } } } s = a.iAsc * (v < m ? -1 : v > m ? 1 : 0) } e.each(f, function (e, t) { s = t.call(t, d, v, m, s) }); if (s === 0) E++ } return s }; for (d = 0, v = arguments.length; d < v; d++) { var k = arguments[d]; if (l(k)) { if (x.push(k) - 1 > T.length) T.length = x.length - 1 } else { if (T.push(k) > x.length) x.length = T.length } } if (x.length > T.length) T.length = x.length; S = x.length; if (S === 0) { S = x.length = 1; T.push({}) } for (d = 0, v = S; d < v; d++) { var L = x[d], A = e.extend({}, e.tinysort.defaults, T[d]), O = !(!L || L == ""), M = O && L[0] == ":"; w.push({ sFind: L, oSettings: A, bFind: O, bAttr: !(A.attr === r || A.attr == ""), bData: A.data !== r, bFilter: M, $Filter: M ? m.filter(L) : m, fnSort: A.sortFunction, iAsc: A.order == "asc" ? 1 : -1 }) } m.each(function (n, r) { var i = e(r), s = i.parent().get(0), o, u = []; for (j = 0; j < S; j++) { var a = w[j], f = a.bFind ? a.bFilter ? a.$Filter.filter(r) : i.find(a.sFind) : i; u.push(a.bData ? f.data(a.oSettings.data) : a.bAttr ? f.attr(a.oSettings.attr) : a.oSettings.useVal ? f.val() : f.text()); if (o === t) o = f } var l = c.call(b, s); if (l < 0) { l = b.push(s) - 1; y[l] = { s: [], n: [] } } if (o.length > 0) y[l].s.push({ s: u, e: i, n: n }); else y[l].n.push({ e: i, n: n }) }); e.each(y, function (e, t) { t.s.sort(C) }); e.each(y, function (t, r) { var i = r.s.length, o = [], u = i, a = [0, 0]; switch (A.place) { case "first": e.each(r.s, function (e, t) { u = s(u, t.n) }); break; case "org": e.each(r.s, function (e, t) { o.push(t.n) }); break; case "end": u = r.n.length; break; default: u = 0 } for (d = 0; d < i; d++) { var f = p(o, d) ? !n : d >= u && d < u + r.s.length, l = (f ? r.s : r.n)[a[f ? 0 : 1]].e; l.parent().append(l); if (f || !A.returns) g.push(l.get(0)); a[f ? 0 : 1]++ } }); m.length = 0; Array.prototype.push.apply(m, g); return m } }); e.fn.TinySort = e.fn.Tinysort = e.fn.tsort = e.fn.tinysort })(jQuery);
+
+(function ($) {
+
+    var $document = $(document),
+        bsSort = [],
+        lastSort,
+        signClass;
+
+    $.bootstrapSortable = function (applyLast, sign) {
+
+        // check if moment.js is available
+        var momentJsAvailable = (typeof moment !== 'undefined');
+
+        //Set class based on sign parameter
+        signClass = !sign ? "arrow" : sign;
+
+        // set attributes needed for sorting
+        $('table.sortable').each(function () {
+            var $this = $(this);
+            applyLast = (applyLast === true);
+            $this.find('span.sign').remove();
+            $this.find('thead tr').each(function (rowIndex) {
+                var columnsSkipped = 0;
+                $(this).find('th').each(function (columnIndex) {
+                    var $this = $(this);
+                    $this.attr('data-sortcolumn', columnIndex + columnsSkipped);
+                    $this.attr('data-sortkey', columnIndex + '-' + rowIndex);
+                    if ($this.attr("colspan") !== undefined) {
+                        columnsSkipped += parseInt($this.attr("colspan")) - 1;
+                    }
+                });
+            });
+            $this.find('td').each(function () {
+                var $this = $(this);
+                if ($this.attr('data-dateformat') != undefined && momentJsAvailable) {
+                    $this.attr('data-value', moment($this.text(), $this.attr('data-dateformat')).format('YYYY/MM/DD/HH/mm/ss'));
+                }
+                else {
+                    $this.attr('data-value') === undefined && $this.attr('data-value', $this.text());
+                }
+            });
+            $this.find('thead th[data-defaultsort!="disabled"]').each(function (index) {
+                var $this = $(this);
+                var sortKey = $this.attr('data-sortkey');
+                var thisLastSort = applyLast ? lastSort : -1;
+                bsSort[sortKey] = applyLast ? bsSort[sortKey] : $this.attr('data-defaultsort');
+                if (bsSort[sortKey] != null && (applyLast == (sortKey == thisLastSort))) {
+                    bsSort[sortKey] = bsSort[sortKey] == 'asc' ? 'desc' : 'asc';
+                    doSort($this, $this.parents('table.sortable'))
+                }
+            });
+            $this.trigger('sorted');
+        });
+    };
+
+    // add click event to table header
+    $document.on('click', 'table.sortable thead th[data-defaultsort!="disabled"]', function (e) {
+        var $this = $(this), $table = $this.parents('table.sortable');
+        doSort($this, $table);
+        $table.trigger('sorted');
+    });
+
+    //Sorting mechanism separated
+    function doSort($this, $table) {
+        var sortColumn = $this.attr('data-sortcolumn');
+
+        var colspan = $this.attr('colspan');
+        if (colspan) {
+            var selector;
+            for (var i = parseFloat(sortColumn) ; i < parseFloat(sortColumn) + parseFloat(colspan) ; i++) {
+                selector = selector + ', [data-sortcolumn="' + i + '"]';
+            }
+            var subHeader = $(selector).not('[colspan]');
+            var mainSort = subHeader.filter('[data-mainsort]').eq(0);
+
+            sortColumn = mainSort.length ? mainSort : subHeader.eq(0);
+            doSort(sortColumn, $table);
+            return;
+        }
+
+        //sortColumn = newColumn ? newColumn : sortColumn;
+
+        var localSignClass = $this.attr('data-defaultsign') || signClass;
+        // update arrow icon
+        if ($.browser.mozilla) {
+            var moz_arrow = $table.find('div.mozilla');
+            if (moz_arrow != null) {
+                moz_arrow.parent().html(moz_arrow.text());
+            }
+            $this.wrapInner('<div class="mozilla"></div>');
+            $this.children().eq(0).append('<span class="sign ' + localSignClass + '"></span>');
+        }
+        else {
+            $table.find('span.sign').remove();
+            $this.append('<span class="sign ' + localSignClass + '"></span>');
+        }
+
+        // sort direction
+
+        var sortKey = $this.attr('data-sortkey');
+
+        lastSort = sortKey;
+        bsSort[sortKey] = bsSort[sortKey] == 'asc' ? 'desc' : 'asc';
+        if (bsSort[sortKey] == 'desc') { $this.find('span.sign').addClass('up'); }
+
+        // sort rows
+        var rows = $table.find('tbody tr');
+        rows.tsort('td:eq(' + sortColumn + ')', { order: bsSort[sortKey], attr: 'data-value' });
+    }
+
+    // jQuery 1.9 removed this object
+    if (!$.browser) {
+        $.browser = { chrome: false, mozilla: false, opera: false, msie: false, safari: false };
+        var ua = navigator.userAgent;
+        $.each($.browser, function (c) {
+            $.browser[c] = ((new RegExp(c, 'i').test(ua))) ? true : false;
+            if ($.browser.mozilla && c == 'mozilla') { $.browser.mozilla = ((new RegExp('firefox', 'i').test(ua))) ? true : false; }
+            if ($.browser.chrome && c == 'safari') { $.browser.safari = false; }
+        });
+    }
+
+    // Initialise on DOM ready
+    $($.bootstrapSortable);
+
+}(jQuery));
+
 (function ( window, angular, undefined ) {
 
 (function () {
@@ -64422,6 +64550,7 @@ ol.tilegrid.XYZOptions;
     'loom_merge',
     'loom_sync',
     'loom_legend',
+    'loom_table_view',
     'loom_utils',
     'loom_refresh',
     'loom_test'
@@ -64533,6 +64662,7 @@ ol.tilegrid.XYZOptions;
       'add_layer_btn': 'Add Layer',
       'add_layers': 'Add Layers',
       'remove_layer': 'Remove Layer',
+      'attributes': 'Attributes',
       'local_geoserver': 'Local Geoserver',
       'filter_layers': 'Filter Layers',
       'add_new_server': 'Add New Server',
@@ -64591,6 +64721,7 @@ ol.tilegrid.XYZOptions;
       'merged_feature': 'Merged Feature',
       'location_lon_lat': 'Location ( lon, lat )',
       'show_history': 'Show History',
+      'show_table': 'Show Table',
       'show_pics': 'Show Photos',
       'edit_geometry': 'Edit Geometry',
       'edit_attributes': 'Edit Attributes',
@@ -64669,7 +64800,12 @@ ol.tilegrid.XYZOptions;
       'sure_remove_layer': 'Are you sure that you want to remove this layer?',
       'pull_unknown_error': 'An unknown error occurred when pulling from the remote.  Please try again.',
       'local': 'Local',
-      'pull_conflicts': 'Pull Conflicts'
+      'pull_conflicts': 'Pull Conflicts',
+      'feature_id': 'Feature ID',
+      'table_view': 'Table View',
+      'filter_table': 'Filter',
+      'clear_table_filter': 'Clear',
+      'word_wrap': 'Toggle Word Wrap'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -64688,6 +64824,7 @@ ol.tilegrid.XYZOptions;
       'add_layer_btn': 'A\xf1adir Capa',
       'add_layers': 'A\xf1adir Capas',
       'remove_layer': 'Retirar la Capa',
+      'attributes': 'Atributos',
       'local_geoserver': 'Geoserver Locales',
       'filter_layers': 'Capas Filtrantes',
       'add_new_server': 'A\xf1adir Servidor Nuevo',
@@ -64746,6 +64883,7 @@ ol.tilegrid.XYZOptions;
       'merged_feature': 'Elemento Fusionada',
       'location_lon_lat': 'Ubicacion ( lon, lat )',
       'show_history': 'Mostrar Historial',
+      'show_table': 'Mostrar Tabla',
       'show_pics': 'Mostrar Imagenes',
       'edit_geometry': 'Editar Geometria',
       'edit_attributes': 'Editar Atributos',
@@ -64824,7 +64962,12 @@ ol.tilegrid.XYZOptions;
       'sure_remove_layer': 'Esta seguro de querer eliminar esta capa?',
       'pull_unknown_error': 'Un error desconocido ocurrio al realizar el retiro del remoto. Favor intentar nuevamente.',
       'local': 'Local',
-      'pull_conflicts': 'Extraer Conflictos'
+      'pull_conflicts': 'Extraer Conflictos',
+      'feature_id': 'Elemento ID',
+      'table_view': 'Vista de Tabla',
+      'filter_table': 'Filtrar',
+      'clear_table_filter': 'Limpiar',
+      'word_wrap': 'Ajuste de l\xednea de alternancia'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -68008,7 +68151,8 @@ var GeoGitLogOptions = function () {
     'featureManagerService',
     'dialogService',
     '$translate',
-    function ($rootScope, mapService, pulldownService, historyService, featureManagerService, dialogService, $translate) {
+    'tableViewService',
+    function ($rootScope, mapService, pulldownService, historyService, featureManagerService, dialogService, $translate, tableViewService) {
       return {
         restrict: 'C',
         replace: true,
@@ -68016,6 +68160,7 @@ var GeoGitLogOptions = function () {
         link: function (scope) {
           scope.mapService = mapService;
           scope.featureManagerService = featureManagerService;
+          scope.tableViewService = tableViewService;
           scope.toggleVisibility = function (layer) {
             layer.setVisible(!layer.get('visible'));
           };
@@ -68056,6 +68201,16 @@ var GeoGitLogOptions = function () {
           scope.showHistory = function (layer) {
             historyService.setTitle($translate('history_for', { value: layer.get('metadata').label }));
             historyService.getHistory(layer);
+          };
+          scope.attrList = [];
+          scope.fillAttrList = function (layer) {
+            scope.attrList = [];
+            for (var i in layer.get('metadata').schema) {
+              if (layer.get('metadata').schema[i]._name == 'geom' || layer.get('metadata').schema[i]._name == 'the_geom') {
+                continue;
+              }
+              scope.attrList.push(layer.get('metadata').schema[i]._name);
+            }
           };
         }
       };
@@ -70077,6 +70232,145 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
   }
 }());
 (function () {
+  var module = angular.module('loom_table_view_directive', []);
+  module.filter('table', function () {
+    return function (input, filter) {
+      var out = '';
+      var inputLower = input.toLowerCase(), filterLower = filter.toLowerCase();
+      if (inputLower.indexOf(filterLower) !== -1) {
+        out = input;
+      }
+      return out;
+    };
+  });
+  module.directive('loomTableView', [
+    'tableFilter',
+    'mapService',
+    '$http',
+    'tableViewService',
+    function (tableFilter, mapService, $http, tableViewService) {
+      return {
+        restrict: 'C',
+        templateUrl: 'tableview/partial/tableview.tpl.html',
+        link: function (scope, element) {
+          function resizeModal() {
+            var containerHeight = angular.element('#table-view-window .modal-content')[0].clientHeight;
+            var headerHeight = angular.element('#table-view-window .modal-header')[0].clientHeight;
+            var contentHeight = containerHeight - headerHeight;
+            if (containerHeight === 0) {
+              return;
+            }
+            element[0].parentElement.style.height = contentHeight + 'px';
+            var bodyHeight = contentHeight - angular.element('#table-view-window .modal-footer')[0].clientHeight;
+            angular.element('#table-view-window .modal-body')[0].style.height = bodyHeight + 'px';
+            angular.element('#table-view-window .panel')[0].style.height = bodyHeight - 82 + 'px';
+          }
+          angular.element('#table-view-window').on('shown.bs.modal', function () {
+            resizeModal();
+          });
+          $(window).resize(resizeModal);
+          scope.toggleWordWrap = function () {
+            var tableElement = angular.element('#table-view-window .table-hover')[0];
+            if (tableElement.style.whiteSpace !== 'normal') {
+              tableElement.style.whiteSpace = 'normal';
+            } else {
+              tableElement.style.whiteSpace = 'nowrap';
+            }
+          };
+          scope.featureList = tableViewService.featureList;
+          scope.attributes = tableViewService.attributeNameList;
+          scope.filterTable = function () {
+            var filterText = angular.element('#filter-text')[0].value;
+            for (var feat in scope.featureList) {
+              scope.featureList[feat].visible = false;
+              for (var prop in scope.featureList[feat].properties) {
+                if (tableFilter(scope.featureList[feat].properties[prop], filterText) !== '') {
+                  scope.featureList[feat].visible = true;
+                  break;
+                }
+              }
+            }
+          };
+          scope.clearFilter = function () {
+            angular.element('#filter-text')[0].value = '';
+            for (var feat in scope.featureList) {
+              scope.featureList[feat].visible = true;
+            }
+          };
+          $('#table-view-window').on('hidden.bs.modal', function (e) {
+            tableViewService.featureList = [];
+            tableViewService.attributeNameList = [];
+          });
+          $('#table-view-window').on('show.bs.modal', function (e) {
+            scope.featureList = tableViewService.featureList;
+            scope.attributes = tableViewService.attributeNameList;
+          });
+          $('#table-view-window').on('shown.bs.modal', function (e) {
+            $.bootstrapSortable(false);
+          });
+          scope.saveTable = function () {
+          };
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  angular.module('loom_table_view', [
+    'loom_table_view_directive',
+    'loom_table_view_service'
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_table_view_service', []);
+  var http_ = null;
+  var service_ = null;
+  module.provider('tableViewService', function () {
+    this.$get = [
+      '$http',
+      function ($http) {
+        http_ = $http;
+        service_ = this;
+        return this;
+      }
+    ];
+    this.featureList = [];
+    this.attributeNameList = [];
+    this.showTable = function (layer) {
+      service_.featureList = [];
+      service_.attributeNameList = [];
+      var url = layer.get('metadata').url + '/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=' + layer.get('metadata').name;
+      http_.get(url).then(function (response) {
+        var x2js = new X2JS();
+        var json = x2js.xml_str2json(response.data);
+        for (var i in layer.get('metadata').schema) {
+          if (layer.get('metadata').schema[i]._type.split(':')[0] === 'gml') {
+            continue;
+          }
+          service_.attributeNameList.push(layer.get('metadata').schema[i]._name);
+        }
+        var index = layer.get('metadata').name.split(':')[1];
+        for (var feat in json.FeatureCollection.member) {
+          var feature = {
+              visible: true,
+              properties: []
+            };
+          feature.properties.push(json.FeatureCollection.member[feat][index]['_gml:id']);
+          for (var attr in service_.attributeNameList) {
+            if (!goog.isDef(json.FeatureCollection.member[feat][index][service_.attributeNameList[attr]])) {
+              feature.properties.push('');
+            } else {
+              feature.properties.push(json.FeatureCollection.member[feat][index][service_.attributeNameList[attr]].toString());
+            }
+          }
+          service_.featureList[feat] = feature;
+        }
+        $('#table-view-window').modal('show');
+      });
+    };
+  });
+}());
+(function () {
   angular.module('loom_test', ['loom_test_service']);
 }());
 (function () {
@@ -70734,7 +71028,7 @@ var validateDouble = function (property, key) {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -71238,18 +71532,13 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "     arrangeable-placeholder='<div class=\"placeholder\"></div>'>\n" +
     "  <div class=\"panel\"\n" +
     "       ng-repeat=\"layer in layers = mapService.map.getLayers().getArray() | reverse | filter:filterHiddenLayers\">\n" +
-    "    <div class=\"panel-heading layer-heading\" data-toggle=\"collapse\"\n" +
+    "    <div class=\"panel-heading layer-heading\" data-toggle=\"collapse\" ng-click=\"fillAttrList(layer)\"\n" +
     "         data-parent=\"#layerpanel-group\" data-target=\"#{{layer.get('metadata').label}}\">\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"layer-title ellipsis\">\n" +
     "          {{layer.get('metadata').label}}\n" +
     "        </div>\n" +
     "        <div class=\"layer-buttons\">\n" +
-    "          <span ng-show=\"isGeogit(layer)\" ng-click=\"showHistory(layer)\" stop-event=\"click mousedown\"\n" +
-    "                tooltip-placement=\"top\" tooltip=\"{{'show_history' | translate}}\" class=\"btn btn-xs btn-default\"\n" +
-    "                tooltip-append-to-body=\"true\">\n" +
-    "            <i class=\"glyphicon glyphicon-time\"></i>\n" +
-    "          </span>\n" +
     "          <span ng-click=\"featureManagerService.startFeatureInsert(layer)\" tooltip-append-to-body=\"true\"\n" +
     "                tooltip-placement=\"top\" tooltip=\"{{'add_feature' | translate}}\"\n" +
     "                ng-show=\"layer.get('metadata').editable\" stop-event=\"click mousedown\" class=\"btn btn-xs btn-default\"\n" +
@@ -71266,7 +71555,27 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "      </div>\n" +
     "    </div>\n" +
     "    <div id=\"{{layer.get('metadata').label}}\" class=\"panel-collapse collapse\">\n" +
-    "      <div class=\"panel-body\">\n" +
+    "      <div class=\"panel-body layer-inner-panel\">\n" +
+    "        <div class=\"btn-group btn-group-justified\">\n" +
+    "          <a type=\"button\" ng-click=\"tableViewService.showTable(layer)\" ng-show=\"layer.get('metadata').editable\"\n" +
+    "             class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-list\"></i>\n" +
+    "            {{'show_table' | translate}}\n" +
+    "          </a>\n" +
+    "          <a type=\"button\" ng-show=\"isGeogit(layer)\" ng-click=\"showHistory(layer)\"\n" +
+    "             class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-time\"></i>\n" +
+    "            {{'show_history' | translate}}\n" +
+    "          </a>\n" +
+    "        </div>\n" +
+    "        <div>\n" +
+    "          <label id=\"attribute-label\" for=\"attributeRow\" ng-show=\"layer.get('metadata').editable\">{{'attributes' | translate}}</label>\n" +
+    "          <div id=\"attributeRow\" class=\"row\" ng-show=\"layer.get('metadata').editable\">\n" +
+    "            <ul class=\"list-group\">\n" +
+    "              <li class=\"list-group-item\" ng-repeat=\"attribute in attrList\">{{attribute}}</li>\n" +
+    "            </ul>\n" +
+    "          </div>\n" +
+    "        </div>\n" +
     "        <button ng-click=\"removeLayer(layer)\" id=\"remove-button\" class=\"remove-layer-button btn btn-sm btn-block\">\n" +
     "          <i class=\"glyphicon glyphicon-minus-sign\"></i>\n" +
     "          <span translate=\"remove_layer\"></span>\n" +
@@ -71402,7 +71711,7 @@ angular.module("modal/partials/modal.tpl.html", []).run(["$templateCache", funct
     "          <i ng-if=\"closeButton\" ng-click=\"closeModal()\" class=\"close glyphicon glyphicon-remove\"></i>\n" +
     "        <h4 class=\"modal-title\" translate=\"{{title}}\">{{title}}</h4>\n" +
     "      </div>\n" +
-    "      <div ng-transclude>\n" +
+    "      <div ng-transclude style=\"height: 100%\">\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -71624,6 +71933,39 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
     "      </div>\n" +
     "    </li>\n" +
     "  </ul>\n" +
+    "</div>");
+}]);
+
+angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("tableview/partial/tableview.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "  <input id=\"filter-text\" type=\"text\">\n" +
+    "  <button id=\"filter-button\" ng-click=\"filterTable()\">{{'filter_table' | translate}}</button>\n" +
+    "  <button ng-click=\"clearFilter()\">{{'clear_table_filter' | translate}}</button>\n" +
+    "  <div class=\"panel panel-default\">\n" +
+    "      <table class=\"table-hover table-striped sortable\">\n" +
+    "        <thead>\n" +
+    "        <tr>\n" +
+    "          <th>{{'feature_id' | translate}}</th>\n" +
+    "          <th ng-repeat=\"attr in attributes\">{{attr}}</th>\n" +
+    "        </tr>\n" +
+    "        </thead>\n" +
+    "\n" +
+    "        <tr ng-repeat=\"feature in featureList\" ng-show=\"feature.visible\">\n" +
+    "          <td ng-repeat=\"property in feature.properties track by $index\">\n" +
+    "            {{property}}\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "\n" +
+    "      </table>\n" +
+    "	  <!--<button type=\"submit\" class=\"btn btn-default\" ng-show=\"tableviewform.$visible\">Save</button>-->\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "    <!--<button type=\"button\" class=\"btn btn-default\" ng-click=\"tableviewform.$show()\" ng-show=\"!tableviewform.$visible\">Edit Table</button>-->\n" +
+    "    <!--<button type=\"button\" class=\"btn btn-default\" ng-click=\"tableviewform.$hide()\" ng-disabled=\"!tableviewform.$visible\">Stop Editing</button>-->\n" +
+    "    <button type=\"button\" class=\"btn btn-default\" ng-click=\"toggleWordWrap()\">{{'word_wrap' | translate}}</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">{{'close_btn' | translate}}</button>\n" +
     "</div>");
 }]);
 
