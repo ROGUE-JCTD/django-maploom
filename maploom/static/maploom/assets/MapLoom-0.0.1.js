@@ -69732,7 +69732,7 @@ var GeoGitLogOptions = function () {
                   var added = 0, modified = 0, removed = 0;
                   var fidlist = [];
                   forEachArrayish(diffResponse.Feature, function (feature) {
-                    if (goog.array.find(fidlist, feature.id) !== null) {
+                    if (goog.array.contains(fidlist, feature.id) !== null) {
                       console.log('Duplicate features detected: ', options, diffResponse);
                     } else {
                       fidlist.push(feature.id);
