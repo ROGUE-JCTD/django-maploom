@@ -64812,7 +64812,12 @@ ol.tilegrid.XYZOptions;
       'table_view': 'Table View',
       'filter_table': 'Filter',
       'clear_table_filter': 'Clear',
-      'word_wrap': 'Toggle Word Wrap'
+      'word_wrap': 'Toggle Word Wrap',
+      'title': 'Title',
+      'abstract': 'Abstract',
+      'save_this_map': 'Save this map.',
+      'save_failed': 'Save failed',
+      'map_save_failed': 'Map save failed with the following status: {{value}}.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -64974,7 +64979,12 @@ ol.tilegrid.XYZOptions;
       'table_view': 'Vista de Tabla',
       'filter_table': 'Filtrar',
       'clear_table_filter': 'Limpiar',
-      'word_wrap': 'Ajuste de l\xednea de alternancia'
+      'word_wrap': 'Ajuste de l\xednea de alternancia',
+      'title': 'es_Title',
+      'abstract': 'es_Abstract',
+      'save_this_map': 'es_Save this map.',
+      'save_failed': 'es_Save failed',
+      'map_save_failed': 'es_Map save failed with the following status: {{value}}.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -65354,7 +65364,8 @@ var SERVER_SERVICE_USE_PROXY = true;
       '$http',
       '$cookies',
       '$location',
-      function ($window, $http, $cookies, $location) {
+      '$translate',
+      function ($window, $http, $cookies, $location, $translate) {
         service_ = this;
         this.configuration = {
           about: {
@@ -65392,9 +65403,10 @@ var SERVER_SERVICE_USE_PROXY = true;
               'name': 'OpenStreetMap'
             }
           ],
+          currentLanguage: 'en',
+          username: 'anonymous',
           userprofilename: 'Anonymous',
           userprofileemail: '',
-          username: '',
           authStatus: 401,
           id: 0,
           proxy: '/proxy/?url='
@@ -65403,6 +65415,7 @@ var SERVER_SERVICE_USE_PROXY = true;
           goog.object.extend(this.configuration, $window.config, {});
         }
         this.username = this.configuration.username;
+        this.currentLanguage = this.configuration.currentLanguage;
         this.user_profile_name = this.configuration.userprofilename;
         this.user_profile_email = this.configuration.userprofileemail;
         this.user_name = this.configuration.username;
@@ -65411,6 +65424,7 @@ var SERVER_SERVICE_USE_PROXY = true;
         if (goog.isDefAndNotNull(this.configuration.map.zoom) && this.configuration.map.zoom === 0) {
           this.configuration.map.zoom = 1;
         }
+        $translate.uses(this.currentLanguage);
         return this;
       }
     ];
@@ -68172,7 +68186,7 @@ var GeoGitLogOptions = function () {
             layer.setVisible(!layer.get('visible'));
           };
           scope.removeLayer = function (layer) {
-            dialogService.warn($translate('remove_layer'), $translate('sure_remove_layer'), [
+            dialogService.warn($translate('remove_layer'), $translate('verify_remove_layer'), [
               $translate('yes_btn'),
               $translate('no_btn')
             ], false).then(function (button) {
@@ -68282,13 +68296,15 @@ var GeoGitLogOptions = function () {
   module.directive('loomSaveMap', [
     'mapService',
     'configService',
-    function (mapService, configService) {
+    '$translate',
+    function (mapService, configService, $translate) {
       return {
         restrict: 'AC',
         templateUrl: 'map/partial/savemap.tpl.html',
         link: function (scope, element, attrs) {
           scope.mapService = mapService;
           scope.configService = configService;
+          scope.translate = $translate;
         }
       };
     }
@@ -68651,7 +68667,7 @@ var GeoGitLogOptions = function () {
         console.log('====[ map.save great success. ', data, status, headers, config);
       }).error(function (data, status, headers, config) {
         console.log('----[ ERROR: map.save failed! ', data, status, headers, config);
-        dialogService_.error('Save failed.', 'Map save failed with status: ' + status + '.');
+        dialogService_.error(translate_('save_failed'), translate_('map_save_failed', { value: status }));
       });
     };
     this.loadLayers = function () {
@@ -69732,7 +69748,7 @@ var GeoGitLogOptions = function () {
                   var added = 0, modified = 0, removed = 0;
                   var fidlist = [];
                   forEachArrayish(diffResponse.Feature, function (feature) {
-                    if (goog.array.contains(fidlist, feature.id) !== null) {
+                    if (goog.array.contains(fidlist, feature.id)) {
                       console.log('Duplicate features detected: ', options, diffResponse);
                     } else {
                       fidlist.push(feature.id);
@@ -71628,19 +71644,19 @@ angular.module("map/partial/savemap.tpl.html", []).run(["$templateCache", functi
     "        <div class=\"form-group\">\n" +
     "\n" +
     "            <div class=\"form-group\">\n" +
-    "                <label for=\"mapTitle\">Title</label> <input id=\"mapTitle\" ng-model=\"mapService.title\" type=\"text\" class=\"form-control\" value=\"{{mapService.title}}\" placeholder=\"{{mapService.title || 'Title'}}\">\n" +
+    "                <label for=\"mapTitle\">{{ 'title' | translate }}</label> <input id=\"mapTitle\" ng-model=\"mapService.title\" type=\"text\" class=\"form-control\" value=\"{{mapService.title}}\" placeholder=\"{{mapService.title || ('title' | translate)}}\">\n" +
     "            </div>\n" +
     "\n" +
     "            <div class=\"form-group\">\n" +
-    "                <label for=\"mapAbstract\">Abstract</label><textarea id=\"mapAbstract\" ng-model=\"mapService.abstract\" class=\"form-control\" rows=\"4\" value=\"{{mapService.abstract}}\" placeholder=\"{{mapService.abstract || 'Abstract'}}\"></textarea>\n" +
+    "                <label for=\"mapAbstract\">{{ 'abstract' | translate }}</label><textarea id=\"mapAbstract\" ng-model=\"mapService.abstract\" class=\"form-control\" rows=\"4\" value=\"{{mapService.abstract}}\" placeholder=\"{{mapService.abstract || ('abstract' | translate)}}\"></textarea>\n" +
     "            </div>\n" +
     "\n" +
     "        </div>\n" +
     "    </form>\n" +
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
-    "    <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n" +
-    "    <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-class=\"{'disabled': !configService.username}\" ng-click=\"mapService.save()\">Save</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">{{'close_btn' | translate }}</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-class=\"{'disabled': !configService.username}\" ng-click=\"mapService.save()\">{{'save_btn' | translate}}</button>\n" +
     "</div>\n" +
     "\n" +
     "\n" +
