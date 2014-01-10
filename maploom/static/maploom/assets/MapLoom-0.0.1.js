@@ -65883,7 +65883,7 @@ var DiffColorMap = {
             var merges = featureDiffService.getMerges();
             var geomattributename = featureDiffService.merged.geometry.attributename;
             var geomMergeValue = merges[geomattributename];
-            conflictService.resolveConflict(featureDiffService.getMerges(), featureDiffService.merged.geometry.changetype === 'REMOVED' ? geomMergeValue : null);
+            conflictService.resolveConflict(merges, featureDiffService.merged.geometry.changetype === 'REMOVED' ? geomMergeValue : null);
             featureDiffService.clear();
             scope.leftPanel = false;
             scope.rightPanel = false;
@@ -66079,19 +66079,19 @@ var DiffColorMap = {
     this.getMerges = function () {
       var merges = {};
       if (service_.merged.geometry == service_.left.geometry) {
-        merges[service_.merged.geometry.attributename] = '__OURS__';
+        merges[service_.merged.geometry.attributename] = { ours: true };
       } else if (service_.merged.geometry == service_.right.geometry) {
-        merges[service_.merged.geometry.attributename] = '__THEIRS__';
+        merges[service_.merged.geometry.attributename] = { theirs: true };
       } else {
-        merges[service_.merged.geometry.attributename] = service_.merged.geometry;
+        merges[service_.merged.geometry.attributename] = { value: service_.merged.geometry };
       }
       for (var i = 0; i < service_.merged.attributes.length; i++) {
         if (service_.attributesEqual(service_.merged.attributes[i], service_.left.attributes[i])) {
-          merges[service_.merged.attributes[i].attributename] = '__OURS__';
+          merges[service_.merged.attributes[i].attributename] = { ours: true };
         } else if (service_.attributesEqual(service_.merged.attributes[i], service_.right.attributes[i])) {
-          merges[service_.merged.attributes[i].attributename] = '__THEIRS__';
+          merges[service_.merged.attributes[i].attributename] = { thiers: true };
         } else {
-          merges[service_.merged.attributes[i].attributename] = service_.merged.attributes[i].newvalue;
+          merges[service_.merged.attributes[i].attributename] = { value: service_.merged.attributes[i].newvalue };
         }
       }
       return merges;
@@ -66241,19 +66241,19 @@ var DiffColorMap = {
               if (goog.isDefAndNotNull(feature.merges)) {
                 var geomattributename = panel.geometry.attributename;
                 var geomMergeValue = feature.merges[geomattributename];
-                if (geomMergeValue === '__OURS__') {
+                if (geomMergeValue.ours === true) {
                   service_.chooseGeometry(service_.left);
-                } else if (geomMergeValue === '__THEIRS__') {
+                } else if (geomMergeValue.theirs === true) {
                   service_.chooseGeometry(service_.right);
                 }
                 for (var i = 0; i < service_.merged.attributes.length; i++) {
                   var attributename = service_.merged.attributes[i].attributename;
                   var mergeValue = feature.merges[attributename];
-                  if (mergeValue === '__OURS__') {
-                  } else if (mergeValue === '__THEIRS__') {
+                  if (mergeValue.ours === true) {
+                  } else if (mergeValue.theirs === true) {
                     service_.chooseAttribute(i, service_.right);
                   } else {
-                    service_.merged.attributes[i].newvalue = mergeValue;
+                    service_.merged.attributes[i].newvalue = mergeValue.value;
                     service_.updateChangeType(service_.merged.attributes[i]);
                   }
                 }
@@ -68107,6 +68107,9 @@ var GeoGitLogOptions = function () {
       logOptions.firstParentOnly = 'true';
       var metadata = service_.layer.get('metadata');
       if (goog.isDefAndNotNull(metadata)) {
+        if (goog.isDefAndNotNull(metadata.branchName)) {
+          logOptions.until = metadata.branchName;
+        }
         if (goog.isDefAndNotNull(metadata.repoId) && goog.isDefAndNotNull(metadata.nativeName)) {
           service_.repoId = metadata.repoId;
           if (!goog.isDefAndNotNull(service_.pathFilter)) {
@@ -68186,7 +68189,7 @@ var GeoGitLogOptions = function () {
             layer.setVisible(!layer.get('visible'));
           };
           scope.removeLayer = function (layer) {
-            dialogService.warn($translate('remove_layer'), $translate('verify_remove_layer'), [
+            dialogService.warn($translate('remove_layer'), $translate('sure_remove_layer'), [
               $translate('yes_btn'),
               $translate('no_btn')
             ], false).then(function (button) {
@@ -69048,7 +69051,7 @@ var GeoGitLogOptions = function () {
       if (goog.isDefAndNotNull(conflict.removed)) {
         var checkoutOptions = new GeoGitCheckoutOptions();
         checkoutOptions.path = conflict.id;
-        if (conflict.removed === '__OURS__') {
+        if (conflict.removed.ours === true) {
           checkoutOptions.ours = true;
         } else {
           checkoutOptions.theirs = true;
