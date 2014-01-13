@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-01-10
+ * MapLoom - v0.0.1 - 2014-01-13
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -64637,7 +64637,8 @@ ol.tilegrid.XYZOptions;
     '$translate',
     'mapService',
     'debugService',
-    function AppCtrl($scope, $window, $location, $translate, mapService, debugService) {
+    'refreshService',
+    function AppCtrl($scope, $window, $location, $translate, mapService, debugService, refreshService) {
       console.log('---- ngBoilerplate.controller.');
       $scope.$on('$stateChangeSuccess', function (event, toState) {
         if (angular.isDefined(toState.data.pageTitle)) {
@@ -64645,6 +64646,7 @@ ol.tilegrid.XYZOptions;
         }
       });
       $scope.mapService = mapService;
+      $scope.refreshService = refreshService;
     }
   ]);
   module.provider('debugService', function () {
@@ -69709,7 +69711,7 @@ var GeoGitLogOptions = function () {
   var notificationService_ = null;
   var geogitService_ = null;
   var featureDiffService_ = null;
-  var autoRefresh = false;
+  var service_ = null;
   module.provider('refreshService', function () {
     this.$get = [
       'mapService',
@@ -69725,11 +69727,14 @@ var GeoGitLogOptions = function () {
         dialogService_ = dialogService;
         translate_ = $translate;
         featureDiffService_ = featureDiffService;
+        service_ = this;
+        this.refreshLayers();
         return this;
       }
     ];
+    this.autoRefresh = false;
     function refresh(mapService) {
-      if (autoRefresh) {
+      if (service_.autoRefresh) {
         mapService.dumpTileCache();
         var layers = mapService.getFeatureLayers();
         forEachArrayish(layers, function (layer) {
@@ -69749,59 +69754,65 @@ var GeoGitLogOptions = function () {
                     dialogService_.warn(translate_('warning'), translate_('too_many_changes_refresh', { value: 1000 }));
                   }
                   var added = 0, modified = 0, removed = 0;
+                  var featureList = [];
                   var fidlist = [];
                   forEachArrayish(diffResponse.Feature, function (feature) {
-                    if (goog.array.contains(fidlist, feature.id)) {
-                      console.log('Duplicate features detected: ', options, diffResponse);
-                    } else {
-                      fidlist.push(feature.id);
-                    }
-                    switch (feature.change) {
-                    case 'ADDED':
-                      added++;
-                      break;
-                    case 'MODIFIED':
-                      modified++;
-                      break;
-                    case 'REMOVED':
-                      removed++;
-                      break;
+                    if (feature.id.split('/')[0] === layer.get('metadata').label) {
+                      if (goog.array.contains(fidlist, feature.id)) {
+                        console.log('Duplicate features detected: ', options, diffResponse);
+                      } else {
+                        fidlist.push(feature.id);
+                      }
+                      featureList.push(feature);
+                      switch (feature.change) {
+                      case 'ADDED':
+                        added++;
+                        break;
+                      case 'MODIFIED':
+                        modified++;
+                        break;
+                      case 'REMOVED':
+                        removed++;
+                        break;
+                      }
                     }
                   });
-                  var notificationText = '';
-                  if (added > 0) {
-                    notificationText += added + ' ' + translate_('added');
-                    if (modified > 0 || removed > 0) {
-                      notificationText += ', ';
+                  if (featureList.length !== 0) {
+                    var notificationText = '';
+                    if (added > 0) {
+                      notificationText += added + ' ' + translate_('added');
+                      if (modified > 0 || removed > 0) {
+                        notificationText += ', ';
+                      }
                     }
-                  }
-                  if (modified > 0) {
-                    notificationText += modified + ' ' + translate_('modified');
+                    if (modified > 0) {
+                      notificationText += modified + ' ' + translate_('modified');
+                      if (removed > 0) {
+                        notificationText += ', ';
+                      }
+                    }
                     if (removed > 0) {
-                      notificationText += ', ';
+                      notificationText += removed + ' ' + translate_('removed');
                     }
+                    notificationText += ' ' + translate_('in_lower_case') + ' ' + layer.get('metadata').label;
+                    var oldCommitId = layer.get('metadata').repoCommitId;
+                    notificationService_.addNotification({
+                      text: notificationText,
+                      read: false,
+                      type: 'loom-update-notification',
+                      repos: [{
+                          name: layer.get('metadata').geogitStore,
+                          features: featureList
+                        }],
+                      callback: function (feature) {
+                        featureDiffService_.leftName = 'old';
+                        featureDiffService_.rightName = 'new';
+                        featureDiffService_.setFeature(feature.original, oldCommitId, idResponse, oldCommitId, null, layer.get('metadata').repoId);
+                        $('#feature-diff-dialog').modal('show');
+                      }
+                    });
+                    layer.get('metadata').repoCommitId = idResponse;
                   }
-                  if (removed > 0) {
-                    notificationText += removed + ' ' + translate_('removed');
-                  }
-                  notificationText += ' ' + translate_('in_lower_case') + ' ' + layer.get('metadata').label;
-                  var oldCommitId = layer.get('metadata').repoCommitId;
-                  notificationService_.addNotification({
-                    text: notificationText,
-                    read: false,
-                    type: 'loom-update-notification',
-                    repos: [{
-                        name: layer.get('metadata').geogitStore,
-                        features: diffResponse.Feature
-                      }],
-                    callback: function (feature) {
-                      featureDiffService_.leftName = 'old';
-                      featureDiffService_.rightName = 'new';
-                      featureDiffService_.setFeature(feature.original, oldCommitId, idResponse, oldCommitId, null, layer.get('metadata').repoId);
-                      $('#feature-diff-dialog').modal('show');
-                    }
-                  });
-                  layer.get('metadata').repoCommitId = idResponse;
                 });
               });
             }
@@ -69813,8 +69824,8 @@ var GeoGitLogOptions = function () {
       }
     }
     this.refreshLayers = function () {
-      autoRefresh = !autoRefresh;
-      if (autoRefresh) {
+      this.autoRefresh = !this.autoRefresh;
+      if (this.autoRefresh) {
         refresh(mapService_);
       }
     };
