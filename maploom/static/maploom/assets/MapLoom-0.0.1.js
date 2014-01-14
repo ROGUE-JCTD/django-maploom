@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-01-13
+ * MapLoom - v0.0.1 - 2014-01-14
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -64807,7 +64807,9 @@ ol.tilegrid.XYZOptions;
       'toggle_legend': 'Toggle Legend',
       'refresh_layers': 'Refresh Layers',
       'sure_remove_layer': 'Are you sure that you want to remove this layer?',
-      'pull_unknown_error': 'Pull has failed multiple times, perhaps the remote is not available at the moment.' + ' Please try again later.',
+      'pull_unknown_error': 'An unknown error occurred when pulling from the remote.  Please try again.',
+      'pull_multiple_error': 'Pull has failed multiple times, perhaps the remote is not available at the moment.' + ' Please try again later.',
+      'pull_timeout_error': 'Pull is taking longer than normal, this could be caused by the server being overloaded so' + ' in an effort to let the server catch up we are stopping auto-sync. Please wait before resuming auto-sync so' + ' the server can catch up.',
       'local': 'Local',
       'pull_conflicts': 'Pull Conflicts',
       'feature_id': 'Feature ID',
@@ -64974,7 +64976,9 @@ ol.tilegrid.XYZOptions;
       'toggle_legend': 'Modificar la Descripcion',
       'refresh_layers': 'Refrescar Capas',
       'sure_remove_layer': 'Esta seguro de querer eliminar esta capa?',
-      'pull_unknown_error': 'Tire ha fallado varias veces, tal vez el control remoto no est\xe1 disponible en este momento' + '. Por favor, int\xe9ntelo de nuevo m\xe1s tarde.',
+      'pull_unknown_error': 'Un error desconocido ocurrio al realizar el retiro del remoto. Favor intentar nuevamente.',
+      'pull_multiple_error': 'Tire ha fallado varias veces, tal vez el control remoto no est\xe1 disponible en este' + ' momento . Por favor, int\xe9ntelo de nuevo m\xe1s tarde.',
+      'pull_timeout_error': 'Tire est\xe1 tomando m\xe1s tiempo de lo normal, esto podr\xeda deberse a que el servidor se' + ' sobrecargue por lo que en un esfuerzo por dejar que la captura del servidor hasta que se detiene la' + ' sincronizaci\xf3n autom\xe1tica. Por favor, espere antes de reanudar la sincronizaci\xf3n autom\xe1tica para que el' + ' servidor pueda ponerse al d\xeda.',
       'local': 'Local',
       'pull_conflicts': 'Extraer Conflictos',
       'feature_id': 'Elemento ID',
@@ -67308,6 +67312,7 @@ var GeoGitRemoteOptions = function () {
   this.remoteURL = null;
   this.username = null;
   this.password = null;
+  this.ping = null;
 };
 var GeoGitBranchOptions = function () {
   this.list = null;
@@ -70092,16 +70097,13 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     }
   };
   var checkStatus = function (link) {
-    geogitService_.beginTransaction(link.getRepo().id).then(function (transaction) {
-      var fetchOptions = new GeoGitFetchOptions();
-      fetchOptions.remote = link.getRemote().name;
-      transaction.command('fetch', fetchOptions).then(function () {
-        link.getRemote().active = true;
-        transaction.abort();
-      }, function () {
-        link.getRemote().active = false;
-        transaction.abort();
-      });
+    var remoteOptions = new GeoGitRemoteOptions();
+    remoteOptions.remoteName = link.getRemote().name;
+    remoteOptions.ping = true;
+    geogitService_.command(link.getRepo().id, 'remote', remoteOptions).then(function (response) {
+      link.getRemote().active = response.ping.success;
+    }, function () {
+      link.getRemote().active = false;
     });
   };
   var checkStatusAll = function () {
@@ -70226,16 +70228,36 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             transaction.abort();
           });
         }, function (pullFailed) {
+          var showMessage = false;
+          var message = '';
+          if (goog.isObject(pullFailed) && pullFailed.status === 502) {
+            if (link.continuous) {
+              service_.toggleAutoSync(link);
+              showMessage = true;
+              message = 'pull_timeout_error';
+            }
+          }
           if (goog.isObject(pullFailed) && goog.isDefAndNotNull(pullFailed.conflicts)) {
             var branch = link.getRemote().name + '/' + link.getRemoteBranch();
             link.isSyncing = false;
             handleConflicts(pullFailed, transaction, link.getRepo().id, translate_('local'), link.getRemote().name, branch);
             result.reject(false);
           } else {
-            numPullFails++;
-            if (numPullFails >= maxPullFails && !errorMessageOn) {
+            if (!errorMessageOn) {
+              if (link.continuous) {
+                numPullFails++;
+                if (numPullFails >= maxPullFails) {
+                  showMessage = true;
+                  message = 'pull_multiple_error';
+                }
+              } else if (message === '') {
+                showMessage = true;
+                message = 'pull_unknown_error';
+              }
+            }
+            if (showMessage) {
               errorMessageOn = true;
-              dialogService_.error(translate_('error'), translate_('pull_unknown_error'), [translate_('btn_ok')], false).then(function (button) {
+              dialogService_.error(translate_('error'), translate_(message), [translate_('btn_ok')], false).then(function (button) {
                 switch (button) {
                 case 0:
                   errorMessageOn = false;
@@ -71959,7 +71981,7 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
     "              <i class=\"glyphicon glyphicon-sort\"></i>\n" +
     "            </button>\n" +
     "            <div ng-click=\"syncService.toggleAutoSync(link)\" stop-event=\"click mousedown\"\n" +
-    "                 class=\"btn btn-xs btn-default\" ng-class=\"{'sync-on': link.isSyncing}\">\n" +
+    "                 class=\"btn btn-xs btn-default\" ng-class=\"{'sync-on': link.continuous}\">\n" +
     "              <i class=\"glyphicon glyphicon-retweet\"></i>\n" +
     "            </div>\n" +
     "            <!--<button type=\"button\" class=\"btn btn-xs btn-default dropdown-toggle\" ng-class=\"{'disabled': link.isSyncing}\" data-toggle=\"dropdown\">\n" +
