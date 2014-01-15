@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-01-14
+ * MapLoom - v0.0.1 - 2014-01-15
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -66800,7 +66800,7 @@ var DiffColorMap = {
       }
       if (selectedItem_ !== selectedItemOld) {
         var pics = null;
-        if (getItemType(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) && goog.isDefAndNotNull(selectedItem_.properties) && goog.isDefAndNotNull(selectedItem_.properties.fotos)) {
+        if (getItemType(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) && goog.isDefAndNotNull(selectedItem_.properties) && goog.isDefAndNotNull(selectedItem_.properties.fotos) && selectedItem_.properties.fotos !== '') {
           pics = JSON.parse(selectedItem_.properties.fotos);
           if (goog.isDefAndNotNull(pics) && pics.length === 0) {
             pics = null;
