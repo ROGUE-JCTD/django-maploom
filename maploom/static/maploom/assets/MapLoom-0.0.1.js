@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-01-15
+ * MapLoom - v0.0.1 - 2014-01-17
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -71679,7 +71679,7 @@ angular.module("legend/partial/legend.tpl.html", []).run(["$templateCache", func
     "                <div class=\"panel-heading legend-item-header\" data-toggle=\"collapse\"\n" +
     "                    data-target=\"{{'#' + layer.get('metadata').label + 'legend'}}\">{{layer.get('metadata').label}}\n" +
     "                </div>\n" +
-    "                <div class=\"panel-collapse legend-item in legend-panel-body\" id=\"{{layer.get('metadata').label + '_legend'}}\">\n" +
+    "                <div class=\"panel-collapse legend-item in legend-panel-body\" id=\"{{layer.get('metadata').label + 'legend'}}\">\n" +
     "                    <img ng-src=\"{{getLegendUrl(layer)}}\">\n" +
     "                </div>\n" +
     "            </div>\n" +
