@@ -71396,10 +71396,10 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "  <div class=\"top-fade\"></div>\n" +
     "  <div class=\"bottom-fade\"></div>\n" +
     "  <form name=\"editfeatureform\" class=\"form wrapper\">\n" +
-    "    <div class=\"form-group\" ng-if=\"coordinates\">\n" +
+    "    <!--<div class=\"form-group\" ng-if=\"coordinates\">\n" +
     "        <label for=\"latLonEdit\" class=\"control-label custom-control-label\">{{'location_lon_lat' | translate}}</label>\n" +
     "        <latloneditor id=\"latLonEdit\" coord-display=\"coordDisplay\" geom=\"coordinates\"></latloneditor>\n" +
-    "    </div>\n" +
+    "    </div>-->\n" +
     "    <div class=\"form-group\" ng-repeat=\"prop in properties\">\n" +
     "        <label class=\"control-label custom-control-label\">{{prop[0]}}</label>\n" +
     "        <div ng-switch on=\"prop.type\">\n" +
@@ -71418,6 +71418,9 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" disabled/>\n" +
     "          </div>\n" +
     "          <div ng-switch-when=\"xsd:int\" ng-class=\"{'has-error': !prop.valid}\">\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateInteger(prop, 1)\"/>\n" +
+    "          </div>\n" +
+    "          <div ng-switch-when=\"xsd:integer\" ng-class=\"{'has-error': !prop.valid}\">\n" +
     "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateInteger(prop, 1)\"/>\n" +
     "          </div>\n" +
     "          <div ng-switch-when=\"xsd:double\" ng-class=\"{'has-error': !prop.valid}\">\n" +
@@ -71908,13 +71911,6 @@ angular.module("sync/partials/syncconfig.tpl.html", []).run(["$templateCache", f
     "          </ul>\n" +
     "        </div>\n" +
     "      </div>\n" +
-    "      <div class=\"col-md-5\">\n" +
-    "        <button type=\"button\" ng-hide=\"selectedRemote\" ng-class=\"{'disabled': !remoteform.$valid}\"\n" +
-    "          class=\"btn btn-default\" ng-click=\"addRemote(remoteName, remoteURL, remoteUsername, remotePassword)\"\n" +
-    "          translate=\"add_btn\">Add</button>\n" +
-    "        <button type=\"button\" ng-show=\"selectedRemote\" class=\"btn btn-danger\" ng-click=\"removeRemote(selectedRemote)\"\n" +
-    "          translate=\"remove_btn\">Remove</button>\n" +
-    "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"form-group\" ng-show=\"selectedRepo && !selectedRemote\" ng-class=\"{'has-error': !remoteform.remotename.$valid}\">\n" +
     "      <div class=\"col-md-2\">\n" +
@@ -71949,6 +71945,13 @@ angular.module("sync/partials/syncconfig.tpl.html", []).run(["$templateCache", f
     "  </form>\n" +
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
+    "  <button type=\"button\" ng-hide=\"selectedRemote\" ng-class=\"{'disabled': !remoteform.$valid}\"\n" +
+    "          class=\"btn btn-default\" ng-click=\"addRemote(remoteName, remoteURL, remoteUsername, remotePassword)\"\n" +
+    "          translate=\"add_btn\">Add\n" +
+    "  </button>\n" +
+    "  <button type=\"button\" ng-show=\"selectedRemote\" class=\"btn btn-danger\" ng-click=\"removeRemote(selectedRemote)\"\n" +
+    "          translate=\"remove_btn\">Remove\n" +
+    "  </button>\n" +
     "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\" translate=\"done_btn\">Done</button>\n" +
     "</div>\n" +
     "");
