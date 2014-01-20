@@ -71028,7 +71028,8 @@ var validateDouble = function (property, key) {
         scope: {
           dateObject: '=dateObject',
           dateKey: '=dateKey',
-          editable: '@editable'
+          editable: '@editable',
+          defaultDate: '=defaultDate'
         },
         link: function (scope, element, attrs) {
           if (!goog.isDefAndNotNull(scope.editable)) {
@@ -71047,25 +71048,27 @@ var validateDouble = function (property, key) {
           var updateDateTime = function () {
             var newDate = new Date();
             var date = element.find('.datepicker').data('DateTimePicker').getDate();
-            newDate.setFullYear(date.year(), date.month(), date.date());
-            if (scope.time === 'true' && scope.seperateTime === 'true') {
-              var time = element.find('.timepicker').data('DateTimePicker').getDate();
-              if (goog.isDefAndNotNull(time)) {
-                newDate.setHours(time.hour(), time.minute(), time.second(), time.millisecond());
+            if (goog.isDefAndNotNull(date)) {
+              newDate.setFullYear(date.year(), date.month(), date.date());
+              if (scope.time === 'true' && scope.seperateTime === 'true') {
+                var time = element.find('.timepicker').data('DateTimePicker').getDate();
+                if (goog.isDefAndNotNull(time)) {
+                  newDate.setHours(time.hour(), time.minute(), time.second(), time.millisecond());
+                } else {
+                  newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
+                }
               } else {
                 newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
               }
-            } else {
-              newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
-            }
-            if (!scope.$$phase && !$rootScope.$$phase) {
-              scope.$apply(function () {
+              if (!scope.$$phase && !$rootScope.$$phase) {
+                scope.$apply(function () {
+                  scope.dateObject[scope.dateKey] = newDate.toISOString();
+                  scope.disabledText = newDate.toISOString();
+                });
+              } else {
                 scope.dateObject[scope.dateKey] = newDate.toISOString();
                 scope.disabledText = newDate.toISOString();
-              });
-            } else {
-              scope.dateObject[scope.dateKey] = newDate.toISOString();
-              scope.disabledText = newDate.toISOString();
+              }
             }
           };
           var dateOptions = {
@@ -71076,6 +71079,11 @@ var validateDouble = function (property, key) {
               pickDate: false,
               language: $translate.uses()
             };
+          if (scope.defaultDate) {
+            var defaultDate = new Date();
+            dateOptions.defaultDate = defaultDate;
+            timeOptions.defaultDate = defaultDate;
+          }
           if (goog.isDefAndNotNull(scope.dateObject[scope.dateKey])) {
             dateOptions.defaultDate = scope.dateObject[scope.dateKey];
             timeOptions.defaultDate = scope.dateObject[scope.dateKey];
@@ -71088,6 +71096,7 @@ var validateDouble = function (property, key) {
               element.find('.timepicker').on('change.dp', updateDateTime);
             }
             if (goog.isDefAndNotNull(dateOptions.defaultDate)) {
+              updateDateTime();
               var date = moment(new Date(dateOptions.defaultDate));
               date.lang($translate.uses());
               scope.disabledText = date.format('L') + ' ' + date.format('LT');
@@ -71499,7 +71508,7 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "    <div class=\"form-group\" ng-repeat=\"prop in properties\">\n" +
     "        <label class=\"control-label custom-control-label\">{{prop[0]}}</label>\n" +
     "        <div ng-switch on=\"prop.type\">\n" +
-    "          <datetimepicker ng-switch-when=\"xsd:dateTime\" date-object=\"prop\" date-key=\"1\"></datetimepicker>\n" +
+    "          <datetimepicker ng-switch-when=\"xsd:dateTime\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\"></datetimepicker>\n" +
     "          <div ng-switch-when=\"simpleType\" class=\"input-group\">\n" +
     "            <div class=\"input-group-btn\" ng-class=\"{'dropup': $last}\">\n" +
     "              <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">\n" +
