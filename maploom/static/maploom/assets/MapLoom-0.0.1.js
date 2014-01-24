@@ -68222,7 +68222,7 @@ var GeoGitLogOptions = function () {
               forEachArrayish(response.commit, function (commit) {
                 var json = null;
                 try {
-                  var message = commit.message.replace('&quot;', '"');
+                  var message = commit.message.replace(/&quot;/g, '"');
                   json = JSON.parse(message);
                   var added = json[metadata.nativeName]['added'];
                   var removed = json[metadata.nativeName]['removed'];
