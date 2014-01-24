@@ -68062,7 +68062,7 @@ var GeoGitLogOptions = function () {
             if (goog.isDefAndNotNull(scope.commit.summary)) {
               try {
                 var message = '';
-                json = JSON.parse(scope.commit.message);
+                json = JSON.parse(scope.commit.message.replace(/&quot;/g, '"'));
                 if (goog.isDefAndNotNull(json.merge_branch) && goog.isString(json.merge_branch)) {
                   message += $translate('merge') + ' ' + json.merge_branch + ':<p>';
                 }
