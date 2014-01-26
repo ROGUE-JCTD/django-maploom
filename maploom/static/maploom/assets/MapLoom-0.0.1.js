@@ -68600,7 +68600,7 @@ var GeoGitLogOptions = function () {
     this.getFeatureLayers = function () {
       var layers = [];
       this.map.getLayers().forEach(function (layer) {
-        if (!(layer.source_ instanceof ol.source.OSM) && goog.isDefAndNotNull(layer.get('metadata')) && !layer.get('metadata').hidden && !layer.get('metadata').differences_layer) {
+        if (!(layer.source_ instanceof ol.source.OSM) && goog.isDefAndNotNull(layer.get('metadata')) && layer.get('visible') && !layer.get('metadata').hidden && !layer.get('metadata').differences_layer) {
           layers.push(layer);
         }
       });
