@@ -71336,6 +71336,15 @@ var validateDouble = function (property, key) {
       }
     };
   });
+  module.filter('stripWhiteSpace', function () {
+    return function (str) {
+      if (goog.isDefAndNotNull(str)) {
+        return goog.string.removeAll(goog.string.collapseWhitespace(str), ' ');
+      } else {
+        return str;
+      }
+    };
+  });
 }());
 angular.module('templates-app', []);
 
@@ -71848,7 +71857,7 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "  <div class=\"panel\"\n" +
     "       ng-repeat=\"layer in layers = mapService.map.getLayers().getArray() | reverse | filter:filterHiddenLayers\">\n" +
     "    <div class=\"panel-heading layer-heading\" data-toggle=\"collapse\" ng-click=\"fillAttrList(layer)\"\n" +
-    "         data-parent=\"#layerpanel-group\" data-target=\"#{{layer.get('metadata').label}}\">\n" +
+    "         data-parent=\"#layerpanel-group\" data-target=\"#{{layer.get('metadata').label | stripWhiteSpace}}\">\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"layer-title ellipsis\">\n" +
     "          {{layer.get('metadata').label}}\n" +
@@ -71869,7 +71878,7 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div id=\"{{layer.get('metadata').label}}\" class=\"panel-collapse collapse\">\n" +
+    "    <div id=\"{{layer.get('metadata').label | stripWhiteSpace}}\" class=\"panel-collapse collapse\">\n" +
     "      <div class=\"panel-body layer-inner-panel\">\n" +
     "        <div class=\"btn-group btn-group-justified\">\n" +
     "          <a type=\"button\" ng-click=\"tableViewService.showTable(layer)\" ng-show=\"layer.get('metadata').editable\"\n" +
