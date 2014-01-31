@@ -66311,10 +66311,18 @@ var DiffColorMap = {
     this.updateChangeType = function (attribute) {
       if (goog.isDefAndNotNull(attribute.oldvalue)) {
         if (goog.isDefAndNotNull(attribute.newvalue)) {
-          if (attribute.oldvalue !== attribute.newvalue) {
-            attribute.changetype = 'MODIFIED';
+          if (attribute.type === 'xsd:dateTime') {
+            if (new Date(attribute.oldvalue).toISOString() !== new Date(attribute.newvalue).toISOString()) {
+              attribute.changetype = 'MODIFIED';
+            } else {
+              attribute.changetype = 'NO_CHANGE';
+            }
           } else {
-            attribute.changetype = 'NO_CHANGE';
+            if (attribute.oldvalue !== attribute.newvalue) {
+              attribute.changetype = 'MODIFIED';
+            } else {
+              attribute.changetype = 'NO_CHANGE';
+            }
           }
         } else {
           attribute.changetype = 'REMOVED';
@@ -66648,8 +66656,8 @@ var DiffColorMap = {
                 }
               }
             } else {
+              scope.geometryChanged = scope.panel.getGeometry() === featureDiffService.merged.getGeometry();
               for (i = 0; i < scope.panel.attributes.length; i++) {
-                scope.geometryChanged = scope.panel.getGeometry() === featureDiffService.merged.getGeometry();
                 attr = scope.panel.attributes[i];
                 if (featureDiffService.attributesEqual(attr, featureDiffService.merged.attributes[i]) && attr.changetype !== 'NO_CHANGE') {
                   scope.arrows.push({ active: true });
