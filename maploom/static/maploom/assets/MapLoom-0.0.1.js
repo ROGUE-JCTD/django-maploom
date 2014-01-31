@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-01-30
+ * MapLoom - v0.0.1 - 2014-01-31
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -62636,7 +62636,7 @@ ol.tilegrid.XYZOptions;
 
 
 /*
- * blueimp Gallery JS 2.11.7
+ * blueimp Gallery JS 2.13.0
  * https://github.com/blueimp/Gallery
  *
  * Copyright 2013, Sebastian Tschan
@@ -62753,6 +62753,8 @@ ol.tilegrid.XYZOptions;
             closeOnSwipeUpOrDown: true,
             // Emulate touch events on mouse-pointer devices such as desktop browsers:
             emulateTouchEvents: true,
+            // Stop touch events from bubbling up to ancestor elements of the Gallery:
+            stopTouchEventsPropagation: false,
             // Hide the page scrollbars: 
             hidePageScrollbars: true,
             // Stops any touches on the container from scrolling the page:
@@ -63156,6 +63158,14 @@ ol.tilegrid.XYZOptions;
             }
         },
 
+        stopPropagation: function (event) {
+            if (event.stopPropagation) {
+                event.stopPropagation();
+            } else {
+                event.cancelBubble = true;
+            }
+        },
+
         onresize: function () {
             this.initSlides(true);
         },
@@ -63167,6 +63177,7 @@ ol.tilegrid.XYZOptions;
                     event.target.nodeName !== 'VIDEO') {
                 // Preventing the default mousedown action is required
                 // to make touch emulation work with Firefox:
+                event.preventDefault();
                 (event.originalEvent || event).touches = [{
                     pageX: event.pageX,
                     pageY: event.pageY
@@ -63204,6 +63215,9 @@ ol.tilegrid.XYZOptions;
         },
 
         ontouchstart: function (event) {
+            if (this.options.stopTouchEventsPropagation) {
+                this.stopPropagation(event);
+            }
             // jQuery doesn't copy touch event properties by default,
             // so we have to access the originalEvent object:
             var touches = (event.originalEvent || event).touches[0];
@@ -63221,6 +63235,9 @@ ol.tilegrid.XYZOptions;
         },
 
         ontouchmove: function (event) {
+            if (this.options.stopTouchEventsPropagation) {
+                this.stopPropagation(event);
+            }
             // jQuery doesn't copy touch event properties by default,
             // so we have to access the originalEvent object:
             var touches = (event.originalEvent || event).touches[0],
@@ -63282,7 +63299,10 @@ ol.tilegrid.XYZOptions;
             }
         },
 
-        ontouchend: function () {
+        ontouchend: function (event) {
+            if (this.options.stopTouchEventsPropagation) {
+                this.stopPropagation(event);
+            }
             var index = this.index,
                 speed = this.options.transitionSpeed,
                 slideWidth = this.slideWidth,
@@ -63350,6 +63370,13 @@ ol.tilegrid.XYZOptions;
                     // Move back into position
                     this.translateY(index, 0, speed);
                 }
+            }
+        },
+
+        ontouchcancel: function (event) {
+            if (this.touchStart) {
+                this.ontouchend(event);
+                delete this.touchStart;
             }
         },
 
@@ -63812,7 +63839,7 @@ ol.tilegrid.XYZOptions;
             this.container.on('click', proxyListener);
             if (this.support.touch) {
                 slidesContainer
-                    .on('touchstart touchmove touchend', proxyListener);
+                    .on('touchstart touchmove touchend touchcancel', proxyListener);
             } else if (this.options.emulateTouchEvents &&
                     this.support.transition) {
                 slidesContainer
@@ -63835,7 +63862,7 @@ ol.tilegrid.XYZOptions;
             this.container.off('click', proxyListener);
             if (this.support.touch) {
                 slidesContainer
-                    .off('touchstart touchmove touchend', proxyListener);
+                    .off('touchstart touchmove touchend touchcancel', proxyListener);
             } else if (this.options.emulateTouchEvents &&
                     this.support.transition) {
                 slidesContainer
@@ -71125,6 +71152,8 @@ var validateDouble = function (property, key) {
           clone.style.width = element[0].style.width;
           clone.value = element[0].value;
           var height = clone.scrollHeight + 2;
+          clone.value = 'single';
+          height += 34 - (clone.scrollHeight + 2);
           if (height !== scope.prevHeight) {
             element[0].style.height = height + 'px';
             scope.prevHeight = height;
