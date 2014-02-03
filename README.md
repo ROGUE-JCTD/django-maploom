@@ -37,7 +37,7 @@ In the ```<head>``` section of your html section add the MapLoom js files:
 
     {% maploom_js %}
 
-Then add a map loom map to your page by placing the following tag anywhere in the <body> tags:
+Then add a map loom map to your page by placing the following tag anywhere in the ```<body>``` tags:
 
 	{% maploom_html %}
 
