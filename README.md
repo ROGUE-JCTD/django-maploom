@@ -27,13 +27,13 @@ Add ``maploom`` to ``INSTALLED_APPS`` in your project's
 Usage
 -----
 
-Once installed, you can easily add a classification banner to any template on your site.
+Once installed, you can easily add maploom to any template on your site.
 
 First load the template tags in your template:
 
 	{% load maploom_tags %}
 
-In the <head> section of your html section add the MapLoom js files:
+In the ```<head>``` section of your html section add the MapLoom js files:
 
     {% maploom_js %}
 
