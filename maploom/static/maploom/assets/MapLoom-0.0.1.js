@@ -66994,11 +66994,16 @@ var DiffColorMap = {
           new ol.style.Rule({
             filter: '(geometryType("linestring") || geometryType("multilinestring"))',
             symbolizers: [
-              new ol.style.Fill({
-                color: ol.expr.parse('MapLoomChange.fill'),
+              new ol.style.Stroke({
+                width: 7,
+                color: ol.expr.parse('MapLoomChange.stroke'),
                 opacity: 1
               }),
-              new ol.style.Stroke({ color: ol.expr.parse('MapLoomChange.fill') })
+              new ol.style.Stroke({
+                width: 5,
+                color: ol.expr.parse('MapLoomChange.fill'),
+                opacity: 1
+              })
             ]
           })
         ]
@@ -68643,7 +68648,7 @@ var GeoGitRevertFeatureOptions = function () {
             diffOptions.show = 1000;
             diffService.performDiff(historyService.repoId, diffOptions).then(function (response) {
               if (goog.isDefAndNotNull(response.Feature)) {
-                if (goog.isDefAndNotNull(response.nextPage) && response.nextPage == 'true') {
+                if (goog.isDefAndNotNull(response.nextPage) && response.nextPage === true) {
                   dialogService.warn($translate('warning'), $translate('too_many_changes'), [$translate('btn_ok')]);
                 } else {
                   diffService.setTitle($translate('summary_of_changes'));
