@@ -72796,10 +72796,6 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "    </div>\n" +
     "\n" +
     "    <div class=\"feature-info-box\">\n" +
-    "      <span ng-if=\"featureManagerService.getSelectedItem().geometry.type.toLowerCase() == 'point'\">\n" +
-    "        <span class=\"info-box-attribute\">{{'location_lon_lat' | translate}}</span>\n" +
-    "        <span class=\"info-box-attribute-value\">({{featureManagerService.getSelectedItem().geometry.coordinates[0]}},{{featureManagerService.getSelectedItem().geometry.coordinates[1]}})</span>\n" +
-    "      </span>\n" +
     "      <span ng-repeat=\"prop in featureManagerService.getSelectedItemProperties()\">\n" +
     "        <span class=\"info-box-attribute\">{{prop[0]}}</span>\n" +
     "        <span class=\"info-box-attribute-value\">{{prop[1]}}</span>\n" +
