@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-02-07
+ * MapLoom - v0.0.1 - 2014-02-10
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -65037,7 +65037,8 @@ ol.tilegrid.XYZOptions;
       'fixed_feature': 'Fixed Feature',
       'undo_conflicts': 'Undo Conflicts',
       'changes_undone': 'The changes to the feature have been successfully undone.',
-      'reverted_changes_to_feature': 'Reverted changes made to {{feature}}.'
+      'reverted_changes_to_feature': 'Reverted changes made to {{feature}}.',
+      'remote_not_fetched': 'It would appear as though the remote you selected has not' + ' been fetched from. We will now attempt to fetch the data you need to create links.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -65238,7 +65239,8 @@ ol.tilegrid.XYZOptions;
       'fixed_feature': 'Elemento Fijo',
       'undo_conflicts': 'Deshacer Conflictos',
       'changes_undone': 'Los cambios en el elemento se ha deshecho con \xe9xito.',
-      'reverted_changes_to_feature': 'Revertidos los cambios realizados en {{feature}}.'
+      'reverted_changes_to_feature': 'Revertidos los cambios realizados en {{feature}}.',
+      'remote_not_fetched': 'Parecer\xeda como si el mando a distancia que ha seleccionado no ha sido traidos del.' + ' Ahora vamos a tratar de ir a buscar los datos que necesita para crear v\xednculos.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -70426,10 +70428,12 @@ var GeoGitRevertFeatureOptions = function () {
     '$translate',
     'synchronizationService',
     'geogitService',
-    function ($translate, synchronizationService, geogitService) {
+    'dialogService',
+    '$q',
+    function ($translate, synchronizationService, geogitService, dialogService, $q) {
       return {
         templateUrl: 'sync/partials/addsync.tpl.html',
-        link: function (scope) {
+        link: function (scope, element) {
           scope.geogitService = geogitService;
           scope.name = $translate('link');
           scope.$on('translation_change', function () {
@@ -70445,7 +70449,46 @@ var GeoGitRevertFeatureOptions = function () {
             scope.localBranch = null;
             scope.remoteBranch = null;
           };
+          scope.dismiss = function () {
+            reset();
+            element.closest('.modal').modal('hide');
+          };
+          var parentModal = element.closest('.modal');
+          var closeModal = function (event, element) {
+            if (parentModal[0] === element[0]) {
+              reset();
+            }
+          };
+          scope.$watch('selectedRemote', function () {
+            if (goog.isDefAndNotNull(scope.selectedRemote)) {
+              if (scope.selectedRemote.branches.length === 0) {
+                dialogService.open($translate('fetch'), $translate('remote_not_fetched'), [$translate('btn_ok')], false).then(function (button) {
+                  switch (button) {
+                  case 0:
+                    element.find('#loading').toggleClass('hidden');
+                    var fetchResult = $q.defer();
+                    var fetchOptions = new GeoGitFetchOptions();
+                    fetchOptions.remote = scope.selectedRemote.name;
+                    geogitService.command(scope.selectedRepo.id, 'fetch', fetchOptions).then(function () {
+                      geogitService.loadRemotesAndBranches(scope.selectedRepo, fetchResult);
+                      fetchResult.promise.then(function () {
+                        element.find('#loading').toggleClass('hidden');
+                      });
+                    }, function (error) {
+                      var message = $translate('fetch_error');
+                      if (error.status == '408' || error.status == '504') {
+                        message = $translate('fetch_timeout');
+                      }
+                      dialogService.error($translate('fetch'), message, [$translate('btn_ok')], false);
+                      element.find('#loading').toggleClass('hidden');
+                    });
+                  }
+                });
+              }
+            }
+          });
           scope.$on('repoRemoved', reset);
+          scope.$on('modal-closed', closeModal);
           scope.$on('loadLink', function (event, link) {
             $('#addSyncWindow').modal('toggle');
             scope.name = link.name;
@@ -70489,6 +70532,7 @@ var GeoGitRevertFeatureOptions = function () {
   var service_;
   var dialogService_;
   var geogitService_;
+  var synchronizationService_;
   var counter = 0;
   module.provider('remoteService', function () {
     this.remoteName = null;
@@ -70509,7 +70553,8 @@ var GeoGitRevertFeatureOptions = function () {
       '$translate',
       'dialogService',
       'geogitService',
-      function ($rootScope, $http, $q, $translate, dialogService, geogitService) {
+      'synchronizationService',
+      function ($rootScope, $http, $q, $translate, dialogService, geogitService, synchronizationService) {
         q_ = $q;
         rootScope_ = $rootScope;
         translate_ = $translate;
@@ -70517,6 +70562,7 @@ var GeoGitRevertFeatureOptions = function () {
         service_ = this;
         dialogService_ = dialogService;
         geogitService_ = geogitService;
+        synchronizationService_ = synchronizationService;
         service_.selectedText = '*' + $translate('new_remote');
         return this;
       }
@@ -70593,6 +70639,7 @@ var GeoGitRevertFeatureOptions = function () {
           var result = q_.defer();
           geogitService_.command(service_.selectedRepo.id, 'remote', options).then(function () {
             geogitService_.loadRemotesAndBranches(service_.selectedRepo, result);
+            synchronizationService_.remoteRemoved(service_.selectedRepo, service_.selectedRemote);
             service_.selectRemote(null);
           });
           break;
@@ -70626,7 +70673,7 @@ var GeoGitRevertFeatureOptions = function () {
             for (var index = 0; index < repo.remotes.length; index++) {
               if (repo.remotes[index].name === service_.remoteName) {
                 repo.remotes[index].active = true;
-                rootScope_.$broadcast('remoteAdded', repo);
+                rootScope_.$broadcast('remoteAdded', repo, service_.remoteName);
               }
             }
             dialogService_.open(translate_('remote'), successMessage, [translate_('btn_ok')], false);
@@ -70781,6 +70828,12 @@ var GeoGitRevertFeatureOptions = function () {
               remoteService.finishRemoteOperation(save);
             }
           };
+          var parentModal = element.closest('.modal');
+          var closeModal = function (event, element) {
+            if (parentModal[0] === element[0]) {
+              remoteService.reset();
+            }
+          };
           scope.$watch('remoteService.selectedRepo', function () {
             if (goog.isDefAndNotNull(remoteService.selectedRepo)) {
               var logOptions = new GeoGitLogOptions();
@@ -70796,6 +70849,7 @@ var GeoGitRevertFeatureOptions = function () {
             remoteService.selectedText = '*' + $translate('new_remote');
           });
           scope.$on('repoRemoved', remoteService.reset);
+          scope.$on('modal-closed', closeModal);
         }
       };
     }
@@ -70813,7 +70867,7 @@ var GeoGitRevertFeatureOptions = function () {
         templateUrl: 'sync/partials/synclinks.tpl.html',
         link: function (scope) {
           scope.syncService = synchronizationService;
-          var createDefaultLinks = function (event, repo) {
+          var createDefaultLinks = function (event, repo, remote) {
             var localMaster = false;
             var index;
             for (index = 0; index < repo.branches.length; index++) {
@@ -70823,7 +70877,7 @@ var GeoGitRevertFeatureOptions = function () {
               }
             }
             for (index = 0; index < repo.remotes.length; index++) {
-              if (repo.remotes[index].branches.length > 0) {
+              if (repo.remotes[index].branches.length > 0 && (!goog.isDefAndNotNull(remote) || remote === repo.remotes[index].name)) {
                 for (var branchIndex = 0; branchIndex < repo.remotes[index].branches.length; branchIndex++) {
                   if (repo.remotes[index].branches[branchIndex] === 'master' && localMaster) {
                     scope.syncService.addLink(new SynchronizationLink(repo.name + ':' + repo.remotes[index].name, repo, 'master', repo.remotes[index], 'master'));
@@ -70968,11 +71022,15 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         timeout_ = $timeout;
         q_ = $q;
         $rootScope.$on('repoRemoved', function (event, repo) {
+          var linksToRemove = [];
           goog.array.forEach(synchronizationLinks_, function (link) {
             if (link.getRepo().id === repo.id) {
-              service_.removeLink(link.id);
+              linksToRemove.push(link.id);
             }
           });
+          for (var index = 0; index < linksToRemove.length; index++) {
+            service_.removeLink(linksToRemove[index]);
+          }
         });
         return this;
       }
@@ -70985,7 +71043,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     };
     this.addLink = function (link) {
       for (var index = 0; index < synchronizationLinks_.length; index++) {
-        if (synchronizationLinks_[index].equals(link)) {
+        if (synchronizationLinks_[index].equals(link) || link.name === synchronizationLinks_[index].name) {
           dialogService_.open(translate_('add_sync'), translate_('link_already_exists'), [translate_('btn_ok')], false);
           return;
         }
@@ -71011,6 +71069,17 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           clearTimeout(statusCheckTimeout);
           statusCheckTimeout = null;
         }
+      }
+    };
+    this.remoteRemoved = function (repo, remote) {
+      var linksToRemove = [];
+      goog.array.forEach(synchronizationLinks_, function (link) {
+        if (link.getRepo().id === repo.id && link.getRemote().name === remote.name) {
+          linksToRemove.push(link.id);
+        }
+      });
+      for (var index = 0; index < linksToRemove.length; index++) {
+        service_.removeLink(linksToRemove[index]);
       }
     };
     this.getIsSyncing = function () {
@@ -72810,6 +72879,18 @@ angular.module("notifications/partial/notifications.tpl.html", []).run(["$templa
 
 angular.module("sync/partials/addsync.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("sync/partials/addsync.tpl.html",
+    "<div id=\"loading\" class=\"hidden\">\n" +
+    "  <div class=\"loading\">\n" +
+    "    <!-- We make this div spin -->\n" +
+    "    <div class=\"spinner\">\n" +
+    "      <!-- Mask of the quarter of circle -->\n" +
+    "      <div class=\"mask\">\n" +
+    "        <!-- Inner masked circle -->\n" +
+    "        <div class=\"maskedCircle\"></div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>\n" +
     "<div class=\"modal-body\">\n" +
     "  <form name=\"syncform\" class=\"form-horizontal\">\n" +
     "    <div class=\"form-group\" ng-class=\"{'has-error': !syncform.syncname.$valid}\">\n" +
@@ -72849,7 +72930,7 @@ angular.module("sync/partials/addsync.tpl.html", []).run(["$templateCache", func
     "  </form>\n" +
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
-    "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\" translate=\"close_btn\">Close</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-default\" translate=\"close_btn\" ng-click=\"dismiss()\">Close</button>\n" +
     "  <button type=\"button\" class=\"btn btn-primary\"\n" +
     "          ng-click=\"createLink(name, selectedRepo, selectedRemote, localBranch, remoteBranch)\"\n" +
     "          ng-class=\"{'disabled': !syncform.$valid}\" translate=\"add_btn\">Add</button>\n" +
