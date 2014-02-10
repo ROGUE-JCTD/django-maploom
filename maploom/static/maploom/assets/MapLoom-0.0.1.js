@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-01-31
+ * MapLoom - v0.0.1 - 2014-02-07
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -24021,11 +24021,13 @@ goog.addDependency('date/utcdatetime.js', ['goog.date.UtcDateTime'], ['goog.date
 goog.addDependency('date/utcdatetime_test.js', ['goog.date.UtcDateTimeTest'], ['goog.date.Interval', 'goog.date.UtcDateTime', 'goog.date.month', 'goog.date.weekDay', 'goog.testing.jsunit']);
 goog.addDependency('db/cursor.js', ['goog.db.Cursor'], ['goog.async.Deferred', 'goog.db.Error', 'goog.debug', 'goog.events.EventTarget']);
 goog.addDependency('db/db.js', ['goog.db'], ['goog.async.Deferred', 'goog.db.Error', 'goog.db.IndexedDb', 'goog.db.Transaction']);
+goog.addDependency('db/db_test.js', ['goog.dbTest'], ['goog.Disposable', 'goog.array', 'goog.async.Deferred', 'goog.async.DeferredList', 'goog.db', 'goog.db.Cursor', 'goog.db.Error', 'goog.db.IndexedDb', 'goog.db.KeyRange', 'goog.db.Transaction', 'goog.events', 'goog.object', 'goog.testing.AsyncTestCase', 'goog.testing.PropertyReplacer', 'goog.testing.asserts', 'goog.testing.jsunit', 'goog.userAgent.product', 'goog.userAgent.product.isVersion']);
 goog.addDependency('db/error.js', ['goog.db.Error', 'goog.db.Error.ErrorCode', 'goog.db.Error.ErrorName', 'goog.db.Error.VersionChangeBlockedError'], ['goog.debug.Error']);
 goog.addDependency('db/index.js', ['goog.db.Index'], ['goog.async.Deferred', 'goog.db.Cursor', 'goog.db.Error', 'goog.debug']);
 goog.addDependency('db/indexeddb.js', ['goog.db.IndexedDb'], ['goog.async.Deferred', 'goog.db.Error', 'goog.db.Error.VersionChangeBlockedError', 'goog.db.ObjectStore', 'goog.db.Transaction', 'goog.db.Transaction.TransactionMode', 'goog.events.Event', 'goog.events.EventHandler', 'goog.events.EventTarget']);
 goog.addDependency('db/keyrange.js', ['goog.db.KeyRange'], []);
 goog.addDependency('db/objectstore.js', ['goog.db.ObjectStore'], ['goog.async.Deferred', 'goog.db.Cursor', 'goog.db.Error', 'goog.db.Index', 'goog.debug', 'goog.events']);
+goog.addDependency('db/old_db_test.js', ['goog.oldDbTest'], ['goog.async.Deferred', 'goog.db', 'goog.db.Cursor', 'goog.db.Error', 'goog.db.IndexedDb', 'goog.db.KeyRange', 'goog.db.Transaction', 'goog.events', 'goog.testing.AsyncTestCase', 'goog.testing.asserts', 'goog.testing.jsunit', 'goog.userAgent.product', 'goog.userAgent.product.isVersion']);
 goog.addDependency('db/transaction.js', ['goog.db.Transaction', 'goog.db.Transaction.TransactionMode'], ['goog.async.Deferred', 'goog.db.Error', 'goog.db.ObjectStore', 'goog.events.EventHandler', 'goog.events.EventTarget']);
 goog.addDependency('debug/console.js', ['goog.debug.Console'], ['goog.debug.LogManager', 'goog.debug.Logger.Level', 'goog.debug.TextFormatter']);
 goog.addDependency('debug/console_test.js', ['goog.debug.ConsoleTest'], ['goog.debug.Console', 'goog.debug.LogRecord', 'goog.debug.Logger', 'goog.testing.jsunit', 'goog.testing.recordFunction']);
@@ -24048,7 +24050,7 @@ goog.addDependency('debug/errorhandler_test.js', ['goog.debug.ErrorHandlerTest']
 goog.addDependency('debug/errorhandlerweakdep.js', ['goog.debug.errorHandlerWeakDep'], []);
 goog.addDependency('debug/errorreporter.js', ['goog.debug.ErrorReporter', 'goog.debug.ErrorReporter.ExceptionEvent'], ['goog.asserts', 'goog.debug', 'goog.debug.ErrorHandler', 'goog.debug.entryPointRegistry', 'goog.events', 'goog.events.Event', 'goog.events.EventTarget', 'goog.log', 'goog.net.XhrIo', 'goog.object', 'goog.string', 'goog.uri.utils', 'goog.userAgent']);
 goog.addDependency('debug/errorreporter_test.js', ['goog.debug.ErrorReporterTest'], ['goog.debug.ErrorReporter', 'goog.events', 'goog.functions', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent']);
-goog.addDependency('debug/fancywindow.js', ['goog.debug.FancyWindow'], ['goog.debug.DebugWindow', 'goog.debug.LogManager', 'goog.debug.Logger', 'goog.dom.DomHelper', 'goog.object', 'goog.string', 'goog.userAgent']);
+goog.addDependency('debug/fancywindow.js', ['goog.debug.FancyWindow'], ['goog.array', 'goog.debug.DebugWindow', 'goog.debug.LogManager', 'goog.debug.Logger', 'goog.dom.DomHelper', 'goog.object', 'goog.string', 'goog.userAgent']);
 goog.addDependency('debug/formatter.js', ['goog.debug.Formatter', 'goog.debug.HtmlFormatter', 'goog.debug.TextFormatter'], ['goog.debug.RelativeTimeProvider', 'goog.string']);
 goog.addDependency('debug/fpsdisplay.js', ['goog.debug.FpsDisplay'], ['goog.asserts', 'goog.async.AnimationDelay', 'goog.ui.Component']);
 goog.addDependency('debug/fpsdisplay_test.js', ['goog.debug.FpsDisplayTest'], ['goog.debug.FpsDisplay', 'goog.testing.AsyncTestCase', 'goog.testing.jsunit']);
@@ -24154,45 +24156,78 @@ goog.addDependency('dom/viewportsizemonitor_test.js', ['goog.dom.ViewportSizeMon
 goog.addDependency('dom/xml.js', ['goog.dom.xml'], ['goog.dom', 'goog.dom.NodeType']);
 goog.addDependency('dom/xml_test.js', ['goog.dom.xmlTest'], ['goog.dom.xml', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/browserfeature.js', ['goog.editor.BrowserFeature'], ['goog.editor.defines', 'goog.userAgent', 'goog.userAgent.product', 'goog.userAgent.product.isVersion']);
+goog.addDependency('editor/browserfeature_test.js', ['goog.editor.BrowserFeatureTest'], ['goog.dom', 'goog.dom.Range', 'goog.editor.BrowserFeature', 'goog.testing.ExpectedFailures', 'goog.testing.jsunit']);
 goog.addDependency('editor/clicktoeditwrapper.js', ['goog.editor.ClickToEditWrapper'], ['goog.Disposable', 'goog.asserts', 'goog.dom', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.Field.EventType', 'goog.editor.range', 'goog.events.BrowserEvent.MouseButton', 'goog.events.EventHandler', 'goog.events.EventType', 'goog.log']);
+goog.addDependency('editor/clicktoeditwrapper_test.js', ['goog.editor.ClickToEditWrapperTest'], ['goog.dom', 'goog.dom.Range', 'goog.editor.ClickToEditWrapper', 'goog.editor.SeamlessField', 'goog.testing.MockClock', 'goog.testing.events', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgent.product']);
 goog.addDependency('editor/command.js', ['goog.editor.Command'], []);
 goog.addDependency('editor/contenteditablefield.js', ['goog.editor.ContentEditableField'], ['goog.asserts', 'goog.editor.Field', 'goog.log']);
+goog.addDependency('editor/contenteditablefield_test.js', ['goog.editor.ContentEditableFieldTest'], ['goog.dom', 'goog.editor.ContentEditableField', 'goog.editor.field_test', 'goog.testing.jsunit']);
 goog.addDependency('editor/defines.js', ['goog.editor.defines'], []);
 goog.addDependency('editor/field.js', ['goog.editor.Field', 'goog.editor.Field.EventType'], ['goog.a11y.aria', 'goog.a11y.aria.Role', 'goog.array', 'goog.asserts', 'goog.async.Delay', 'goog.dom', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.Plugin', 'goog.editor.icontent', 'goog.editor.icontent.FieldFormatInfo', 'goog.editor.icontent.FieldStyleInfo', 'goog.editor.node', 'goog.editor.range', 'goog.events', 'goog.events.EventHandler', 'goog.events.EventTarget', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.functions', 'goog.log', 'goog.string', 'goog.string.Unicode', 'goog.style', 'goog.userAgent', 'goog.userAgent.product']);
 goog.addDependency('editor/field_test.js', ['goog.editor.field_test'], ['goog.dom', 'goog.dom.Range', 'goog.editor.BrowserFeature', 'goog.editor.Field', 'goog.editor.Plugin', 'goog.editor.range', 'goog.events', 'goog.events.BrowserEvent', 'goog.events.KeyCodes', 'goog.functions', 'goog.testing.LooseMock', 'goog.testing.MockClock', 'goog.testing.dom', 'goog.testing.events', 'goog.testing.events.Event', 'goog.testing.recordFunction', 'goog.userAgent']);
 goog.addDependency('editor/focus.js', ['goog.editor.focus'], ['goog.dom.selection']);
+goog.addDependency('editor/focus_test.js', ['goog.editor.focusTest'], ['goog.dom.selection', 'goog.editor.BrowserFeature', 'goog.editor.focus', 'goog.testing.jsunit']);
 goog.addDependency('editor/icontent.js', ['goog.editor.icontent', 'goog.editor.icontent.FieldFormatInfo', 'goog.editor.icontent.FieldStyleInfo'], ['goog.editor.BrowserFeature', 'goog.style', 'goog.userAgent']);
+goog.addDependency('editor/icontent_test.js', ['goog.editor.icontentTest'], ['goog.dom', 'goog.editor.BrowserFeature', 'goog.editor.icontent', 'goog.editor.icontent.FieldFormatInfo', 'goog.editor.icontent.FieldStyleInfo', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/link.js', ['goog.editor.Link'], ['goog.array', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.node', 'goog.editor.range', 'goog.string', 'goog.string.Unicode', 'goog.uri.utils', 'goog.uri.utils.ComponentIndex']);
+goog.addDependency('editor/link_test.js', ['goog.editor.LinkTest'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.Link', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/node.js', ['goog.editor.node'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.dom.iter.ChildIterator', 'goog.dom.iter.SiblingIterator', 'goog.iter', 'goog.object', 'goog.string', 'goog.string.Unicode', 'goog.userAgent']);
+goog.addDependency('editor/node_test.js', ['goog.editor.nodeTest'], ['goog.array', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.editor.node', 'goog.style', 'goog.testing.ExpectedFailures', 'goog.testing.dom', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugin.js', ['goog.editor.Plugin'], ['goog.editor.Command', 'goog.events.EventTarget', 'goog.functions', 'goog.log', 'goog.object', 'goog.reflect']);
+goog.addDependency('editor/plugin_test.js', ['goog.editor.PluginTest'], ['goog.editor.Field', 'goog.editor.Plugin', 'goog.functions', 'goog.testing.StrictMock', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/abstractbubbleplugin.js', ['goog.editor.plugins.AbstractBubblePlugin'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.Plugin', 'goog.editor.style', 'goog.events', 'goog.events.EventHandler', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.events.actionEventWrapper', 'goog.functions', 'goog.string.Unicode', 'goog.ui.Component', 'goog.ui.editor.Bubble', 'goog.userAgent']);
+goog.addDependency('editor/plugins/abstractbubbleplugin_test.js', ['goog.editor.plugins.AbstractBubblePluginTest'], ['goog.dom', 'goog.editor.plugins.AbstractBubblePlugin', 'goog.events.BrowserEvent', 'goog.events.KeyCodes', 'goog.functions', 'goog.style', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.events', 'goog.testing.jsunit', 'goog.ui.editor.Bubble']);
 goog.addDependency('editor/plugins/abstractdialogplugin.js', ['goog.editor.plugins.AbstractDialogPlugin', 'goog.editor.plugins.AbstractDialogPlugin.EventType'], ['goog.dom', 'goog.dom.Range', 'goog.editor.Field.EventType', 'goog.editor.Plugin', 'goog.editor.range', 'goog.events', 'goog.ui.editor.AbstractDialog.EventType']);
+goog.addDependency('editor/plugins/abstractdialogplugin_test.js', ['goog.editor.plugins.AbstractDialogPluginTest'], ['goog.dom.SavedRange', 'goog.editor.Field', 'goog.editor.plugins.AbstractDialogPlugin', 'goog.events.Event', 'goog.events.EventHandler', 'goog.functions', 'goog.testing.MockClock', 'goog.testing.MockControl', 'goog.testing.PropertyReplacer', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.events', 'goog.testing.jsunit', 'goog.testing.mockmatchers.ArgumentMatcher', 'goog.ui.editor.AbstractDialog', 'goog.userAgent']);
 goog.addDependency('editor/plugins/abstracttabhandler.js', ['goog.editor.plugins.AbstractTabHandler'], ['goog.editor.Plugin', 'goog.events.KeyCodes']);
+goog.addDependency('editor/plugins/abstracttabhandler_test.js', ['goog.editor.plugins.AbstractTabHandlerTest'], ['goog.editor.Field', 'goog.editor.plugins.AbstractTabHandler', 'goog.events.BrowserEvent', 'goog.events.KeyCodes', 'goog.testing.StrictMock', 'goog.testing.editor.FieldMock', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/basictextformatter.js', ['goog.editor.plugins.BasicTextFormatter', 'goog.editor.plugins.BasicTextFormatter.COMMAND'], ['goog.array', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.Link', 'goog.editor.Plugin', 'goog.editor.node', 'goog.editor.range', 'goog.editor.style', 'goog.iter', 'goog.iter.StopIteration', 'goog.log', 'goog.object', 'goog.string', 'goog.string.Unicode', 'goog.style', 'goog.ui.editor.messages', 'goog.userAgent']);
+goog.addDependency('editor/plugins/basictextformatter_test.js', ['goog.editor.plugins.BasicTextFormatterTest'], ['goog.dom', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.Field', 'goog.editor.Plugin', 'goog.editor.plugins.BasicTextFormatter', 'goog.object', 'goog.style', 'goog.testing.ExpectedFailures', 'goog.testing.LooseMock', 'goog.testing.PropertyReplacer', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.jsunit', 'goog.testing.mockmatchers', 'goog.userAgent']);
 goog.addDependency('editor/plugins/blockquote.js', ['goog.editor.plugins.Blockquote'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.dom.classlist', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.Plugin', 'goog.editor.node', 'goog.functions', 'goog.log']);
+goog.addDependency('editor/plugins/blockquote_test.js', ['goog.editor.plugins.BlockquoteTest'], ['goog.dom', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.plugins.Blockquote', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/emoticons.js', ['goog.editor.plugins.Emoticons'], ['goog.dom.TagName', 'goog.editor.Plugin', 'goog.editor.range', 'goog.functions', 'goog.ui.emoji.Emoji', 'goog.userAgent']);
+goog.addDependency('editor/plugins/emoticons_test.js', ['goog.editor.plugins.EmoticonsTest'], ['goog.Uri', 'goog.array', 'goog.dom', 'goog.dom.TagName', 'goog.editor.Field', 'goog.editor.plugins.Emoticons', 'goog.testing.jsunit', 'goog.ui.emoji.Emoji', 'goog.userAgent']);
 goog.addDependency('editor/plugins/enterhandler.js', ['goog.editor.plugins.EnterHandler'], ['goog.dom', 'goog.dom.NodeOffset', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Plugin', 'goog.editor.node', 'goog.editor.plugins.Blockquote', 'goog.editor.range', 'goog.editor.style', 'goog.events.KeyCodes', 'goog.functions', 'goog.object', 'goog.string', 'goog.userAgent']);
+goog.addDependency('editor/plugins/enterhandler_test.js', ['goog.editor.plugins.EnterHandlerTest'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Field', 'goog.editor.Plugin', 'goog.editor.plugins.Blockquote', 'goog.editor.plugins.EnterHandler', 'goog.editor.range', 'goog.events', 'goog.events.KeyCodes', 'goog.testing.ExpectedFailures', 'goog.testing.MockClock', 'goog.testing.dom', 'goog.testing.editor.TestHelper', 'goog.testing.events', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/equationeditorbubble.js', ['goog.editor.plugins.equation.EquationBubble'], ['goog.dom', 'goog.dom.TagName', 'goog.editor.Command', 'goog.editor.plugins.AbstractBubblePlugin', 'goog.string.Unicode', 'goog.ui.editor.Bubble', 'goog.ui.equation.ImageRenderer']);
 goog.addDependency('editor/plugins/equationeditorplugin.js', ['goog.editor.plugins.EquationEditorPlugin'], ['goog.dom', 'goog.editor.Command', 'goog.editor.plugins.AbstractDialogPlugin', 'goog.editor.range', 'goog.events', 'goog.events.EventType', 'goog.functions', 'goog.log', 'goog.ui.editor.AbstractDialog', 'goog.ui.editor.EquationEditorDialog', 'goog.ui.equation.ImageRenderer', 'goog.ui.equation.PaletteManager']);
+goog.addDependency('editor/plugins/equationeditorplugin_test.js', ['goog.editor.plugins.EquationEditorPluginTest'], ['goog.dom', 'goog.dom.DomHelper', 'goog.dom.TagName', 'goog.editor.plugins.EquationEditorPlugin', 'goog.testing.MockControl', 'goog.testing.MockRange', 'goog.testing.PropertyReplacer', 'goog.testing.editor.FieldMock', 'goog.testing.jsunit', 'goog.testing.mockmatchers.ArgumentMatcher', 'goog.ui.editor.EquationEditorOkEvent']);
 goog.addDependency('editor/plugins/firststrong.js', ['goog.editor.plugins.FirstStrong'], ['goog.dom.NodeType', 'goog.dom.TagIterator', 'goog.dom.TagName', 'goog.editor.Command', 'goog.editor.Plugin', 'goog.editor.node', 'goog.editor.range', 'goog.i18n.bidi', 'goog.i18n.uChar', 'goog.iter', 'goog.userAgent']);
+goog.addDependency('editor/plugins/firststrong_test.js', ['goog.editor.plugins.FirstStrongTest'], ['goog.dom.Range', 'goog.editor.Command', 'goog.editor.Field', 'goog.editor.plugins.FirstStrong', 'goog.editor.range', 'goog.events.KeyCodes', 'goog.testing.editor.TestHelper', 'goog.testing.events', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/headerformatter.js', ['goog.editor.plugins.HeaderFormatter'], ['goog.editor.Command', 'goog.editor.Plugin', 'goog.userAgent']);
+goog.addDependency('editor/plugins/headerformatter_test.js', ['goog.editor.plugins.HeaderFormatterTest'], ['goog.dom', 'goog.editor.Command', 'goog.editor.plugins.BasicTextFormatter', 'goog.editor.plugins.HeaderFormatter', 'goog.events.BrowserEvent', 'goog.testing.LooseMock', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/linkbubble.js', ['goog.editor.plugins.LinkBubble', 'goog.editor.plugins.LinkBubble.Action'], ['goog.array', 'goog.dom', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.Link', 'goog.editor.plugins.AbstractBubblePlugin', 'goog.editor.range', 'goog.string', 'goog.style', 'goog.ui.editor.messages', 'goog.uri.utils', 'goog.window']);
+goog.addDependency('editor/plugins/linkbubble_test.js', ['goog.editor.plugins.LinkBubbleTest'], ['goog.dom', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.Command', 'goog.editor.Link', 'goog.editor.plugins.LinkBubble', 'goog.events.BrowserEvent', 'goog.events.Event', 'goog.events.EventType', 'goog.string', 'goog.style', 'goog.testing.FunctionMock', 'goog.testing.PropertyReplacer', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.events', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/linkdialogplugin.js', ['goog.editor.plugins.LinkDialogPlugin'], ['goog.array', 'goog.dom', 'goog.editor.Command', 'goog.editor.plugins.AbstractDialogPlugin', 'goog.events.EventHandler', 'goog.functions', 'goog.ui.editor.AbstractDialog.EventType', 'goog.ui.editor.LinkDialog', 'goog.ui.editor.LinkDialog.EventType', 'goog.ui.editor.LinkDialog.OkEvent', 'goog.uri.utils']);
+goog.addDependency('editor/plugins/linkdialogplugin_test.js', ['goog.ui.editor.LinkDialogTest'], ['goog.dom', 'goog.dom.DomHelper', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.Field', 'goog.editor.Link', 'goog.editor.plugins.LinkDialogPlugin', 'goog.string', 'goog.string.Unicode', 'goog.testing.MockControl', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.editor.dom', 'goog.testing.events', 'goog.testing.jsunit', 'goog.testing.mockmatchers', 'goog.ui.editor.AbstractDialog', 'goog.ui.editor.LinkDialog', 'goog.userAgent']);
 goog.addDependency('editor/plugins/linkshortcutplugin.js', ['goog.editor.plugins.LinkShortcutPlugin'], ['goog.editor.Command', 'goog.editor.Link', 'goog.editor.Plugin', 'goog.string']);
+goog.addDependency('editor/plugins/linkshortcutplugin_test.js', ['goog.editor.plugins.LinkShortcutPluginTest'], ['goog.dom', 'goog.editor.Field', 'goog.editor.plugins.BasicTextFormatter', 'goog.editor.plugins.LinkBubble', 'goog.editor.plugins.LinkShortcutPlugin', 'goog.events.KeyCodes', 'goog.testing.PropertyReplacer', 'goog.testing.dom', 'goog.testing.events', 'goog.testing.jsunit']);
 goog.addDependency('editor/plugins/listtabhandler.js', ['goog.editor.plugins.ListTabHandler'], ['goog.dom.TagName', 'goog.editor.Command', 'goog.editor.plugins.AbstractTabHandler']);
+goog.addDependency('editor/plugins/listtabhandler_test.js', ['goog.editor.plugins.ListTabHandlerTest'], ['goog.dom', 'goog.editor.Command', 'goog.editor.plugins.ListTabHandler', 'goog.events.BrowserEvent', 'goog.events.KeyCodes', 'goog.functions', 'goog.testing.StrictMock', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.jsunit']);
 goog.addDependency('editor/plugins/loremipsum.js', ['goog.editor.plugins.LoremIpsum'], ['goog.asserts', 'goog.dom', 'goog.editor.Command', 'goog.editor.Plugin', 'goog.editor.node', 'goog.functions']);
+goog.addDependency('editor/plugins/loremipsum_test.js', ['goog.editor.plugins.LoremIpsumTest'], ['goog.dom', 'goog.editor.Command', 'goog.editor.Field', 'goog.editor.plugins.LoremIpsum', 'goog.string.Unicode', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/removeformatting.js', ['goog.editor.plugins.RemoveFormatting'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Plugin', 'goog.editor.node', 'goog.editor.range', 'goog.string', 'goog.userAgent']);
+goog.addDependency('editor/plugins/removeformatting_test.js', ['goog.editor.plugins.RemoveFormattingTest'], ['goog.dom', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.plugins.RemoveFormatting', 'goog.string', 'goog.testing.ExpectedFailures', 'goog.testing.dom', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/spacestabhandler.js', ['goog.editor.plugins.SpacesTabHandler'], ['goog.dom', 'goog.dom.TagName', 'goog.editor.plugins.AbstractTabHandler', 'goog.editor.range']);
+goog.addDependency('editor/plugins/spacestabhandler_test.js', ['goog.editor.plugins.SpacesTabHandlerTest'], ['goog.dom', 'goog.dom.Range', 'goog.editor.plugins.SpacesTabHandler', 'goog.events.BrowserEvent', 'goog.events.KeyCodes', 'goog.functions', 'goog.testing.StrictMock', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.jsunit']);
 goog.addDependency('editor/plugins/tableeditor.js', ['goog.editor.plugins.TableEditor'], ['goog.array', 'goog.dom', 'goog.dom.TagName', 'goog.editor.Plugin', 'goog.editor.Table', 'goog.editor.node', 'goog.editor.range', 'goog.object']);
+goog.addDependency('editor/plugins/tableeditor_test.js', ['goog.editor.plugins.TableEditorTest'], ['goog.dom', 'goog.dom.Range', 'goog.editor.plugins.TableEditor', 'goog.object', 'goog.string', 'goog.testing.ExpectedFailures', 'goog.testing.JsUnitException', 'goog.testing.editor.FieldMock', 'goog.testing.editor.TestHelper', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/tagonenterhandler.js', ['goog.editor.plugins.TagOnEnterHandler'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.Command', 'goog.editor.node', 'goog.editor.plugins.EnterHandler', 'goog.editor.range', 'goog.editor.style', 'goog.events.KeyCodes', 'goog.string', 'goog.style', 'goog.userAgent']);
+goog.addDependency('editor/plugins/tagonenterhandler_test.js', ['goog.editor.plugins.TagOnEnterHandlerTest'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Field', 'goog.editor.Plugin', 'goog.editor.plugins.TagOnEnterHandler', 'goog.events.KeyCodes', 'goog.string.Unicode', 'goog.testing.dom', 'goog.testing.editor.TestHelper', 'goog.testing.events', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/plugins/undoredo.js', ['goog.editor.plugins.UndoRedo'], ['goog.dom', 'goog.dom.NodeOffset', 'goog.dom.Range', 'goog.editor.BrowserFeature', 'goog.editor.Command', 'goog.editor.Field.EventType', 'goog.editor.Plugin', 'goog.editor.node', 'goog.editor.plugins.UndoRedoManager', 'goog.editor.plugins.UndoRedoState', 'goog.events', 'goog.events.EventHandler', 'goog.log']);
+goog.addDependency('editor/plugins/undoredo_test.js', ['goog.editor.plugins.UndoRedoTest'], ['goog.array', 'goog.dom', 'goog.dom.browserrange', 'goog.editor.Field', 'goog.editor.plugins.LoremIpsum', 'goog.editor.plugins.UndoRedo', 'goog.events', 'goog.functions', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.StrictMock', 'goog.testing.jsunit']);
 goog.addDependency('editor/plugins/undoredomanager.js', ['goog.editor.plugins.UndoRedoManager', 'goog.editor.plugins.UndoRedoManager.EventType'], ['goog.editor.plugins.UndoRedoState', 'goog.events.EventTarget']);
+goog.addDependency('editor/plugins/undoredomanager_test.js', ['goog.editor.plugins.UndoRedoManagerTest'], ['goog.editor.plugins.UndoRedoManager', 'goog.editor.plugins.UndoRedoState', 'goog.events', 'goog.testing.StrictMock', 'goog.testing.jsunit']);
 goog.addDependency('editor/plugins/undoredostate.js', ['goog.editor.plugins.UndoRedoState'], ['goog.events.EventTarget']);
+goog.addDependency('editor/plugins/undoredostate_test.js', ['goog.editor.plugins.UndoRedoStateTest'], ['goog.editor.plugins.UndoRedoState', 'goog.testing.jsunit']);
 goog.addDependency('editor/range.js', ['goog.editor.range', 'goog.editor.range.Point'], ['goog.array', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.Range', 'goog.dom.RangeEndpoint', 'goog.dom.SavedCaretRange', 'goog.editor.node', 'goog.editor.style', 'goog.iter', 'goog.userAgent']);
+goog.addDependency('editor/range_test.js', ['goog.editor.rangeTest'], ['goog.dom', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.range', 'goog.editor.range.Point', 'goog.string', 'goog.testing.dom', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('editor/seamlessfield.js', ['goog.editor.SeamlessField'], ['goog.cssom.iframe.style', 'goog.dom', 'goog.dom.Range', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.Field', 'goog.editor.icontent', 'goog.editor.icontent.FieldFormatInfo', 'goog.editor.icontent.FieldStyleInfo', 'goog.editor.node', 'goog.events', 'goog.events.EventType', 'goog.log', 'goog.style']);
 goog.addDependency('editor/seamlessfield_test.js', ['goog.editor.seamlessfield_test'], ['goog.dom', 'goog.dom.DomHelper', 'goog.dom.Range', 'goog.editor.BrowserFeature', 'goog.editor.Field', 'goog.editor.SeamlessField', 'goog.events', 'goog.functions', 'goog.style', 'goog.testing.MockClock', 'goog.testing.MockRange', 'goog.testing.jsunit']);
 goog.addDependency('editor/style.js', ['goog.editor.style'], ['goog.dom', 'goog.dom.NodeType', 'goog.editor.BrowserFeature', 'goog.events.EventType', 'goog.object', 'goog.style', 'goog.userAgent']);
+goog.addDependency('editor/style_test.js', ['goog.editor.styleTest'], ['goog.dom', 'goog.dom.TagName', 'goog.editor.BrowserFeature', 'goog.editor.style', 'goog.events.EventHandler', 'goog.events.EventType', 'goog.style', 'goog.testing.LooseMock', 'goog.testing.jsunit', 'goog.testing.mockmatchers']);
 goog.addDependency('editor/table.js', ['goog.editor.Table', 'goog.editor.TableCell', 'goog.editor.TableRow'], ['goog.dom', 'goog.dom.DomHelper', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.log', 'goog.string.Unicode', 'goog.style']);
+goog.addDependency('editor/table_test.js', ['goog.editor.TableTest'], ['goog.dom', 'goog.editor.Table', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('events/actioneventwrapper.js', ['goog.events.actionEventWrapper'], ['goog.a11y.aria', 'goog.a11y.aria.Role', 'goog.events', 'goog.events.EventHandler', 'goog.events.EventType', 'goog.events.EventWrapper', 'goog.events.KeyCodes', 'goog.userAgent']);
 goog.addDependency('events/actioneventwrapper_test.js', ['goog.events.actionEventWrapperTest'], ['goog.a11y.aria', 'goog.a11y.aria.Role', 'goog.events', 'goog.events.EventHandler', 'goog.events.KeyCodes', 'goog.events.actionEventWrapper', 'goog.testing.events', 'goog.testing.jsunit']);
 goog.addDependency('events/actionhandler.js', ['goog.events.ActionEvent', 'goog.events.ActionHandler', 'goog.events.ActionHandler.EventType', 'goog.events.BeforeActionEvent'], ['goog.events', 'goog.events.BrowserEvent', 'goog.events.EventTarget', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.userAgent']);
@@ -24254,6 +24289,7 @@ goog.addDependency('fs/filesystem.js', ['goog.fs.FileSystem'], []);
 goog.addDependency('fs/filesystemimpl.js', ['goog.fs.FileSystemImpl'], ['goog.fs.DirectoryEntryImpl', 'goog.fs.FileSystem']);
 goog.addDependency('fs/filewriter.js', ['goog.fs.FileWriter'], ['goog.fs.Error', 'goog.fs.FileSaver']);
 goog.addDependency('fs/fs.js', ['goog.fs'], ['goog.array', 'goog.async.Deferred', 'goog.fs.Error', 'goog.fs.FileReader', 'goog.fs.FileSystemImpl', 'goog.userAgent']);
+goog.addDependency('fs/fs_test.js', ['goog.fsTest'], ['goog.array', 'goog.async.Deferred', 'goog.async.DeferredList', 'goog.dom', 'goog.events', 'goog.fs', 'goog.fs.DirectoryEntry', 'goog.fs.Error', 'goog.fs.FileReader', 'goog.fs.FileSaver', 'goog.string', 'goog.testing.AsyncTestCase', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit']);
 goog.addDependency('fs/progressevent.js', ['goog.fs.ProgressEvent'], ['goog.events.Event']);
 goog.addDependency('functions/functions.js', ['goog.functions'], []);
 goog.addDependency('functions/functions_test.js', ['goog.functionsTest'], ['goog.functions', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.testing.recordFunction']);
@@ -24441,7 +24477,7 @@ goog.addDependency('locale/scriptToLanguages.js', ['goog.locale.scriptToLanguage
 goog.addDependency('locale/timezonedetection.js', ['goog.locale.timeZoneDetection'], ['goog.locale', 'goog.locale.TimeZoneFingerprint']);
 goog.addDependency('locale/timezonefingerprint.js', ['goog.locale.TimeZoneFingerprint'], []);
 goog.addDependency('locale/timezonelist.js', ['goog.locale.TimeZoneList'], ['goog.locale']);
-goog.addDependency('log/log.js', ['goog.log', 'goog.log.Level', 'goog.log.LogRecord', 'goog.log.Logger'], ['goog.debug', 'goog.debug.LogRecord', 'goog.debug.Logger']);
+goog.addDependency('log/log.js', ['goog.log', 'goog.log.Level', 'goog.log.LogRecord', 'goog.log.Logger'], ['goog.debug', 'goog.debug.LogManager', 'goog.debug.LogRecord', 'goog.debug.Logger']);
 goog.addDependency('log/log_test.js', ['goog.logTest'], ['goog.debug.LogManager', 'goog.log', 'goog.log.Level', 'goog.testing.jsunit']);
 goog.addDependency('math/affinetransform.js', ['goog.math.AffineTransform'], ['goog.math']);
 goog.addDependency('math/affinetransform_test.js', ['goog.math.AffineTransformTest'], ['goog.array', 'goog.math', 'goog.math.AffineTransform', 'goog.testing.jsunit']);
@@ -24819,7 +24855,7 @@ goog.addDependency('ui/filteredmenu.js', ['goog.ui.FilteredMenu'], ['goog.dom', 
 goog.addDependency('ui/filterobservingmenuitem.js', ['goog.ui.FilterObservingMenuItem'], ['goog.ui.FilterObservingMenuItemRenderer', 'goog.ui.MenuItem', 'goog.ui.registry']);
 goog.addDependency('ui/filterobservingmenuitemrenderer.js', ['goog.ui.FilterObservingMenuItemRenderer'], ['goog.ui.MenuItemRenderer']);
 goog.addDependency('ui/flatbuttonrenderer.js', ['goog.ui.FlatButtonRenderer'], ['goog.a11y.aria.Role', 'goog.dom.classlist', 'goog.ui.Button', 'goog.ui.ButtonRenderer', 'goog.ui.INLINE_BLOCK_CLASSNAME', 'goog.ui.registry']);
-goog.addDependency('ui/flatmenubuttonrenderer.js', ['goog.ui.FlatMenuButtonRenderer'], ['goog.a11y.aria', 'goog.a11y.aria.State', 'goog.asserts', 'goog.dom', 'goog.string', 'goog.style', 'goog.ui.Component', 'goog.ui.FlatButtonRenderer', 'goog.ui.INLINE_BLOCK_CLASSNAME', 'goog.ui.Menu', 'goog.ui.MenuButton', 'goog.ui.MenuRenderer', 'goog.ui.registry']);
+goog.addDependency('ui/flatmenubuttonrenderer.js', ['goog.ui.FlatMenuButtonRenderer'], ['goog.dom', 'goog.style', 'goog.ui.FlatButtonRenderer', 'goog.ui.INLINE_BLOCK_CLASSNAME', 'goog.ui.Menu', 'goog.ui.MenuButton', 'goog.ui.MenuRenderer', 'goog.ui.registry']);
 goog.addDependency('ui/formpost.js', ['goog.ui.FormPost'], ['goog.array', 'goog.dom.TagName', 'goog.string', 'goog.string.StringBuffer', 'goog.ui.Component']);
 goog.addDependency('ui/gauge.js', ['goog.ui.Gauge', 'goog.ui.GaugeColoredRange'], ['goog.a11y.aria', 'goog.asserts', 'goog.events', 'goog.fx.Animation', 'goog.fx.Transition', 'goog.fx.easing', 'goog.graphics', 'goog.graphics.Font', 'goog.graphics.Path', 'goog.graphics.SolidFill', 'goog.math', 'goog.ui.Component', 'goog.ui.GaugeTheme']);
 goog.addDependency('ui/gaugetheme.js', ['goog.ui.GaugeTheme'], ['goog.graphics.LinearGradient', 'goog.graphics.SolidFill', 'goog.graphics.Stroke']);
@@ -24852,7 +24888,7 @@ goog.addDependency('ui/menubardecorator.js', ['goog.ui.menuBarDecorator'], ['goo
 goog.addDependency('ui/menubarrenderer.js', ['goog.ui.MenuBarRenderer'], ['goog.a11y.aria.Role', 'goog.ui.Container', 'goog.ui.ContainerRenderer']);
 goog.addDependency('ui/menubase.js', ['goog.ui.MenuBase'], ['goog.events.EventHandler', 'goog.events.EventType', 'goog.events.KeyHandler', 'goog.ui.Popup']);
 goog.addDependency('ui/menubutton.js', ['goog.ui.MenuButton'], ['goog.Timer', 'goog.a11y.aria', 'goog.a11y.aria.State', 'goog.asserts', 'goog.dom', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.events.KeyHandler', 'goog.math.Box', 'goog.math.Rect', 'goog.positioning', 'goog.positioning.Corner', 'goog.positioning.MenuAnchoredPosition', 'goog.positioning.Overflow', 'goog.style', 'goog.ui.Button', 'goog.ui.Component', 'goog.ui.Menu', 'goog.ui.MenuButtonRenderer', 'goog.ui.registry', 'goog.userAgent', 'goog.userAgent.product']);
-goog.addDependency('ui/menubuttonrenderer.js', ['goog.ui.MenuButtonRenderer'], ['goog.a11y.aria', 'goog.a11y.aria.State', 'goog.asserts', 'goog.dom', 'goog.string', 'goog.style', 'goog.ui.Component', 'goog.ui.CustomButtonRenderer', 'goog.ui.INLINE_BLOCK_CLASSNAME', 'goog.ui.Menu', 'goog.ui.MenuRenderer']);
+goog.addDependency('ui/menubuttonrenderer.js', ['goog.ui.MenuButtonRenderer'], ['goog.dom', 'goog.style', 'goog.ui.CustomButtonRenderer', 'goog.ui.INLINE_BLOCK_CLASSNAME', 'goog.ui.Menu', 'goog.ui.MenuRenderer']);
 goog.addDependency('ui/menuheader.js', ['goog.ui.MenuHeader'], ['goog.ui.Component', 'goog.ui.Control', 'goog.ui.MenuHeaderRenderer', 'goog.ui.registry']);
 goog.addDependency('ui/menuheaderrenderer.js', ['goog.ui.MenuHeaderRenderer'], ['goog.ui.ControlRenderer']);
 goog.addDependency('ui/menuitem.js', ['goog.ui.MenuItem'], ['goog.array', 'goog.dom', 'goog.dom.classlist', 'goog.math.Coordinate', 'goog.string', 'goog.ui.Component', 'goog.ui.Control', 'goog.ui.MenuItemRenderer', 'goog.ui.registry']);
@@ -64778,7 +64814,6 @@ ol.tilegrid.XYZOptions;
       'loom_translations_es'
     ]);
   module.run(function run() {
-    console.log('---- app.js.run');
   });
   module.controller('AppCtrl', [
     '$scope',
@@ -64789,7 +64824,6 @@ ol.tilegrid.XYZOptions;
     'debugService',
     'refreshService',
     function AppCtrl($scope, $window, $location, $translate, mapService, debugService, refreshService) {
-      console.log('---- ngBoilerplate.controller.');
       $scope.$on('$stateChangeSuccess', function (event, toState) {
         if (angular.isDefined(toState.data.pageTitle)) {
           $scope.pageTitle = toState.data.pageTitle;
@@ -64845,6 +64879,8 @@ ol.tilegrid.XYZOptions;
       'new_remote': 'New Remote',
       'add_remote': 'Add Remote',
       'repo_name': 'Repo Name',
+      'remote_name': 'Remote Name',
+      'edit_btn': 'Edit',
       'repo_url': 'URL',
       'repo_username': 'Username',
       'repo_password': 'Password',
@@ -64855,6 +64891,7 @@ ol.tilegrid.XYZOptions;
       'error': 'Error',
       'warning': 'Warning',
       'failed_get_capabilities': 'Failed to get capabilities: ',
+      'server_url_not_specified': 'Server url is not specified',
       'fixed': 'FIXED',
       'adds': 'Adds',
       'modifications': 'Modifications',
@@ -64868,6 +64905,12 @@ ol.tilegrid.XYZOptions;
       'sure_cancel_merge': 'Are you sure you want to cancel the merge process?',
       'sure_commit_merge': 'Are you sure you want to finalize and commit the merge?',
       'commit_merge': 'Commit Merge',
+      'added_1_feature': 'Added 1 feature to \'{{layer}}\' via MapLoom.',
+      'modified_1_feature': 'Modified 1 feature in \'{{layer}}\' via MapLoom.',
+      'removed_1_feature': 'Removed 1 feature from \'{{layer}}\' via MapLoom.',
+      'applied_via_maploom': 'Applied via MapLoom.',
+      'conflicts_in': 'Conflicts resolved in \'{{layer}}\'',
+      'merged_branch': 'Merged branch \'{{branch}}\'',
       'yes_btn': 'Yes',
       'no_btn': 'No',
       'differences': 'Differences',
@@ -64971,7 +65014,30 @@ ol.tilegrid.XYZOptions;
       'abstract': 'Abstract',
       'save_this_map': 'Save this map.',
       'save_failed': 'Save failed',
-      'map_save_failed': 'Map save failed with the following status: {{value}}.'
+      'map_save_failed': 'Map save failed with the following status: {{value}}.',
+      'fetch': 'Fetch',
+      'fetch_error': 'There was an error trying to fetch from the remote, please try again later.',
+      'fetch_timeout': 'Fetch is taking longer than it should, its possible that it is still working so' + ' wait a moment before trying again.',
+      'repo_not_compatible': 'The specifed repository is not a compatible remote with your repository.',
+      'not_a_repo': 'The specified endpoint isn\'t a repository.',
+      'could_not_connect': 'Failed to connect to the specified endpoint.',
+      'remote_add_success': '{{value}} was successfully added.',
+      'remote_edit_success': '{{value}} was successfully changed.',
+      'remote_remove': 'Are you sure you want to remove this remote?',
+      'no_compatible_repos': 'There were no compatible repositories found at the given url.',
+      'continue_btn': 'Continue',
+      'remote_already_exists': 'The specified remote already exists on this repo.',
+      'remote_add_error': 'There was an error trying to add your remote.',
+      'remote_edit_error': 'There was an error trying to edit your remote.',
+      'multiple_compatible_repos': 'There were multiple compatible repositories found. Please choose the one you wish' + ' to use.',
+      'undo_changes': 'Undo Changes',
+      'newer_feature_version': 'This feature has been modified since this notification was posted.' + '  Would you like to compare with the newest version?',
+      'undo_successful': 'Undo Successful',
+      'undo_no_changes': 'The merge resulted in no changes.',
+      'fixed_feature': 'Fixed Feature',
+      'undo_conflicts': 'Undo Conflicts',
+      'changes_undone': 'The changes to the feature have been successfully undone.',
+      'reverted_changes_to_feature': 'Reverted changes made to {{feature}}.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -65014,6 +65080,8 @@ ol.tilegrid.XYZOptions;
       'new_remote': 'Nuevo Remoto',
       'add_remote': 'A\xf1adir Remoto',
       'repo_name': 'Nombre',
+      'remote_name': 'Nombre Remoto',
+      'edit_btn': 'Editar',
       'repo_url': 'URL',
       'repo_username': 'Nombre de Usuario',
       'repo_password': 'Contrase\xf1a',
@@ -65024,6 +65092,7 @@ ol.tilegrid.XYZOptions;
       'error': 'Error',
       'warning': 'Advertencia',
       'failed_get_capabilities': 'No se encontraron capacidades: ',
+      'server_url_not_specified': 'No se especifica url del servidor',
       'fixed': 'ARREGLADO',
       'adds': 'Adiciones',
       'modifications': 'Modificaciones',
@@ -65037,6 +65106,12 @@ ol.tilegrid.XYZOptions;
       'sure_cancel_merge': 'Esta seguro que desea cancelar el proceso de fusion?',
       'sure_commit_merge': 'Esta seguro que desea finalizar y confirmar la fusion?',
       'commit_merge': 'Confirmar Fusion',
+      'added_1_feature': 'A\xf1adi\xf3 1 elemento a \'{{layer}}\' a trav\xe9s MapLoom.',
+      'modified_1_feature': 'Modificado 1 elemento de \'{{layer}}\' a trav\xe9s MapLoom.',
+      'removed_1_feature': 'Eliminado 1 elemento de \'{{layer}}\' a trav\xe9s MapLoom.',
+      'applied_via_maploom': 'Aplica a trav\xe9s de MapLoom.',
+      'conflicts_in': 'Los conflictos resueltos en \'{{layer}}\'',
+      'merged_branch': 'Fusionada \'{{branch}}\' rama',
       'yes_btn': 'Si',
       'no_btn': 'No',
       'differences': 'Diferencias',
@@ -65140,7 +65215,30 @@ ol.tilegrid.XYZOptions;
       'abstract': 'es_Abstract',
       'save_this_map': 'es_Save this map.',
       'save_failed': 'es_Save failed',
-      'map_save_failed': 'es_Map save failed with the following status: {{value}}.'
+      'map_save_failed': 'es_Map save failed with the following status: {{value}}.',
+      'fetch': 'es_Fetch',
+      'fetch_error': 'Hubo un error al tratar de buscar desde el control remoto, por favor intente de nuevo m\xe1s tarde.',
+      'fetch_timeout': 'Fetch est\xe1 tomando m\xe1s tiempo de lo que deber\xeda, es posible que todav\xeda est\xe1 trabajando as\xed ' + 'que espere un momento antes de volver a intentarlo.',
+      'repo_not_compatible': 'El repositorio specifed no es un mando a distancia compatible con tu repositorio.',
+      'not_a_repo': 'El punto final especificado no es un repositorio.',
+      'could_not_connect': 'Error al conectar con el punto final especificado.',
+      'remote_add_success': '{{value}} se ha agregado correctamente',
+      'remote_edit_success': '{{value}} se ha cambiado correctamente.',
+      'remote_remove': 'Est\xe1 seguro que desea eliminar este mando a distancia?',
+      'no_compatible_repos': 'No hubo repositorios compatibles se encuentran en la url dada.',
+      'continue_btn': 'Continuar',
+      'remote_already_exists': 'El remoto especificado ya existe en este repo.',
+      'remote_add_error': 'Hubo un error al tratar de agregar el control remoto.',
+      'remote_edit_error': 'Hubo un error al tratar de editar su control remoto.',
+      'multiple_compatible_repos': 'Hubo m\xfaltiples repositorios compatibles encontrados. Por favor, elija la que' + ' desee utilizar.',
+      'undo_changes': 'Deshacer Cambios',
+      'newer_feature_version': 'Este elemento se ha modificado desde la presente notificaci\xf3n fue publicada. ' + '\xbfQuieres comparar con la versi\xf3n m\xe1s reciente?',
+      'undo_successful': 'Deshacer Exitosa',
+      'undo_no_changes': 'El deshacer result\xf3 en ning\xfan cambio.',
+      'fixed_feature': 'Elemento Fijo',
+      'undo_conflicts': 'Deshacer Conflictos',
+      'changes_undone': 'Los cambios en el elemento se ha deshecho con \xe9xito.',
+      'reverted_changes_to_feature': 'Revertidos los cambios realizados en {{feature}}.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -65168,14 +65266,11 @@ ol.tilegrid.XYZOptions;
             scope.currentServerIndex = serverIndex;
             serverService.populateLayersConfig(serverIndex);
           };
-          scope.setCurrentServerIndex(serverService.getServerByName('Local Geoserver').id);
+          scope.setCurrentServerIndex(serverService.getServerLocalGeoserver().id);
           scope.addLayers = function (layersConfig) {
-            var currentServer = serverService.getServerByIndex(scope.currentServerIndex);
-            console.log('---- addLayers. currentServer: ', currentServer, ', layersConfig', layersConfig);
             var length = layersConfig.length;
             for (var index = 0; index < length; index += 1) {
               var config = layersConfig[index];
-              console.log(config);
               if (config.add) {
                 var slimConfig = {
                     source: scope.currentServerIndex,
@@ -65185,12 +65280,28 @@ ol.tilegrid.XYZOptions;
                   };
                 mapService.addLayer(slimConfig);
                 config.add = false;
-                config.added = true;
               }
             }
           };
           scope.selectServer = function (index) {
             scope.currentServerIndex = index;
+          };
+          scope.filterAddedLayers = function (layerConfig) {
+            var show = true;
+            var layers = mapService.getLayers(true, true);
+            for (var index = 0; index < layers.length; index++) {
+              var layer = layers[index];
+              if (goog.isDefAndNotNull(layer.get('metadata')) && goog.isDefAndNotNull(layer.get('metadata').config)) {
+                var conf = layer.get('metadata').config;
+                if (conf.source === scope.currentServerIndex) {
+                  if (conf.name === layerConfig.name) {
+                    show = false;
+                    break;
+                  }
+                }
+              }
+            }
+            return show;
           };
           scope.$on('layers-loaded', function () {
             if (!scope.$$phase && !$rootScope.$$phase) {
@@ -65203,17 +65314,6 @@ ol.tilegrid.XYZOptions;
           }
           onResize();
           $(window).resize(onResize);
-          var layerRemoved = function (event, layer) {
-            var layersConfig = scope.serverService.getLayersConfig(layer.get('metadata').serverId);
-            for (var index = 0; index < layersConfig.length; index++) {
-              var config = layersConfig[index];
-              if (config.title === layersConfig.get('metadata').label) {
-                config.added = false;
-                return;
-              }
-            }
-          };
-          scope.$on('layerRemoved', layerRemoved);
         }
       };
     }
@@ -65250,10 +65350,10 @@ var SERVER_SERVICE_USE_PROXY = true;
   var module = angular.module('loom_server_service', []);
   var servers = [];
   var rootScope_ = null;
+  var service_ = null;
   var dialogService_ = null;
   var translate_ = null;
   var http_ = null;
-  var service_ = null;
   module.provider('serverService', function () {
     this.$get = [
       '$rootScope',
@@ -65350,6 +65450,27 @@ var SERVER_SERVICE_USE_PROXY = true;
       }
       return server;
     };
+    this.getServerIndex = function (id) {
+      if (!goog.isDefAndNotNull(id)) {
+        throw {
+          name: 'serverService',
+          level: 'High',
+          message: 'undefined server id.',
+          toString: function () {
+            return this.name + ': ' + this.message;
+          }
+        };
+      }
+      for (var index = 0; index < servers.length; index += 1) {
+        if (servers[index].id === id) {
+          return index;
+        }
+      }
+      return -1;
+    };
+    this.getServerLocalGeoserver = function () {
+      return service_.getServerByName('Local Geoserver');
+    };
     this.addServer = function (serverInfo) {
       var server = {
           id: servers.length,
@@ -65382,141 +65503,87 @@ var SERVER_SERVICE_USE_PROXY = true;
     this.getLayersConfig = function (serverIndex) {
       return servers[serverIndex].layersConfig;
     };
-    this.populateLayersConfig = function (index) {
+    this.populateLayersConfig = function (index, force) {
       var server = servers[index];
-      console.log('---- populateLayersConfig. server', server);
       if (!goog.isDefAndNotNull(server)) {
-        return [];
+        return;
       }
-      if (server.ptype === 'gxp_bingsource') {
-        server.layersConfig = [
-          {
-            title: 'BingRoad',
-            name: 'BingRoad',
-            sourceParams: { imagerySet: 'Road' },
-            added: false,
-            add: false
-          },
-          {
-            title: 'BingAerial',
-            name: 'BingAerial',
-            sourceParams: { imagerySet: 'Aerial' },
-            added: false,
-            add: false
-          },
-          {
-            title: 'BingAerialWithLabels',
-            name: 'BingAerialWithLabels',
-            sourceParams: { imagerySet: 'AerialWithLabels' },
-            added: false,
-            add: false
-          },
-          {
-            title: 'BingCollinsBart',
-            name: 'BingCollinsBart',
-            sourceParams: { imagerySet: 'collinsBart' },
-            added: false,
-            add: false
-          },
-          {
-            title: 'BingSurvey',
-            name: 'BingSurvey',
-            sourceParams: { imagerySet: 'ordnanceSurvey' },
-            added: false,
-            add: false
-          }
-        ];
-      } else if (server.ptype === 'gxp_mapquestsource') {
-        server.layersConfig = [
-          {
-            title: 'MapQuestSat',
-            name: 'MapQuestSat',
-            sourceParams: { layer: 'sat' },
-            added: false,
-            add: false
-          },
-          {
-            title: 'MapQuestHybrid',
-            name: 'MapQuestHybrid',
-            sourceParams: { layer: 'hyb' },
-            added: false,
-            add: false
-          },
-          {
-            title: 'MapQuestOSM',
-            name: 'MapQuestOSM',
-            sourceParams: { layer: 'osm' },
-            added: false,
-            add: false
-          }
-        ];
-      } else if (!goog.isDefAndNotNull(server.layersConfig) && goog.isDefAndNotNull(server.url)) {
-        console.log('Sending GetCapabilities.server: ', server, ', index:', index);
+      if (!goog.isDefAndNotNull(server.layersConfig) || goog.isDefAndNotNull(force) && force) {
         server.layersConfig = [];
-        var parser = new ol.parser.ogc.WMSCapabilities();
-        var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
-        http_.get(url).then(function (xhr) {
-          if (xhr.status == 200) {
-            var response = parser.read(xhr.data);
-            if (goog.isDefAndNotNull(response.capability) && goog.isDefAndNotNull(response.capability.layers)) {
-              server.layersConfig = response.capability.layers;
-              for (var index = 0; index < server.layersConfig.length; index += 1) {
-                server.layersConfig[index].added = false;
-              }
-              rootScope_.$broadcast('layers-loaded');
+        if (server.ptype === 'gxp_bingsource') {
+          server.layersConfig = [
+            {
+              title: 'BingRoad',
+              name: 'BingRoad',
+              sourceParams: { imagerySet: 'Road' }
+            },
+            {
+              title: 'BingAerial',
+              name: 'BingAerial',
+              sourceParams: { imagerySet: 'Aerial' }
+            },
+            {
+              title: 'BingAerialWithLabels',
+              name: 'BingAerialWithLabels',
+              sourceParams: { imagerySet: 'AerialWithLabels' }
+            },
+            {
+              title: 'BingCollinsBart',
+              name: 'BingCollinsBart',
+              sourceParams: { imagerySet: 'collinsBart' }
+            },
+            {
+              title: 'BingSurvey',
+              name: 'BingSurvey',
+              sourceParams: { imagerySet: 'ordnanceSurvey' }
             }
-          } else {
-            dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
-            server.layersConfig = [];
-          }
-        }, function (xhr) {
-          dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
-          server.layersConfig = [];
-        });
-      }
-      console.log(server.layersConfig);
-      return server.layersConfig;
-    };
-    this.refreshLayersConfig = function (index) {
-      console.log('---- refreshLayersConfig. index: ', index);
-      var server = servers[index];
-      if (goog.isDefAndNotNull(server) && goog.isDefAndNotNull(server.layersConfig)) {
-        var parser = new ol.parser.ogc.WMSCapabilities();
-        var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
-        http_.get(url).then(function (xhr) {
-          if (xhr.status == 200) {
-            var response = parser.read(xhr.data);
-            if (goog.isDefAndNotNull(response.capability) && goog.isDefAndNotNull(response.capability.layers)) {
-              var addedLayersConfig = [];
-              var index;
-              for (index = 0; index < server.layersConfig.length; index += 1) {
-                if (server.layersConfig[index].added) {
-                  addedLayersConfig.push(server.layersConfig[index]);
-                }
-              }
-              var newLayersConfig = response.capability.layers;
-              for (index = 0; index < newLayersConfig.length; index += 1) {
-                for (var subIndex = 0; subIndex < addedLayersConfig.length; subIndex += 1) {
-                  if (addedLayersConfig[subIndex].title === newLayersConfig[index].title) {
-                    newLayersConfig[index].added = true;
-                    break;
-                  }
-                }
-                if (!goog.isDefAndNotNull(newLayersConfig[index].added)) {
-                  newLayersConfig[index].added = false;
-                }
-              }
-              server.layersConfig = newLayersConfig;
-              rootScope_.$broadcast('layers-loaded');
+          ];
+        } else if (server.ptype === 'gxp_mapquestsource') {
+          server.layersConfig = [
+            {
+              title: 'MapQuestSat',
+              name: 'MapQuestSat',
+              sourceParams: { layer: 'sat' }
+            },
+            {
+              title: 'MapQuestHybrid',
+              name: 'MapQuestHybrid',
+              sourceParams: { layer: 'hyb' }
+            },
+            {
+              title: 'MapQuestOSM',
+              name: 'MapQuestOSM',
+              sourceParams: { layer: 'osm' }
             }
-          } else {
-            dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
+          ];
+        } else if (server.ptype === 'gxp_osmsource') {
+          server.layersConfig = [{
+              title: 'OpenStreetMap',
+              name: 'mapnik'
+            }];
+        } else {
+          console.log('---- Sending GetCapabilities.server: ', server, ', index:', index);
+          if (!goog.isDefAndNotNull(server.url)) {
+            dialogService_.error(translate_('error'), translate_('server_url_not_specified'));
+            return;
           }
-        }, function (xhr) {
-          dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
-        });
+          var parser = new ol.parser.ogc.WMSCapabilities();
+          var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
+          http_.get(url).then(function (xhr) {
+            if (xhr.status == 200) {
+              var response = parser.read(xhr.data);
+              if (goog.isDefAndNotNull(response.capability) && goog.isDefAndNotNull(response.capability.layers)) {
+                server.layersConfig = response.capability.layers;
+                rootScope_.$broadcast('layers-loaded', index);
+              }
+            } else {
+              dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
+            }
+          }, function (xhr) {
+            dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
+          });
+        }
       }
-      return server.layersConfig;
     };
   });
 }());
@@ -65863,9 +65930,8 @@ var DiffColorMap = {
         service_ = this;
         difflayer_ = new ol.layer.Vector({
           metadata: {
-            label: translate_('differences'),
-            hidden: false,
-            differences_layer: true
+            title: translate_('differences'),
+            differencesLayer: true
           },
           source: new ol.source.Vector({ parser: null }),
           style: new ol.style.Style({
@@ -65895,7 +65961,7 @@ var DiffColorMap = {
           })
         });
         rootScope.$on('translation_change', function () {
-          difflayer_.get('metadata').label = translate_('differences');
+          difflayer_.get('metadata').title = translate_('differences');
         });
         mapService_ = mapService;
         return this;
@@ -66022,6 +66088,7 @@ var DiffColorMap = {
     var fid = feature.layer + '/' + feature.feature;
     for (var i = 0; i < service_.features.length; i++) {
       if (fid === service_.features[i].id) {
+        featureDiffService_.undoable = true;
         featureDiffService_.leftName = service_.oldName;
         featureDiffService_.rightName = service_.newName;
         featureDiffService_.setFeature(service_.features[i], service_.oldCommitId, service_.newCommitId, service_.oldCommitId, null, service_.repoId);
@@ -66063,12 +66130,19 @@ var DiffColorMap = {
     '$translate',
     'featureDiffService',
     'conflictService',
-    function ($translate, featureDiffService, conflictService) {
+    'configService',
+    'historyService',
+    'notificationService',
+    'mapService',
+    'dialogService',
+    'geogitService',
+    function ($translate, featureDiffService, conflictService, configService, historyService, notificationService, mapService, dialogService, geogitService) {
       return {
         restrict: 'C',
         templateUrl: 'diff/partial/featurediff.tpl.html',
         link: function (scope, element) {
           function updateVariables() {
+            scope.undoEnabled = true;
             scope.featureDiffService = featureDiffService;
             scope.editable = false;
             switch (featureDiffService.change) {
@@ -66132,6 +66206,7 @@ var DiffColorMap = {
             scope.mergePanel = false;
             scope.leftSeparator = false;
             scope.rightSeparator = false;
+            scope.undoEnabled = true;
             element.closest('.modal').modal('hide');
           };
           scope.save = function () {
@@ -66149,6 +66224,56 @@ var DiffColorMap = {
             scope.rightSeparator = false;
             element.closest('.modal').modal('hide');
           };
+          scope.undoChanges = function () {
+            var branch = featureDiffService.layer.get('metadata').branchName;
+            var layerName = featureDiffService.layer.get('metadata').uniqueID;
+            var options = new GeoGitRevertFeatureOptions();
+            options.authorName = configService.configuration.userprofilename;
+            options.authorEmail = configService.configuration.userprofileemail;
+            options.path = featureDiffService.feature.id;
+            if (featureDiffService.change === 'MERGED') {
+              options.oldCommitId = featureDiffService.getOursId();
+              options.newCommitId = featureDiffService.getMergedId();
+            } else {
+              options.oldCommitId = featureDiffService.getAncestorId();
+              options.newCommitId = featureDiffService.getTheirsId();
+            }
+            options.commitMessage = $translate('reverted_changes_to_feature', { feature: featureDiffService.feature.id }) + ' ' + $translate('applied_via_maploom');
+            options.mergeMessage = options.commitMessage;
+            var repoId = featureDiffService.getRepoId();
+            geogitService.beginTransaction(repoId).then(function (transaction) {
+              transaction.command('revertfeature', options).then(function () {
+                transaction.finalize().then(function () {
+                  dialogService.open($translate('undo_successful'), $translate('changes_undone'));
+                  scope.undoEnabled = false;
+                  historyService.refreshHistory(layerName);
+                  mapService.dumpTileCache(layerName);
+                }, function (endTransactionFailure) {
+                  if (goog.isObject(endTransactionFailure) && goog.isDefAndNotNull(endTransactionFailure.conflicts)) {
+                    handleConflicts(repoId, endTransactionFailure, transaction, dialogService, conflictService, $translate, $translate('transaction'), $translate('repository'), scope, $translate('transaction'));
+                  } else {
+                    dialogService.error($translate('error'), $translate('merge_unknown_error'));
+                    transaction.abort();
+                    scope.cancel();
+                    console.log('ERROR: EndTransaction failure: ', endTransactionFailure);
+                  }
+                });
+              }, function (mergeFailure) {
+                if (goog.isObject(mergeFailure) && goog.isDefAndNotNull(mergeFailure.conflicts)) {
+                  handleConflicts(repoId, mergeFailure, transaction, dialogService, conflictService, $translate, branch, $translate('fixed_feature'), scope, $translate('fixed_feature'));
+                } else {
+                  dialogService.error($translate('error'), $translate('undo_unknown_error'));
+                  transaction.abort();
+                  scope.cancel();
+                  console.log('ERROR: Revert failure: ', options, mergeFailure);
+                }
+              });
+            }, function (beginTransactionFailure) {
+              dialogService.error($translate('error'), $translate('undo_unknown_error'));
+              console.log('ERROR: Begin transaction failure: ', beginTransactionFailure);
+              scope.cancel();
+            });
+          };
           function onResize() {
             var height = $(window).height();
             element.children('.modal-body').css('max-height', (height - 200).toString() + 'px');
@@ -66160,6 +66285,32 @@ var DiffColorMap = {
       };
     }
   ]);
+  function handleConflicts(repoId, mergeFailure, transaction, dialogService, conflictService, translate, ourName, theirName, scope, mergeBranch) {
+    var myDialog = dialogService.warn(translate('undo_conflicts'), translate('conflicts_encountered'), [
+        translate('abort'),
+        translate('resolve_conflicts')
+      ], false);
+    myDialog.then(function (button) {
+      switch (button) {
+      case 0:
+        transaction.abort();
+        break;
+      case 1:
+        conflictService.ourName = ourName;
+        conflictService.theirName = theirName;
+        conflictService.ours = mergeFailure.ours;
+        conflictService.theirs = mergeFailure.theirs;
+        conflictService.ancestor = mergeFailure.ancestor;
+        conflictService.features = mergeFailure.Feature;
+        conflictService.repoId = repoId;
+        conflictService.transaction = transaction;
+        conflictService.mergeBranch = mergeBranch;
+        conflictService.beginResolution();
+        break;
+      }
+      scope.cancel();
+    });
+  }
 }());
 (function () {
   var module = angular.module('loom_feature_diff_service', []);
@@ -66206,7 +66357,7 @@ var DiffColorMap = {
         featurePanel.map.removeLayer(layer);
       });
       newLayers.forEach(function (layer) {
-        if (!goog.isDefAndNotNull(layer.get('metadata').differences_layer) || !layer.get('metadata').differences_layer) {
+        if (!goog.isDefAndNotNull(layer.get('metadata').differencesLayer) || !layer.get('metadata').differencesLayer) {
           featurePanel.map.addLayer(layer);
         }
       });
@@ -66223,6 +66374,8 @@ var DiffColorMap = {
     this.leftName = null;
     this.rightName = null;
     this.schema = null;
+    this.undoable = false;
+    this.layer = null;
     this.$get = [
       '$rootScope',
       'mapService',
@@ -66281,13 +66434,15 @@ var DiffColorMap = {
       service_.leftName = null;
       service_.rightName = null;
       service_.schema = null;
+      service_.layer = null;
+      service_.undoable = false;
     };
     this.chooseGeometry = function (panel) {
       this.merged.geometry = panel.geometry;
       this.merged.bounds = panel.bounds;
       this.merged.olFeature.setGeometry(panel.olFeature.getGeometry());
       this.merged.olFeature.set('MapLoomChange', panel.olFeature.get('MapLoomChange'));
-      if (this.merged.geometry.changetype === 'REMOVED') {
+      if (this.left.geometry.changetype === 'REMOVED' || this.right.geometry.changetype === 'REMOVED') {
         this.merged.attributes = $.extend(true, [], panel.attributes);
       }
       rootScope_.$broadcast('merge-feature-modified');
@@ -66341,6 +66496,21 @@ var DiffColorMap = {
         }
       }
     };
+    this.getOursId = function () {
+      return ours_;
+    };
+    this.getTheirsId = function () {
+      return theirs_;
+    };
+    this.getAncestorId = function () {
+      return ancestor_;
+    };
+    this.getMergedId = function () {
+      return merged_;
+    };
+    this.getRepoId = function () {
+      return repoId_;
+    };
     this.getMerges = function () {
       var merges = {};
       if (service_.merged.geometry == service_.left.geometry) {
@@ -66384,6 +66554,7 @@ var DiffColorMap = {
           if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === repoName) {
             var splitFeature = feature.id.split('/');
             if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
+              service_.layer = layer;
               if (goog.isDefAndNotNull(layer.get('metadata').schema)) {
                 service_.schema = layer.get('metadata').schema;
               }
@@ -66456,6 +66627,9 @@ var DiffColorMap = {
           if (item.geometry !== true) {
             if (!goog.isDefAndNotNull(item.newvalue)) {
               item.newvalue = item.oldvalue;
+              if (item.changetype === 'REMOVED' && feature.change !== 'REMOVED') {
+                item.newvalue = null;
+              }
             }
             panel.attributes.push(item);
           } else {
@@ -66662,7 +66836,7 @@ var DiffColorMap = {
                 }
               }
             } else {
-              scope.geometryChanged = scope.panel.getGeometry() === featureDiffService.merged.getGeometry();
+              scope.geometryChanged = scope.panel.getGeometry() === featureDiffService.merged.getGeometry() && goog.isDefAndNotNull(scope.panel.geometry) && goog.isDefAndNotNull(featureDiffService.merged.geometry) && scope.panel.geometry.changetype === featureDiffService.merged.geometry.changetype;
               for (i = 0; i < scope.panel.attributes.length; i++) {
                 attr = scope.panel.attributes[i];
                 if (featureDiffService.attributesEqual(attr, featureDiffService.merged.attributes[i]) && attr.changetype !== 'NO_CHANGE') {
@@ -66912,6 +67086,7 @@ var DiffColorMap = {
   var mapService_ = null;
   var rootScope_ = null;
   var translate_ = null;
+  var historyService_ = null;
   var http_ = null;
   var exclusiveModeService_ = null;
   var dialogService_ = null;
@@ -66941,10 +67116,12 @@ var DiffColorMap = {
       '$http',
       'exclusiveModeService',
       'dialogService',
-      function ($rootScope, $translate, mapService, $compile, $http, exclusiveModeService, dialogService) {
+      'historyService',
+      function ($rootScope, $translate, mapService, $compile, $http, exclusiveModeService, dialogService, historyService) {
         rootScope_ = $rootScope;
         service_ = this;
         mapService_ = mapService;
+        historyService_ = historyService;
         translate_ = $translate;
         http_ = $http;
         exclusiveModeService_ = exclusiveModeService;
@@ -67243,8 +67420,11 @@ var DiffColorMap = {
         }
         propertyXmlPartial += '<feature:' + selectedItem_.geometry_name + '>' + featureGML + '</feature:' + selectedItem_.geometry_name + '>';
         goog.array.forEach(properties, function (property, index) {
-          if (properties[index][1] !== selectedItemProperties_[index][1] && property[1] !== '') {
-            propertyXmlPartial += '<feature:' + property[0] + '>' + property[1] + '</feature:' + property[0] + '>';
+          if (property[1] === '') {
+            property[1] = null;
+          }
+          if (properties[index][1] !== selectedItemProperties_[index][1]) {
+            propertyXmlPartial += '<feature:' + property[0] + '>' + (property[1] === null ? '' : property[1]) + '</feature:' + property[0] + '>';
           }
         });
         issueWFSPost(wfsPostTypes_.INSERT, propertyXmlPartial, properties, coords, newPos);
@@ -67310,8 +67490,11 @@ var DiffColorMap = {
       } else if (save) {
         var propertyXmlPartial = '';
         goog.array.forEach(properties, function (property, index) {
-          if (properties[index][1] !== selectedItemProperties_[index][1] && property[1] !== '') {
-            propertyXmlPartial += '<wfs:Property><wfs:Name>' + property[0] + '</wfs:Name><wfs:Value>' + property[1] + '</wfs:Value></wfs:Property>';
+          if (property[1] === '') {
+            property[1] = null;
+          }
+          if (properties[index][1] !== selectedItemProperties_[index][1]) {
+            propertyXmlPartial += '<wfs:Property><wfs:Name>' + property[0] + '</wfs:Name><wfs:Value>' + (property[1] === null ? '' : property[1]) + '</wfs:Value></wfs:Property>';
           }
         });
         var newPos = null;
@@ -67350,7 +67533,7 @@ var DiffColorMap = {
           $compile(containerInstance_)($rootScope);
         }
         service_.hide();
-        var layers = mapService_.getFeatureLayers();
+        var layers = mapService_.getLayers();
         mapService_.map.getFeatureInfo({
           pixel: evt.getPixel(),
           layers: layers,
@@ -67406,7 +67589,7 @@ var DiffColorMap = {
     var commitMsg;
     if (postType === wfsPostTypes_.INSERT) {
       var featureType = selectedLayer_.get('metadata').name.split(':')[1];
-      commitMsg = '{&quot;' + selectedLayer_.get('metadata').nativeName + '&quot;:{&quot;added&quot;:1}}';
+      commitMsg = translate_('added_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
       wfsRequestTypePartial = '<wfs:Insert handle="' + commitMsg + '"><feature:' + featureType + ' xmlns:feature="http://www.geonode.org/">' + partial + '</feature:' + featureType + '></wfs:Insert>';
       goog.array.forEach(properties, function (obj) {
         if (obj[0] !== 'fotos' && obj[0] !== 'photos') {
@@ -67416,15 +67599,16 @@ var DiffColorMap = {
     } else {
       var filter = '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">' + '<ogc:FeatureId fid="' + selectedItem_.id + '" />' + '</ogc:Filter>';
       if (postType === wfsPostTypes_.DELETE) {
-        commitMsg = '{&quot;' + selectedLayer_.get('metadata').nativeName + '&quot;:{&quot;removed&quot;:1}}';
+        commitMsg = translate_('removed_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
         wfsRequestTypePartial = '<wfs:Delete handle="' + commitMsg + '" xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.get('metadata').name + '">' + filter + '</wfs:Delete>';
       } else if (postType === wfsPostTypes_.UPDATE) {
-        commitMsg = '{&quot;' + selectedLayer_.get('metadata').nativeName + '&quot;:{&quot;modified&quot;:1}}';
+        commitMsg = translate_('modified_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
         wfsRequestTypePartial = '<wfs:Update handle="' + commitMsg + '" xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.get('metadata').name + '">' + partial + filter + '</wfs:Update>';
       }
     }
     var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.1.0" ' + 'handle="' + commitMsg + '" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd"> ' + wfsRequestTypePartial + '</wfs:Transaction>';
     var url = selectedLayer_.get('metadata').url + '/wfs/WfsDispatcher';
+    var layerName = selectedLayer_.get('metadata').uniqueID;
     http_.post(url, wfsRequestData).success(function (data, status, headers, config) {
       if (postType === wfsPostTypes_.INSERT) {
         var x2js = new X2JS();
@@ -67444,7 +67628,8 @@ var DiffColorMap = {
       if (postType === wfsPostTypes_.DELETE) {
         service_.hide();
       }
-      mapService_.dumpTileCache();
+      historyService_.refreshHistory(layerName);
+      mapService_.dumpTileCache(layerName);
     }).error(function (data, status, headers, config) {
       console.log('----[ ERROR: wfs-t post failed! ', data, status, headers, config);
     });
@@ -67569,6 +67754,9 @@ var GeoGitRemoteOptions = function () {
   this.username = null;
   this.password = null;
   this.ping = null;
+  this.update = null;
+  this.newName = null;
+  this.verbose = null;
 };
 var GeoGitBranchOptions = function () {
   this.list = null;
@@ -67598,7 +67786,7 @@ var GeoGitDiffOptions = function () {
 var GeoGitLogOptions = function () {
   this.limit = null;
   this.offset = null;
-  this.paths = null;
+  this.path = null;
   this.since = null;
   this.until = null;
   this.sinceTime = null;
@@ -67607,6 +67795,16 @@ var GeoGitLogOptions = function () {
   this.show = null;
   this.firstParentOnly = null;
   this.summarize = null;
+  this.returnRange = null;
+};
+var GeoGitRevertFeatureOptions = function () {
+  this.authorName = null;
+  this.authorEmail = null;
+  this.commitMessage = null;
+  this.mergeMessage = null;
+  this.oldCommitId = null;
+  this.newCommitId = null;
+  this.path = null;
 };
 (function () {
   var module = angular.module('loom_geogit_service', []);
@@ -67693,10 +67891,10 @@ var GeoGitLogOptions = function () {
               if (goog.isArray(options[property])) {
                 for (var i = 0; i < options[property].length; i++) {
                   var element = options[property][i];
-                  URL += '&' + trimmed + '=' + element;
+                  URL += '&' + trimmed + '=' + encodeURIComponent(element);
                 }
               } else {
-                URL += '&' + trimmed + '=' + options[property];
+                URL += '&' + trimmed + '=' + encodeURIComponent(options[property]);
               }
             }
           }
@@ -67747,12 +67945,15 @@ var GeoGitLogOptions = function () {
       }
       var remoteOptions = new GeoGitRemoteOptions();
       remoteOptions.list = true;
+      remoteOptions.verbose = true;
       service_.command(repo.id, 'remote', remoteOptions).then(function (response) {
         if (goog.isDefAndNotNull(response.Remote)) {
           var remoteId = 0;
           forEachArrayish(response.Remote, function (remote) {
             repo.remotes.push({
               name: remote.name,
+              url: remote.url,
+              username: remote.username,
               branches: [],
               id: remoteId,
               active: false
@@ -68039,7 +68240,7 @@ var GeoGitLogOptions = function () {
             logOptions.untilTime = startTime < endTime ? endTime : startTime;
             logOptions.sinceTime = startTime < endTime ? startTime : endTime;
             logOptions.path = historyService.pathFilter;
-            logOptions.summarize = true;
+            logOptions.returnRange = true;
             geogitService.command(historyService.repoId, 'log', logOptions).then(function (response) {
               if (goog.isDefAndNotNull(response.untilCommit)) {
                 var firstCommitId = response.untilCommit.id;
@@ -68136,6 +68337,12 @@ var GeoGitLogOptions = function () {
               });
             }
           });
+          scope.$on('history-refreshed', function (event, numInserted) {
+            if (raw.scrollTop !== 0) {
+              var height = scrollPane.find('.list-group-item')[0].offsetHeight - 1;
+              raw.scrollTop = raw.scrollTop + height * numInserted;
+            }
+          });
           function updateVariables(newLog, oldLog) {
             if (goog.isDefAndNotNull(oldLog) && oldLog.length === 0) {
               $timeout(function () {
@@ -68218,71 +68425,8 @@ var GeoGitLogOptions = function () {
             var date = new Date(time);
             return date.toLocaleDateString() + ' @ ' + date.toLocaleTimeString();
           };
-          var featureWord = function (count) {
-            return count > 1 ? $translate('features') : $translate('feature');
-          };
           var prettyMessage = function () {
-            if (goog.isDefAndNotNull(scope.commit.summary)) {
-              try {
-                var message = '';
-                json = JSON.parse(scope.commit.message.replace(/&quot;/g, '"'));
-                if (goog.isDefAndNotNull(json.merge_branch) && goog.isString(json.merge_branch)) {
-                  message += $translate('merge') + ' ' + json.merge_branch + ':<p>';
-                }
-                for (var layer in json) {
-                  if (!goog.isObject(json[layer])) {
-                    continue;
-                  }
-                  message += layer + ': ';
-                  var added = json[layer]['added'];
-                  var removed = json[layer]['removed'];
-                  var modified = json[layer]['modified'];
-                  var conflicted = json[layer]['conflicted'];
-                  var comma = false;
-                  if (goog.isDefAndNotNull(added) && added > 0) {
-                    message += $translate('added') + ' ' + added + ' ' + featureWord(added);
-                    comma = true;
-                  }
-                  if (goog.isDefAndNotNull(removed) && removed > 0) {
-                    if (comma === true) {
-                      message += ', ';
-                    }
-                    message += $translate('removed') + ' ' + removed + ' ' + featureWord(removed);
-                    comma = true;
-                  }
-                  if (goog.isDefAndNotNull(modified) && modified > 0) {
-                    if (comma === true) {
-                      message += ', ';
-                    }
-                    message += $translate('modified') + ' ' + modified + ' ' + featureWord(modified);
-                    comma = true;
-                  }
-                  if (goog.isDefAndNotNull(conflicted) && conflicted.length > 0) {
-                    if (comma === true) {
-                      message += ', ';
-                    }
-                    message += $translate('conflicted_features_resolved');
-                    if (goog.isArray(conflicted)) {
-                      var featureComma = false;
-                      for (var i = 0; i < conflicted.length; i++) {
-                        if (featureComma === true) {
-                          message += ', ';
-                        }
-                        message += conflicted[i].split('/')[1];
-                        featureComma = true;
-                      }
-                    } else {
-                      message += conflicted;
-                    }
-                  }
-                  message += '<p>';
-                }
-                return message;
-              } catch (e) {
-              }
-            } else {
-              return scope.commit.message;
-            }
+            return scope.commit.message;
           };
           var content = '<div class="history-popover-content">' + '<div class="history-popover-label">' + $translate('author_name') + ':</div>' + '<div class="history-popover-value">' + safeName(scope.commit.author.name) + '</div>' + '<div class="history-popover-label">' + $translate('author_email') + ':</div>' + '<div class="history-popover-value">' + safeEmail(scope.commit.author.email) + '</div>' + '<div class="history-popover-label">' + $translate('committer_name') + ':</div>' + '<div class="history-popover-value">' + safeName(scope.commit.committer.name) + '</div>' + '<div class="history-popover-label">' + $translate('committer_email') + ':</div>' + '<div class="history-popover-value">' + safeEmail(scope.commit.committer.email) + '</div>' + '<div class="history-popover-label">' + $translate('commit_time') + ':</div>' + '<div class="history-popover-value">' + prettyTime(scope.commit.committer.timestamp) + '</div>' + '<div class="history-popover-label">' + $translate('message') + ':</div>' + '<div class="history-popover-value">' + prettyMessage() + '</div>';
           element.popover({
@@ -68316,12 +68460,13 @@ var GeoGitLogOptions = function () {
   module.provider('historyService', function () {
     this.log = [];
     this.title = 'History';
-    this.currentPage = 0;
     this.nextPage = false;
-    this.entriesPerPage = 30;
+    this.entriesPerPage = 10;
     this.layer = null;
     this.repoId = null;
     this.pathFilter = null;
+    this.fetchingHistory = false;
+    this.historyTransaction = 0;
     this.$get = [
       '$rootScope',
       '$translate',
@@ -68339,20 +68484,35 @@ var GeoGitLogOptions = function () {
       }
     ];
     this.getHistory = function (layer, pathFilter) {
-      service_.clearHistory();
-      service_.pathFilter = pathFilter;
-      if (goog.isDefAndNotNull(layer)) {
-        service_.layer = layer;
+      if (service_.fetchingHistory === false) {
+        service_.historyTransaction++;
+        service_.clearHistory();
+        service_.fetchingHistory = true;
+        service_.pathFilter = pathFilter;
+        if (goog.isDefAndNotNull(layer)) {
+          service_.layer = layer;
+        }
+        getHistoryInternal();
       }
-      getHistoryInternal();
     };
     this.getMoreHistory = function () {
-      service_.currentPage++;
-      getHistoryInternal();
+      if (service_.fetchingHistory === false) {
+        service_.fetchingHistory = true;
+        getHistoryInternal();
+      }
+    };
+    this.refreshHistory = function (layerName) {
+      if (goog.isDefAndNotNull(service_.layer) && service_.fetchingHistory === false) {
+        if (goog.isDefAndNotNull(layerName) && service_.layer.get('metadata').uniqueID !== layerName) {
+          return;
+        }
+        service_.fetchingHistory = true;
+        getHistoryInternal(true);
+      }
     };
     this.clearHistory = function () {
+      service_.fetchingHistory = false;
       service_.log = [];
-      service_.currentPage = 0;
       service_.nextPage = false;
       service_.layer = null;
       service_.repoId = null;
@@ -68363,16 +68523,31 @@ var GeoGitLogOptions = function () {
       service_.title = title;
     };
   });
-  function getHistoryInternal() {
+  function getHistoryInternal(_refresh) {
+    var refresh = _refresh;
+    if (!goog.isDefAndNotNull(refresh)) {
+      refresh = false;
+    }
     if (goog.isDefAndNotNull(service_.layer)) {
       var logOptions = new GeoGitLogOptions();
-      logOptions.show = service_.entriesPerPage;
-      logOptions.page = service_.currentPage;
+      if (refresh && service_.log.length > 0) {
+        logOptions.show = 1000;
+      } else {
+        logOptions.show = service_.entriesPerPage;
+      }
       logOptions.firstParentOnly = 'true';
+      logOptions.summarize = true;
+      var thisTransaction = service_.historyTransaction;
       var metadata = service_.layer.get('metadata');
       if (goog.isDefAndNotNull(metadata)) {
         if (goog.isDefAndNotNull(metadata.branchName)) {
           logOptions.until = metadata.branchName;
+        }
+        if (service_.log.length > 0 && !refresh) {
+          logOptions.until = getFirstParent(service_.log[service_.log.length - 1]);
+        }
+        if (refresh && service_.log.length > 0) {
+          logOptions.since = service_.log[0].id;
         }
         if (goog.isDefAndNotNull(metadata.repoId) && goog.isDefAndNotNull(metadata.nativeName)) {
           service_.repoId = metadata.repoId;
@@ -68381,47 +68556,69 @@ var GeoGitLogOptions = function () {
           }
           logOptions.path = service_.pathFilter;
           geogitService_.command(metadata.repoId, 'log', logOptions).then(function (response) {
+            if (service_.fetchingHistory === false || thisTransaction != service_.historyTransaction) {
+              return;
+            }
             if (goog.isDefAndNotNull(response.commit)) {
               forEachArrayish(response.commit, function (commit) {
-                var json = null;
-                try {
-                  var message = commit.message.replace(/&quot;/g, '"');
-                  json = JSON.parse(message);
-                  var added = json[metadata.nativeName]['added'];
-                  var removed = json[metadata.nativeName]['removed'];
-                  var modified = json[metadata.nativeName]['modified'];
-                  if (!goog.isDefAndNotNull(added)) {
-                    added = 0;
-                  }
-                  if (!goog.isDefAndNotNull(removed)) {
-                    removed = 0;
-                  }
-                  if (!goog.isDefAndNotNull(modified)) {
-                    modified = 0;
-                  }
-                  var totalChanges = added + removed + modified;
-                  commit.summary = {
-                    added: { width: added / totalChanges * 100 + '%' },
-                    modified: { width: modified / totalChanges * 100 + '%' },
-                    removed: { width: removed / totalChanges * 100 + '%' }
-                  };
-                } catch (e) {
+                var added = 0;
+                var modified = 0;
+                var removed = 0;
+                if (goog.isDefAndNotNull(commit.adds)) {
+                  added = commit.adds;
                 }
+                if (goog.isDefAndNotNull(commit.modifies)) {
+                  modified = commit.modifies;
+                }
+                if (goog.isDefAndNotNull(commit.removes)) {
+                  removed = commit.removes;
+                }
+                var totalChanges = added + removed + modified;
+                commit.summary = {
+                  added: { width: added / totalChanges * 100 + '%' },
+                  modified: { width: modified / totalChanges * 100 + '%' },
+                  removed: { width: removed / totalChanges * 100 + '%' }
+                };
               });
+              var numCommits = 0;
               if (goog.isArray(response.commit)) {
-                service_.log = service_.log.concat(response.commit);
+                if (refresh) {
+                  Array.prototype.splice.apply(service_.log, [
+                    0,
+                    0
+                  ].concat(response.commit));
+                  numCommits = response.commit.length;
+                } else {
+                  service_.log = service_.log.concat(response.commit);
+                }
               } else {
-                service_.log.push(response.commit);
+                if (refresh) {
+                  service_.log.splice(0, 0, response.commit);
+                  numCommits = 1;
+                } else {
+                  service_.log.push(response.commit);
+                }
               }
-              pulldownService_.showHistoryPanel();
               rootScope_.$broadcast('history_fetched');
+              if (refresh) {
+                rootScope_.$broadcast('history-refreshed', numCommits);
+              } else {
+                pulldownService_.showHistoryPanel();
+              }
             }
-            if (goog.isDefAndNotNull(response.nextPage)) {
-              service_.nextPage = response.nextPage;
-            } else {
-              service_.nextPage = false;
+            if (!refresh) {
+              if (goog.isDefAndNotNull(response.nextPage)) {
+                service_.nextPage = response.nextPage;
+              } else {
+                service_.nextPage = false;
+              }
             }
+            service_.fetchingHistory = false;
           }, function (reject) {
+            if (service_.fetchingHistory === false || thisTransaction != service_.historyTransaction) {
+              return;
+            }
+            service_.fetchingHistory = false;
             console.log('History failed: ', reject);
             dialogService_.error(translate_('error'), translate_('history_failed'));
           });
@@ -68429,19 +68626,30 @@ var GeoGitLogOptions = function () {
       }
     }
   }
+  function getFirstParent(commit) {
+    if (goog.isDefAndNotNull(commit.parents) && goog.isDefAndNotNull(commit.parents.id)) {
+      if (goog.isArray(commit.parents.id)) {
+        return commit.parents.id[0];
+      } else {
+        return commit.parents.id;
+      }
+    }
+    return null;
+  }
 }());
 (function () {
   var module = angular.module('loom_layers_directive', []);
   module.directive('loomLayers', [
     '$rootScope',
     'mapService',
+    'serverService',
     'pulldownService',
     'historyService',
     'featureManagerService',
     'dialogService',
     '$translate',
     'tableViewService',
-    function ($rootScope, mapService, pulldownService, historyService, featureManagerService, dialogService, $translate, tableViewService) {
+    function ($rootScope, mapService, serverService, pulldownService, historyService, featureManagerService, dialogService, $translate, tableViewService) {
       return {
         restrict: 'C',
         replace: true,
@@ -68473,8 +68681,8 @@ var GeoGitLogOptions = function () {
             var layer = mapService.map.removeLayer(mapService.map.getLayers().getAt(length - startIndex));
             mapService.map.getLayers().insertAt(length - endIndex, layer);
           };
-          scope.filterHiddenLayers = function (layer) {
-            return !(!goog.isDefAndNotNull(layer.get('metadata')) || goog.isDefAndNotNull(layer.get('metadata').hidden) && layer.get('metadata').hidden);
+          scope.filterInternalLayers = function (layer) {
+            return !(!goog.isDefAndNotNull(layer.get('metadata')) || goog.isDefAndNotNull(layer.get('metadata').vectorEditLayer) && layer.get('metadata').vectorEditLayer);
           };
           scope.isGeogit = function (layer) {
             if (goog.isDefAndNotNull(layer)) {
@@ -68488,7 +68696,7 @@ var GeoGitLogOptions = function () {
             return false;
           };
           scope.showHistory = function (layer) {
-            historyService.setTitle($translate('history_for', { value: layer.get('metadata').label }));
+            historyService.setTitle($translate('history_for', { value: layer.get('metadata').title }));
             historyService.getHistory(layer);
           };
           scope.attrList = [];
@@ -68501,6 +68709,32 @@ var GeoGitLogOptions = function () {
               scope.attrList.push(layer.get('metadata').schema[i]._name);
             }
           };
+          scope.updateLayerTitles = function (serverIndex) {
+            console.log('---- LayersDirective.updateLayerTitles. serverIndex: ', serverIndex);
+            var server = serverService.getServerByIndex(serverIndex);
+            var layers = mapService.getLayers(true, true);
+            console.log('server: ', server, ', layers: ', layers);
+            for (var index = 0; index < server.layersConfig.length; index++) {
+              var layerConfig = server.layersConfig[index];
+              for (var index2 = 0; index2 < layers.length; index2++) {
+                var layer = layers[index2];
+                var layerMetadate = layer.get('metadata');
+                if (goog.isDefAndNotNull(layerMetadate) && goog.isDefAndNotNull(layerMetadate.config)) {
+                  var conf = layerMetadate.config;
+                  if (conf.source === serverIndex) {
+                    if (conf.name === layerConfig.name) {
+                      conf.title = layerConfig.title;
+                      layerMetadate.title = layerConfig.title;
+                      console.log('-- mapService.updateLayerTitles. updated title: ', layerConfig.title, layer);
+                    }
+                  }
+                }
+              }
+            }
+          };
+          scope.$on('layers-loaded', function (event, serverIndex) {
+            scope.updateLayerTitles(serverIndex);
+          });
         }
       };
     }
@@ -68593,7 +68827,7 @@ var GeoGitLogOptions = function () {
   var select = null;
   var createVectorEditLayer = function () {
     return new ol.layer.Vector({
-      metadata: { hidden: true },
+      metadata: { vectorEditLayer: true },
       source: new ol.source.Vector({ parser: null }),
       style: new ol.style.Style({
         rules: [
@@ -68711,6 +68945,8 @@ var GeoGitLogOptions = function () {
         }
         this.map = this.createMap();
         this.editLayer = createVectorEditLayer();
+        var localServer = serverService_.getServerLocalGeoserver();
+        serverService_.populateLayersConfig(serverService_.getServerIndex(localServer.id));
         return this;
       }
     ];
@@ -68728,14 +68964,20 @@ var GeoGitLogOptions = function () {
       this.map.getInteractions().getArray()[index].condition_ = ol.events.condition.always;
       dragZoomActive = true;
     };
-    this.dumpTileCache = function () {
-      var layers = this.getFeatureLayers();
+    this.dumpTileCache = function (layerToDump) {
+      var layers = this.getLayers();
       forEachArrayish(layers, function (layer) {
         if (goog.isDefAndNotNull(layer.getTileSource)) {
-          var tileSource = layer.getTileSource();
-          if (goog.isDefAndNotNull(tileSource)) {
-            if (goog.isDefAndNotNull(tileSource.updateParams)) {
-              tileSource.updateParams({ _dc: new Date().getTime() });
+          var metadata = layer.get('metadata');
+          if (goog.isDefAndNotNull(metadata)) {
+            if (goog.isDefAndNotNull(layerToDump) && layerToDump !== metadata.uniqueID) {
+              return;
+            }
+            var tileSource = layer.getTileSource();
+            if (goog.isDefAndNotNull(tileSource)) {
+              if (goog.isDefAndNotNull(tileSource.updateParams)) {
+                tileSource.updateParams({ _dc: new Date().getTime() });
+              }
             }
           }
         }
@@ -68760,24 +69002,46 @@ var GeoGitLogOptions = function () {
       }
       view.fitExtent(extent, map.getSize());
     };
-    this.getFeatureLayers = function () {
+    this.getLayers = function (includeHidden, includeImagery) {
       var layers = [];
       this.map.getLayers().forEach(function (layer) {
-        if (!(layer.source_ instanceof ol.source.OSM) && !(layer.source_ instanceof ol.source.BingMaps) && !(layer.source_ instanceof ol.source.MapQuestOSM) && goog.isDefAndNotNull(layer.get('metadata')) && layer.get('visible') && !layer.get('metadata').hidden && !layer.get('metadata').differences_layer) {
-          layers.push(layer);
+        if (goog.isDefAndNotNull(layer.get('metadata')) && !layer.get('metadata').vectorEditLayer && !layer.get('metadata').differencesLayer) {
+          if (service_.layerIsImagery(layer)) {
+            if (goog.isDefAndNotNull(includeImagery) && includeImagery) {
+              if (layer.get('visible')) {
+                layers.push(layer);
+              } else {
+                if (goog.isDefAndNotNull(includeHidden) && includeHidden) {
+                  layers.push(layer);
+                }
+              }
+            }
+          } else {
+            if (layer.get('visible')) {
+              layers.push(layer);
+            } else {
+              if (goog.isDefAndNotNull(includeHidden) && includeHidden) {
+                layers.push(layer);
+              }
+            }
+          }
         }
       });
       return layers;
     };
+    this.layerIsImagery = function (layer) {
+      if (layer.source_ instanceof ol.source.OSM || layer.source_ instanceof ol.source.BingMaps || layer.source_ instanceof ol.source.MapQuestOSM) {
+        return true;
+      }
+    };
     this.addLayer = function (config, doNotAddToMap) {
       var server = serverService_.getServerByIndex(config.source);
-      console.log('server for layer: ', server);
       var layer = null;
       if (server.ptype === 'gxp_osmsource') {
         layer = new ol.layer.Tile({
           metadata: {
             serverId: server.id,
-            label: config.title
+            title: config.title
           },
           source: new ol.source.OSM()
         });
@@ -68789,11 +69053,10 @@ var GeoGitLogOptions = function () {
         if (goog.isDefAndNotNull(config.sourceParams)) {
           goog.object.extend(sourceParams, config.sourceParams);
         }
-        console.log(sourceParams, config.sourceParams, {});
         layer = new ol.layer.Tile({
           metadata: {
             serverId: server.id,
-            label: config.title
+            title: config.title
           },
           source: new ol.source.BingMaps(sourceParams)
         });
@@ -68805,7 +69068,7 @@ var GeoGitLogOptions = function () {
           layer = new ol.layer.Tile({
             metadata: {
               serverId: server.id,
-              label: config.title
+              title: config.title
             },
             source: source
           });
@@ -68824,7 +69087,7 @@ var GeoGitLogOptions = function () {
           metadata: {
             serverId: server.id,
             url: goog.isDefAndNotNull(url) ? url : undefined,
-            label: config.title,
+            title: config.title,
             name: config.name,
             editable: true
           },
@@ -68844,20 +69107,19 @@ var GeoGitLogOptions = function () {
             }
           })
         });
-        console.log('new layer: ', layer);
         geogitService_.isGeoGit(layer);
       }
       if (goog.isDefAndNotNull(layer)) {
         config.source = parseInt(config.source, 10);
         var meta = layer.get('metadata');
         meta.config = config;
+        meta.uniqueID = sha1('server' + meta.serverId + '_' + meta.name);
         if (!goog.isDefAndNotNull(doNotAddToMap)) {
           this.map.addLayer(layer);
         }
       } else {
         console.log('====[Error: could not load layer: ', config);
       }
-      console.log('---addLayer layer', layer);
       return layer;
     };
     this.addBaseLayer = function (title, doNotAddToMap) {
@@ -68868,7 +69130,7 @@ var GeoGitLogOptions = function () {
         layer = new ol.layer.Tile({
           metadata: {
             serverId: serverId,
-            label: title
+            title: title
           },
           source: new ol.source.OSM()
         });
@@ -68876,7 +69138,7 @@ var GeoGitLogOptions = function () {
         layer = new ol.layer.Tile({
           metadata: {
             serverId: serverId,
-            label: title
+            title: title
           },
           source: new ol.source.MapQuestOpenAerial()
         });
@@ -68884,7 +69146,7 @@ var GeoGitLogOptions = function () {
         layer = new ol.layer.Tile({
           metadata: {
             serverId: serverId,
-            label: title
+            title: title
           },
           source: new ol.source.MapQuestOSM()
         });
@@ -68962,15 +69224,50 @@ var GeoGitLogOptions = function () {
       });
     };
     this.loadLayers = function () {
-      console.log('=======[[ using this.configuration: ', this.configuration);
+      console.log('=======[[ using this.configuration: ', service_.configuration);
       var layers = [];
-      if (goog.isDefAndNotNull(this.configuration) && goog.isDefAndNotNull(this.configuration.sources) && goog.isDefAndNotNull(this.configuration.map) && goog.isDefAndNotNull(this.configuration.map.layers)) {
-        var ordered = new Array(this.configuration.sources.length);
-        goog.object.forEach(this.configuration.sources, function (serverInfo, key, obj) {
+      if (goog.isDefAndNotNull(service_.configuration) && goog.isDefAndNotNull(service_.configuration.sources) && goog.isDefAndNotNull(service_.configuration.map) && goog.isDefAndNotNull(service_.configuration.map.layers)) {
+        var ordered = new Array(service_.configuration.sources.length);
+        console.log('this.configuration.sources: ', service_.configuration.sources);
+        goog.object.forEach(service_.configuration.sources, function (serverInfo, key, obj) {
           ordered[key] = serverInfo;
         });
-        goog.array.forEach(ordered, function (serverInfo, index, obj) {
-          serverService_.addServer(serverInfo);
+        var orderedUnique = new Array(ordered.length);
+        goog.array.forEach(ordered, function (serverInfo, key, obj) {
+          if (goog.isDefAndNotNull(serverInfo.url)) {
+            var foundServerIndex = null;
+            for (var index = 0; index < orderedUnique.length; index++) {
+              var server = orderedUnique[index];
+              if (goog.isDefAndNotNull(server)) {
+                if (goog.isDefAndNotNull(server.url)) {
+                  if (server.url === serverInfo.url) {
+                    foundServerIndex = index;
+                    break;
+                  }
+                }
+              }
+            }
+            if (goog.isDefAndNotNull(foundServerIndex)) {
+              var foundServer = orderedUnique[foundServerIndex];
+              console.log('====[ Warning: skipping source/server as it has the same URL as existingServer.' + ' serverInfo: ', serverInfo, ', foundServer: ', foundServer);
+              for (var index2 = 0; index2 < service_.configuration.map.layers.length; index2++) {
+                var layer = service_.configuration.map.layers[index2];
+                if (layer.source === key.toString()) {
+                  console.log('====[ Note: updating layer source from old:', layer.source, ', to new: ', foundServerIndex, ', layer: ', layer);
+                  layer.source = foundServerIndex.toString();
+                }
+              }
+            } else {
+              orderedUnique[key] = serverInfo;
+            }
+          } else {
+            orderedUnique[key] = serverInfo;
+          }
+        });
+        goog.array.forEach(orderedUnique, function (serverInfo, index, obj) {
+          if (goog.isDefAndNotNull(serverInfo)) {
+            serverService_.addServer(serverInfo);
+          }
         });
         serverService_.configDefaultServers();
         goog.array.forEach(this.configuration.map.layers, function (layerInfo, index, obj) {
@@ -69133,6 +69430,7 @@ var GeoGitLogOptions = function () {
   var featureDiffService_ = null;
   var diffService_ = null;
   var pulldownService_ = null;
+  var historyService_ = null;
   var service_ = null;
   var mapService_ = null;
   var dialogService_ = null;
@@ -69157,14 +69455,16 @@ var GeoGitLogOptions = function () {
       'diffService',
       'pulldownService',
       'configService',
+      'historyService',
       'featureDiffService',
       'mapService',
       'dialogService',
       'geogitService',
-      function ($rootScope, $location, $translate, diffService, pulldownService, configService, featureDiffService, mapService, dialogService, geogitService) {
+      function ($rootScope, $location, $translate, diffService, pulldownService, configService, historyService, featureDiffService, mapService, dialogService, geogitService) {
         diffService_ = diffService;
         pulldownService_ = pulldownService;
         featureDiffService_ = featureDiffService;
+        historyService_ = historyService;
         mapService_ = mapService;
         dialogService_ = dialogService;
         geogitService_ = geogitService;
@@ -69219,63 +69519,47 @@ var GeoGitLogOptions = function () {
       commitInternal(conflicts, conflictsInError);
     };
     this.buildMergeMessage = function (status, mergeBranch, useConflicts) {
-      var message = {};
-      message.merge_branch = mergeBranch;
+      var i = 0;
+      var layer = null;
+      var message = translate_('merged_branch', { 'branch': mergeBranch }) + '.';
       if (goog.isDefAndNotNull(status.staged)) {
-        forEachArrayish(status.staged, function (entry) {
-          var layer = null;
-          if (goog.isDefAndNotNull(entry.path) && entry.path.length > 0) {
-            layer = entry.path.split('/')[0];
-          } else {
-            layer = entry.newPath.split('/')[0];
-          }
-          if (!goog.isDefAndNotNull(message[layer])) {
-            message[layer] = {};
-          }
-          switch (entry.changeType) {
-          case 'ADDED':
-            if (!goog.isDefAndNotNull(message[layer].added)) {
-              message[layer].added = 0;
-            }
-            message[layer].added++;
-            break;
-          case 'REMOVED':
-            if (!goog.isDefAndNotNull(message[layer].removed)) {
-              message[layer].removed = 0;
-            }
-            message[layer].removed++;
-            break;
-          case 'MODIFIED':
-            if (!goog.isDefAndNotNull(message[layer].modified)) {
-              message[layer].modified = 0;
-            }
-            message[layer].modified++;
-            break;
-          }
-        });
+        var changes = {};
         if (goog.isDefAndNotNull(useConflicts) && useConflicts === true) {
           for (i = 0; i < service_.features.length; i++) {
             var feature = service_.features[i];
             if (feature.change === 'CONFLICT') {
-              var layer = feature.id.split('/')[0];
-              if (!goog.isDefAndNotNull(message[layer])) {
-                message[layer] = {};
+              layer = feature.id.split('/')[0];
+              if (!goog.isDefAndNotNull(changes[layer])) {
+                changes[layer] = {};
               }
-              if (!goog.isDefAndNotNull(message[layer].conflicted)) {
-                message[layer].conflicted = [];
+              if (!goog.isDefAndNotNull(changes[layer].conflicted)) {
+                changes[layer].conflicted = [];
               }
-              message[layer].conflicted.push(feature.id);
+              changes[layer].conflicted.push(feature.id);
             }
           }
         }
+        for (var key in changes) {
+          if (changes.hasOwnProperty(key)) {
+            message += ' ';
+            layer = changes[key];
+            message += translate_('conflicts_in', { 'layer': key }) + ': ';
+            for (i = 0; i < layer.conflicted.length; i++) {
+              message += (i > 0 ? ', ' : '') + layer.conflicted[i];
+            }
+            message += '.';
+          }
+        }
       }
-      return JSON.stringify(message);
+      message += ' ' + translate_('applied_via_maploom');
+      return message;
     };
   });
   function featureClicked(feature) {
     var fid = feature.layer + '/' + feature.feature;
     for (var i = 0; i < service_.features.length; i++) {
       if (fid === service_.features[i].id) {
+        featureDiffService_.undoable = false;
         featureDiffService_.leftName = service_.ourName;
         featureDiffService_.rightName = service_.theirName;
         featureDiffService_.setFeature(service_.features[i], service_.ours, service_.theirs, service_.ancestor, 'WORK_HEAD', service_.repoId);
@@ -69300,6 +69584,7 @@ var GeoGitLogOptions = function () {
               service_.transaction = null;
               service_.abort();
               pulldownService_.defaultMode();
+              historyService_.refreshHistory();
               mapService_.dumpTileCache();
             }, function (endTransactionFailure) {
               if (goog.isObject(endTransactionFailure) && goog.isDefAndNotNull(endTransactionFailure.conflicts)) {
@@ -69397,11 +69682,12 @@ var GeoGitLogOptions = function () {
     'geogitService',
     'dialogService',
     'notificationService',
+    'historyService',
     'conflictService',
     'mapService',
     'featureDiffService',
     'configService',
-    function ($translate, geogitService, dialogService, notificationService, conflictService, mapService, featureDiffService, configService) {
+    function ($translate, geogitService, dialogService, notificationService, historyService, conflictService, mapService, featureDiffService, configService) {
       return {
         templateUrl: 'merge/partials/merge.tpl.html',
         link: function (scope, element, attrs) {
@@ -69419,10 +69705,10 @@ var GeoGitLogOptions = function () {
             scope.sourceBranch = null;
             scope.destinationBranch = null;
             element.closest('.modal').modal('hide');
-            $('#loading').addClass('hidden');
+            element.find('#loading').addClass('hidden');
           };
           scope.onMerge = function () {
-            $('#loading').toggleClass('hidden');
+            element.find('#loading').toggleClass('hidden');
             var repoId = scope.selectedRepoId;
             geogitService.beginTransaction(repoId).then(function (transaction) {
               var checkoutOptions = new GeoGitCheckoutOptions();
@@ -69454,6 +69740,7 @@ var GeoGitLogOptions = function () {
                               features: mergeResult.Merge.Feature
                             }],
                           callback: function (feature) {
+                            featureDiffService.undoable = true;
                             featureDiffService.leftName = leftName;
                             featureDiffService.rightName = rightName;
                             featureDiffService.setFeature(feature.original, mergeResult.Merge.ours, mergeResult.Merge.theirs, mergeResult.Merge.ancestor, commitResponse.commitId, repoId);
@@ -69461,6 +69748,7 @@ var GeoGitLogOptions = function () {
                           }
                         });
                         scope.cancel();
+                        historyService.refreshHistory();
                         mapService.dumpTileCache();
                       }, function (endTransactionFailure) {
                         if (goog.isObject(endTransactionFailure) && goog.isDefAndNotNull(endTransactionFailure.conflicts)) {
@@ -69978,6 +70266,7 @@ var GeoGitLogOptions = function () {
   var module = angular.module('loom_refresh_service', []);
   var mapService_ = null;
   var dialogService_ = null;
+  var historyService_ = null;
   var translate_ = null;
   var notificationService_ = null;
   var geogitService_ = null;
@@ -69989,12 +70278,14 @@ var GeoGitLogOptions = function () {
       '$translate',
       'notificationService',
       'geogitService',
+      'historyService',
       'dialogService',
       'featureDiffService',
-      function (mapService, $translate, notificationService, geogitService, dialogService, featureDiffService) {
+      function (mapService, $translate, notificationService, geogitService, historyService, dialogService, featureDiffService) {
         mapService_ = mapService;
         notificationService_ = notificationService;
         geogitService_ = geogitService;
+        historyService_ = historyService;
         dialogService_ = dialogService;
         translate_ = $translate;
         featureDiffService_ = featureDiffService;
@@ -70006,8 +70297,7 @@ var GeoGitLogOptions = function () {
     this.autoRefresh = false;
     function refresh(mapService) {
       if (service_.autoRefresh) {
-        mapService.dumpTileCache();
-        var layers = mapService.getFeatureLayers();
+        var layers = mapService.getLayers();
         forEachArrayish(layers, function (layer) {
           if (goog.isDefAndNotNull(layer.get('metadata').isGeoGit)) {
             if (layer.get('metadata').isGeoGit === true) {
@@ -70031,14 +70321,8 @@ var GeoGitLogOptions = function () {
                   }
                   var added = 0, modified = 0, removed = 0;
                   var featureList = [];
-                  var fidlist = [];
                   forEachArrayish(diffResponse.Feature, function (feature) {
-                    if (feature.id.split('/')[0] === layer.get('metadata').label) {
-                      if (goog.array.contains(fidlist, feature.id)) {
-                        console.log('Duplicate features detected: ', options, diffResponse);
-                      } else {
-                        fidlist.push(feature.id);
-                      }
+                    if (feature.id.split('/')[0] === layer.get('metadata').nativeName) {
                       featureList.push(feature);
                       switch (feature.change) {
                       case 'ADDED':
@@ -70070,7 +70354,9 @@ var GeoGitLogOptions = function () {
                     if (removed > 0) {
                       notificationText += removed + ' ' + translate_('removed');
                     }
-                    notificationText += ' ' + translate_('in_lower_case') + ' ' + layer.get('metadata').label;
+                    notificationText += ' ' + translate_('in_lower_case') + ' ' + layer.get('metadata').title;
+                    mapService.dumpTileCache(layer.get('metadata').uniqueID);
+                    historyService_.refreshHistory(layer.get('metadata').uniqueID);
                     notificationService_.addNotification({
                       text: notificationText,
                       read: false,
@@ -70080,10 +70366,39 @@ var GeoGitLogOptions = function () {
                           features: featureList
                         }],
                       callback: function (feature) {
-                        featureDiffService_.leftName = 'old';
-                        featureDiffService_.rightName = 'new';
-                        featureDiffService_.setFeature(feature.original, oldCommitId, idResponse, oldCommitId, null, layer.get('metadata').repoId);
-                        $('#feature-diff-dialog').modal('show');
+                        var logOptions = new GeoGitLogOptions();
+                        logOptions.firstParentOnly = true;
+                        logOptions.path = feature.original.id;
+                        logOptions.show = 1;
+                        logOptions.until = layer.get('metadata').branchName;
+                        logOptions.since = idResponse;
+                        var doFeatureDiff = function (commitId) {
+                          featureDiffService_.undoable = true;
+                          featureDiffService_.leftName = 'old';
+                          featureDiffService_.rightName = 'new';
+                          featureDiffService_.setFeature(feature.original, oldCommitId, commitId, oldCommitId, null, layer.get('metadata').repoId);
+                          $('#feature-diff-dialog').modal('show');
+                        };
+                        geogitService_.command(layer.get('metadata').repoId, 'log', logOptions).then(function (response) {
+                          if (goog.isDefAndNotNull(response.commit)) {
+                            dialogService_.warn(translate_('warning'), translate_('newer_feature_version'), [
+                              translate_('yes_btn'),
+                              translate_('no_btn')
+                            ], false).then(function (button) {
+                              switch (button) {
+                              case 0:
+                                doFeatureDiff(response.commit.id);
+                                break;
+                              case 1:
+                                doFeatureDiff(idResponse);
+                                break;
+                              }
+                            });
+                          } else {
+                            doFeatureDiff(idResponse);
+                          }
+                        }, function (reject) {
+                        });
                       }
                     });
                   }
@@ -70145,11 +70460,296 @@ var GeoGitLogOptions = function () {
   ]);
 }());
 (function () {
+  var module = angular.module('loom_remoteselect_directive', []);
+  module.directive('loomRemoteselect', [
+    '$translate',
+    'remoteService',
+    function ($translate, remoteService) {
+      return {
+        templateUrl: 'sync/partials/remoteselect.tpl.html',
+        link: function (scope) {
+          scope.remoteService = remoteService;
+          scope.selectedRepo = null;
+          scope.finish = function () {
+            $('#remoteSelectDialog').modal('toggle');
+            remoteService.verificationResult.resolve(scope.selectedRepo);
+            scope.selectedRepo = null;
+          };
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_remote_service', []);
+  var q_;
+  var translate_;
+  var rootScope_;
+  var http_;
+  var service_;
+  var dialogService_;
+  var geogitService_;
+  var counter = 0;
+  module.provider('remoteService', function () {
+    this.remoteName = null;
+    this.remoteURL = null;
+    this.remoteUsername = '';
+    this.remotePassword = '';
+    this.selectedRepo = null;
+    this.selectedRemote = null;
+    this.selectedText = '';
+    this.editing = false;
+    this.verificationResult = null;
+    this.compatibleRepos = [];
+    this.selectedRepoInitialCommit = null;
+    this.$get = [
+      '$rootScope',
+      '$http',
+      '$q',
+      '$translate',
+      'dialogService',
+      'geogitService',
+      function ($rootScope, $http, $q, $translate, dialogService, geogitService) {
+        q_ = $q;
+        rootScope_ = $rootScope;
+        translate_ = $translate;
+        http_ = $http;
+        service_ = this;
+        dialogService_ = dialogService;
+        geogitService_ = geogitService;
+        service_.selectedText = '*' + $translate('new_remote');
+        return this;
+      }
+    ];
+    var resetForm = function () {
+      service_.remoteName = null;
+      service_.remoteURL = null;
+      service_.remoteUsername = '';
+      service_.remotePassword = '';
+      service_.compatibleRepos = [];
+      if (goog.isDefAndNotNull(service_.selectedRemote)) {
+        service_.remoteName = service_.selectedRemote.name;
+        service_.remoteURL = service_.selectedRemote.url;
+        if (goog.isDefAndNotNull(service_.selectedRemote.username)) {
+          service_.remoteUsername = service_.selectedRemote.username;
+          service_.remotePassword = '********';
+        }
+      }
+    };
+    var checkCompatiblity = function (url, result) {
+      http_.get(url + '/log?returnRange=true&output_format=JSON').then(function (logInfo) {
+        if (logInfo.data.response.success === true) {
+          if (logInfo.data.response.sinceCommit.id == service_.selectedRepoInitialCommit) {
+            result.resolve(url);
+          } else {
+            result.reject(translate_('repo_not_compatible'));
+          }
+        } else {
+          result.reject(logInfo.data.response.error);
+        }
+      }, function (reject) {
+        result.reject(translate_('not_a_repo'));
+      });
+    };
+    var multipleCompatibleRepos = function () {
+      counter--;
+      if (counter === 0) {
+        if (service_.compatibleRepos.length > 1) {
+          $('#remoteSelectDialog').modal('toggle');
+        } else if (service_.compatibleRepos.length < 1) {
+          service_.verificationResult.reject(translate_('no_compatible_repos'));
+        } else {
+          service_.verificationResult.resolve(service_.compatibleRepos[0]);
+        }
+      }
+    };
+    this.reset = function () {
+      this.selectedRepo = null;
+      this.selectedRepoInitialCommit = null;
+      this.selectedRemote = null;
+      this.selectedText = '*' + translate_('new_remote');
+      this.editing = false;
+      resetForm();
+    };
+    this.selectRemote = function (remote) {
+      if (remote === null) {
+        this.selectedText = '*' + translate_('new_remote');
+      } else {
+        this.selectedText = remote.name;
+      }
+      this.selectedRemote = remote;
+      resetForm();
+    };
+    this.removeRemote = function () {
+      dialogService_.warn(translate_('remote'), translate_('remote_remove'), [
+        translate_('yes_btn'),
+        translate_('no_btn')
+      ], false).then(function (button) {
+        switch (button) {
+        case 0:
+          var options = new GeoGitRemoteOptions();
+          options.remoteName = service_.selectedRemote.name;
+          options.remove = true;
+          var result = q_.defer();
+          geogitService_.command(service_.selectedRepo.id, 'remote', options).then(function () {
+            geogitService_.loadRemotesAndBranches(service_.selectedRepo, result);
+            service_.selectRemote(null);
+          });
+          break;
+        }
+      });
+    };
+    this.addRemote = function (url, options, result) {
+      if (!goog.isDefAndNotNull(options.remoteName)) {
+        options.remoteName = service_.remoteName;
+      }
+      options.remoteURL = url;
+      if (service_.remoteUsername !== '') {
+        options.username = service_.remoteUsername;
+      }
+      if (service_.remotePassword !== '') {
+        options.password = service_.remotePassword;
+      }
+      var remoteResult = q_.defer();
+      geogitService_.command(service_.selectedRepo.id, 'remote', options).then(function (response) {
+        var fetchOptions = new GeoGitFetchOptions();
+        fetchOptions.remote = service_.remoteName;
+        var successMessage = translate_('remote_add_success', { value: service_.remoteName });
+        if (service_.editing) {
+          service_.selectedText = service_.remoteName;
+          service_.remoteURL = url;
+          successMessage = translate_('remote_edit_success', { value: service_.remoteName });
+        }
+        geogitService_.command(service_.selectedRepo.id, 'fetch', fetchOptions).then(function () {
+          geogitService_.loadRemotesAndBranches(service_.selectedRepo, remoteResult);
+          remoteResult.promise.then(function (repo) {
+            for (var index = 0; index < repo.remotes.length; index++) {
+              if (repo.remotes[index].name === service_.remoteName) {
+                repo.remotes[index].active = true;
+                rootScope_.$broadcast('remoteAdded', repo);
+              }
+            }
+            dialogService_.open(translate_('remote'), successMessage, [translate_('btn_ok')], false);
+            result.resolve();
+            if (!service_.editing) {
+              resetForm();
+            } else {
+              service_.compatibleRepos = [];
+              service_.selectedRemote.name = service_.remoteName;
+              service_.selectedRemote.url = service_.remoteURL;
+              service_.selectedRemote.username = service_.remoteUsername;
+              service_.selectedRemote.password = service_.remotePassword;
+            }
+          });
+        }, function (error) {
+          geogitService_.loadRemotesAndBranches(service_.selectedRepo, remoteResult);
+          result.resolve();
+          var message = translate_('fetch_error');
+          if (error.status == '408' || error.status == '504') {
+            message = translate_('fetch_timeout');
+          }
+          dialogService_.error(translate_('fetch'), message, [translate_('btn_ok')], false);
+          resetForm();
+        });
+      }, function (error) {
+        if (error === 'REMOTE_ALREADY_EXISTS') {
+          error = translate_('remote_already_exists');
+        } else if (service_.editing) {
+          error = translate_('remote_edit_error');
+        } else {
+          error = translate_('remote_add_error');
+        }
+        dialogService_.error(translate_('remote'), error, [translate_('btn_ok')], false);
+        result.resolve();
+        resetForm();
+      });
+    };
+    this.startEditing = function () {
+      this.editing = true;
+      this.remotePassword = '';
+    };
+    this.finishRemoteOperation = function (save, result) {
+      if (save) {
+        var options = new GeoGitRemoteOptions();
+        if (service_.editing) {
+          options.update = true;
+          options.newName = service_.remoteName;
+          options.remoteName = service_.selectedRemote.name;
+        }
+        var url = service_.remoteURL.substr('http://'.length);
+        var index = url.lastIndexOf('/') + 1;
+        if (index === url.length) {
+          url = url.slice(0, url.length - 1);
+          index = url.lastIndexOf('/') + 1;
+        }
+        var splitinfo = [];
+        if (index > 0) {
+          var info = url.slice(index);
+          splitinfo = info.split(':');
+          if (splitinfo.length > 1) {
+            console.log(splitinfo);
+            var temp = encodeURIComponent(encodeURIComponent(splitinfo[0])) + ':' + encodeURIComponent(encodeURIComponent(splitinfo[1]));
+            url = url.replace(info, temp);
+          }
+        }
+        url = 'http://' + url;
+        var extraPath = '';
+        if (splitinfo[0] === 'geoserver') {
+          extraPath = '/geogit';
+        } else if (splitinfo[0] !== 'geogit') {
+          extraPath = '/geoserver/geogit';
+        }
+        service_.verificationResult = q_.defer();
+        http_.get(url + extraPath, { headers: { 'Accept': 'text/json' } }).then(function (response) {
+          if (!goog.isDefAndNotNull(response.data.repositories)) {
+            checkCompatiblity(url, service_.verificationResult);
+          } else {
+            counter = response.data.repositories.length;
+            var successFunc = function (url) {
+              service_.compatibleRepos.push(url);
+              multipleCompatibleRepos();
+            };
+            var rejectFunc = function () {
+              multipleCompatibleRepos();
+            };
+            for (var index = 0; index < response.data.repositories.length; index++) {
+              var repo = response.data.repositories[index];
+              var compatibilityResult = q_.defer();
+              checkCompatiblity(url + extraPath + '/' + repo, compatibilityResult);
+              compatibilityResult.promise.then(successFunc, rejectFunc);
+            }
+          }
+        }, function (error) {
+          if (error.status == '406' || error.status == '404') {
+            checkCompatiblity(url, service_.verificationResult);
+          } else {
+            service_.verificationResult.reject(translate_('could_not_connect'));
+          }
+        });
+        service_.verificationResult.promise.then(function (url) {
+          service_.addRemote(url, options, result);
+          service_.verificationResult = null;
+        }, function (error) {
+          service_.verificationResult = null;
+          dialogService_.error(translate_('remote'), error, [translate_('btn_ok')], false);
+          result.resolve();
+          service_.editing = false;
+        });
+      } else {
+        resetForm();
+        service_.editing = false;
+      }
+    };
+  });
+}());
+(function () {
   angular.module('loom_sync', [
     'loom_addsync_directive',
     'loom_syncconfig_directive',
     'loom_synclinks_directive',
-    'loom_sync_service'
+    'loom_remoteselect_directive',
+    'loom_sync_service',
+    'loom_remote_service'
   ]);
 }());
 (function () {
@@ -70157,82 +70757,45 @@ var GeoGitLogOptions = function () {
   module.directive('loomSyncconfig', [
     '$q',
     '$translate',
+    'remoteService',
     'geogitService',
-    function ($q, $translate, geogitService) {
+    function ($q, $translate, remoteService, geogitService) {
       return {
         templateUrl: 'sync/partials/syncconfig.tpl.html',
-        link: function (scope) {
+        link: function (scope, element) {
           scope.geogitService = geogitService;
+          scope.remoteService = remoteService;
           angular.element('#remote-name')[0].attributes.placeholder.value = $translate('repo_name');
           angular.element('#remoteUsername')[0].attributes.placeholder.value = $translate('repo_username');
           angular.element('#remotePassword')[0].attributes.placeholder.value = $translate('repo_password');
-          scope.$on('translation_change', function () {
-            scope.selectedText = '*' + $translate('new_remote');
-          });
-          var reset = function () {
-            scope.selectedRepo = null;
-            scope.selectedRemote = null;
-            scope.selectedText = '*' + $translate('new_remote');
-            scope.remoteName = null;
-            scope.remoteURL = null;
-            scope.remoteUsername = '';
-            scope.remotePassword = '';
-          };
-          reset();
-          scope.selectRemote = function (remote) {
-            if (remote === null) {
-              scope.selectedText = '*' + $translate('new_remote');
-            } else {
-              scope.selectedText = remote.name;
-            }
-            scope.selectedRemote = remote;
-          };
-          scope.addRemote = function (name, url, username, password) {
-            var index = url.lastIndexOf('/') + 1;
-            var info = url.slice(index);
-            var splitinfo = info.split(':');
-            var temp = encodeURIComponent(encodeURIComponent(splitinfo[0])) + ':' + encodeURIComponent(encodeURIComponent(splitinfo[1]));
-            url = url.replace(info, temp);
-            var options = new GeoGitRemoteOptions();
-            options.remoteName = name;
-            options.remoteURL = url;
-            if (username !== '') {
-              options.username = username;
-            }
-            if (password !== '') {
-              options.password = password;
-            }
-            var result = $q.defer();
-            geogitService.command(scope.selectedRepo.id, 'remote', options).then(function () {
-              var fetchOptions = new GeoGitFetchOptions();
-              fetchOptions.remote = name;
-              geogitService.command(scope.selectedRepo.id, 'fetch', fetchOptions).then(function () {
-                geogitService.loadRemotesAndBranches(scope.selectedRepo, result);
-                result.promise.then(function (repo) {
-                  for (var index = 0; index < repo.remotes.length; index++) {
-                    if (repo.remotes[index].name === name) {
-                      repo.remotes[index].active = true;
-                      scope.$broadcast('remoteAdded', repo);
-                    }
-                  }
-                });
-              }, function () {
-                geogitService.loadRemotesAndBranches(scope.selectedRepo, result);
+          scope.finish = function (save) {
+            if (save) {
+              element.find('#loading').toggleClass('hidden');
+              var result = $q.defer();
+              remoteService.finishRemoteOperation(save, result);
+              result.promise.then(function () {
+                remoteService.editing = false;
+                element.find('#loading').toggleClass('hidden');
               });
-            });
+            } else {
+              remoteService.finishRemoteOperation(save);
+            }
           };
-          scope.removeRemote = function (remote) {
-            var options = new GeoGitRemoteOptions();
-            options.remoteName = remote.name;
-            options.remove = true;
-            var result = $q.defer();
-            geogitService.command(scope.selectedRepo.id, 'remote', options).then(function () {
-              geogitService.loadRemotesAndBranches(scope.selectedRepo, result);
-              scope.selectedRemote = null;
-              scope.selectedText = '*' + $translate('new_remote');
-            });
-          };
-          scope.$on('repoRemoved', reset);
+          scope.$watch('remoteService.selectedRepo', function () {
+            if (goog.isDefAndNotNull(remoteService.selectedRepo)) {
+              var logOptions = new GeoGitLogOptions();
+              logOptions.returnRange = true;
+              geogitService.command(remoteService.selectedRepo.id, 'log', logOptions).then(function (logInfo) {
+                if (logInfo.success === true) {
+                  remoteService.selectedRepoInitialCommit = logInfo.sinceCommit.id;
+                }
+              });
+            }
+          });
+          scope.$on('translation_change', function () {
+            remoteService.selectedText = '*' + $translate('new_remote');
+          });
+          scope.$on('repoRemoved', remoteService.reset);
         }
       };
     }
@@ -70322,6 +70885,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
   var dialogService_ = null;
   var rootScope_ = null;
   var geogitService_ = null;
+  var historyService_ = null;
   var q_ = null;
   var translate_ = null;
   var conflictService_ = null;
@@ -70388,14 +70952,16 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       '$q',
       '$translate',
       'dialogService',
+      'historyService',
       'geogitService',
       'conflictService',
       'configService',
-      function ($timeout, $rootScope, $q, $translate, dialogService, geogitService, conflictService, configService) {
+      function ($timeout, $rootScope, $q, $translate, dialogService, historyService, geogitService, conflictService, configService) {
         dialogService_ = dialogService;
         service_ = this;
         rootScope_ = $rootScope;
         geogitService_ = geogitService;
+        historyService_ = historyService;
         conflictService_ = conflictService;
         translate_ = $translate;
         configService_ = configService;
@@ -70485,6 +71051,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           transaction.command('push', pushOptions).then(function () {
             transaction.finalize().then(function () {
               syncing = false;
+              historyService_.refreshHistory();
               result.resolve(link);
             }, function (endTransactionFailed) {
               syncing = false;
@@ -71125,6 +71692,128 @@ var validateDouble = function (property, key) {
   }
   property.valid = valid;
 };
+var sha1 = function (msg) {
+  var rotate_left = function (n, s) {
+    return n << s | n >>> 32 - s;
+  };
+  var cvt_hex = function (val) {
+    var str = '';
+    var i;
+    var v;
+    for (i = 7; i >= 0; i--) {
+      v = val >>> i * 4 & 15;
+      str += v.toString(16);
+    }
+    return str;
+  };
+  var utf8Encode = function (string) {
+    string = string.replace(/\r\n/g, '\n');
+    var utftext = '';
+    for (var n = 0; n < string.length; n++) {
+      var c = string.charCodeAt(n);
+      if (c < 128) {
+        utftext += String.fromCharCode(c);
+      } else if (c > 127 && c < 2048) {
+        utftext += String.fromCharCode(c >> 6 | 192);
+        utftext += String.fromCharCode(c & 63 | 128);
+      } else {
+        utftext += String.fromCharCode(c >> 12 | 224);
+        utftext += String.fromCharCode(c >> 6 & 63 | 128);
+        utftext += String.fromCharCode(c & 63 | 128);
+      }
+    }
+    return utftext;
+  };
+  var blockstart;
+  var i, j;
+  var W = new Array(80);
+  var H0 = 1732584193;
+  var H1 = 4023233417;
+  var H2 = 2562383102;
+  var H3 = 271733878;
+  var H4 = 3285377520;
+  var A, B, C, D, E;
+  var temp;
+  msg = utf8Encode(msg);
+  var msg_len = msg.length;
+  var word_array = [];
+  for (i = 0; i < msg_len - 3; i += 4) {
+    j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 | msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
+    word_array.push(j);
+  }
+  switch (msg_len % 4) {
+  case 0:
+    i = 2147483648;
+    break;
+  case 1:
+    i = msg.charCodeAt(msg_len - 1) << 24 | 8388608;
+    break;
+  case 2:
+    i = msg.charCodeAt(msg_len - 2) << 24 | msg.charCodeAt(msg_len - 1) << 16 | 32768;
+    break;
+  case 3:
+    i = msg.charCodeAt(msg_len - 3) << 24 | msg.charCodeAt(msg_len - 2) << 16 | msg.charCodeAt(msg_len - 1) << 8 | 128;
+    break;
+  }
+  word_array.push(i);
+  while (word_array.length % 16 != 14) {
+    word_array.push(0);
+  }
+  word_array.push(msg_len >>> 29);
+  word_array.push(msg_len << 3 & 4294967295);
+  for (blockstart = 0; blockstart < word_array.length; blockstart += 16) {
+    for (i = 0; i < 16; i++) {
+      W[i] = word_array[blockstart + i];
+    }
+    for (i = 16; i <= 79; i++) {
+      W[i] = rotate_left(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+    }
+    A = H0;
+    B = H1;
+    C = H2;
+    D = H3;
+    E = H4;
+    for (i = 0; i <= 19; i++) {
+      temp = rotate_left(A, 5) + (B & C | ~B & D) + E + W[i] + 1518500249 & 4294967295;
+      E = D;
+      D = C;
+      C = rotate_left(B, 30);
+      B = A;
+      A = temp;
+    }
+    for (i = 20; i <= 39; i++) {
+      temp = rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 1859775393 & 4294967295;
+      E = D;
+      D = C;
+      C = rotate_left(B, 30);
+      B = A;
+      A = temp;
+    }
+    for (i = 40; i <= 59; i++) {
+      temp = rotate_left(A, 5) + (B & C | B & D | C & D) + E + W[i] + 2400959708 & 4294967295;
+      E = D;
+      D = C;
+      C = rotate_left(B, 30);
+      B = A;
+      A = temp;
+    }
+    for (i = 60; i <= 79; i++) {
+      temp = rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 3395469782 & 4294967295;
+      E = D;
+      D = C;
+      C = rotate_left(B, 30);
+      B = A;
+      A = temp;
+    }
+    H0 = H0 + A & 4294967295;
+    H1 = H1 + B & 4294967295;
+    H2 = H2 + C & 4294967295;
+    H3 = H3 + D & 4294967295;
+    H4 = H4 + E & 4294967295;
+  }
+  var localtemp = cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4);
+  return localtemp.toLowerCase();
+};
 (function () {
   var module = angular.module('loom_utils', []);
   module.directive('stopEvent', function () {
@@ -71392,7 +72081,7 @@ var validateDouble = function (property, key) {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -71412,8 +72101,8 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "          </ul>\n" +
     "        </div>\n" +
     "        <button tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'refresh_layers' | translate}}\"\n" +
-    "                type=\"button\" ng-class=\"{'disabled': currentServerIndex==1}\"\n" +
-    "                ng-click=\"serverService.refreshLayersConfig(currentServerIndex)\" class=\"btn btn-default\">\n" +
+    "                type=\"button\"\n" +
+    "                ng-click=\"serverService.populateLayersConfig(currentServerIndex, true)\" class=\"btn btn-default\">\n" +
     "          <i class=\"glyphicon glyphicon-repeat\"></i>\n" +
     "        </button>\n" +
     "      </div>\n" +
@@ -71424,7 +72113,7 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "    <hr>\n" +
     "    <div class=\"form-group\">\n" +
     "      <ul id=\"layer-list\" class=\"list-group\">\n" +
-    "        <li ng-repeat=\"layerConfig in layersConfig = serverService.getLayersConfig(currentServerIndex) | filter:{added:'false'} | filter:filterLayers\"\n" +
+    "        <li ng-repeat=\"layerConfig in layersConfig = serverService.getLayersConfig(currentServerIndex) | filter:filterLayers | filter:filterAddedLayers\"\n" +
     "            class=\"list-group-item\">\n" +
     "          <div class=\"row\">\n" +
     "            <div class=\"col-xs-2\">\n" +
@@ -71561,7 +72250,7 @@ angular.module("diff/partial/featurediff.tpl.html", []).run(["$templateCache", f
     "      <div ng-if=\"leftSeparator\" class=\"loom-panel-separator\" icon=\"glyphicon-chevron-right\"\n" +
     "           hover=\"editable\" clickfunction=\"leftSeparatorClick\"\n" +
     "           panel=\"featureDiffService.left\"></div>\n" +
-    "      <div ng-if=\"mergePanel\" class=\"loom-feature-panel\" mapid=\"1\" panel=\"featureDiffService.merged\"\n" +
+    "      <div ng-if=\"mergePanel\" class=\"loom-feature-panel merge-panel\" mapid=\"1\" panel=\"featureDiffService.merged\"\n" +
     "           panel-title=\"mergedTitle\"></div>\n" +
     "      <div ng-if=\"rightSeparator\" class=\"loom-panel-separator\" icon=\"glyphicon-chevron-left\"\n" +
     "           hover=\"editable\" clickfunction=\"rightSeparatorClick\"\n" +
@@ -71574,6 +72263,10 @@ angular.module("diff/partial/featurediff.tpl.html", []).run(["$templateCache", f
     "<div class=\"modal-footer\">\n" +
     "  <button type=\"button\" class=\"btn btn-default\" ng-click=\"cancel()\">{{'cancel_btn' | translate}}</button>\n" +
     "  <button ng-if=\"editable\" type=\"button\" class=\"btn btn-primary\" ng-click=\"save()\">{{'save_btn' | translate}}</button>\n" +
+    "  <button ng-if=\"featureDiffService.undoable\" ng-disabled=\"!undoEnabled\" type=\"button\" class=\"btn btn-danger pull-left\" ng-click=\"undoChanges()\"><i\n" +
+    "      class=\"glyphicon glyphicon-remove\"></i> {{'undo_changes' | translate}}\n" +
+    "  </button>\n" +
+    "\n" +
     "</div>\n" +
     "");
 }]);
@@ -71601,8 +72294,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "              <div ng-switch-when=\"xsd:dateTime\" ng-class=\"{\n" +
     "                        'attr-added': attribute.changetype == 'ADDED',\n" +
     "                        'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                        'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
-    "                        'attr-removed' : panel.geometry.changetype == 'REMOVED'\n" +
+    "                        'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
     "                      }\">\n" +
     "                <datetimepicker ng-disabled=\"!isMergePanel\" class=\"merge-datetime attr-none\" editable=\"{{attribute.editable}}\"\n" +
     "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\"></datetimepicker>\n" +
@@ -71622,8 +72314,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                <input ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\" disabled ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
-    "                      'attr-removed' : panel.geometry.changetype == 'REMOVED',\n" +
+    "                      'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED',\n" +
     "                      'form-control' : attribute.editable\n" +
     "                    }\"/>\n" +
     "              </div>\n" +
@@ -71633,8 +72324,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                       ng-change=\"validateInteger(attribute, 'newvalue')\" ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
-    "                      'attr-removed' : panel.geometry.changetype == 'REMOVED'\n" +
+    "                      'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
     "                    }\"/>\n" +
     "              </div>\n" +
     "              <div ng-switch-when=\"xsd:double\" ng-class=\"{'has-error': !attribute.valid}\">\n" +
@@ -71643,8 +72333,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                       ng-change=\"validateDouble(attribute, 'newvalue')\" ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
-    "                      'attr-removed' : panel.geometry.changetype == 'REMOVED'\n" +
+    "                      'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
     "                    }\"/>\n" +
     "              </div>\n" +
     "              <input ng-switch-default ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\"\n" +
@@ -71652,8 +72341,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                     ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                      'attr-removed' : attribute.chantetype == 'REMOVED',\n" +
-    "                      'attr-removed' : panel.geometry.changetype == 'REMOVED'\n" +
+    "                      'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
     "                    }\">\n" +
     "            </div>\n" +
     "  </span>\n" +
@@ -71754,7 +72442,7 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "      <ul class=\"list-group list-group-info-box\">\n" +
     "        <li ng-repeat=\"layerInfo in featureManagerService.getSelectedItem()\" class=\"list-group-item-info-box\"\n" +
     "            ng-click=\"featureManagerService.show(layerInfo)\">\n" +
-    "          <div>{{layerInfo.layer.get('metadata').label}}</div>\n" +
+    "          <div>{{layerInfo.layer.get('metadata').title}}</div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
@@ -71898,12 +72586,12 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "     arrangeable-item-selector=\"div.panel\" arrangeable-callback=\"reorderLayer\"\n" +
     "     arrangeable-placeholder='<div class=\"placeholder\"></div>'>\n" +
     "  <div class=\"panel\"\n" +
-    "       ng-repeat=\"layer in layers = mapService.map.getLayers().getArray() | reverse | filter:filterHiddenLayers\">\n" +
+    "       ng-repeat=\"layer in layers = mapService.map.getLayers().getArray() | reverse | filter:filterInternalLayers\">\n" +
     "    <div class=\"panel-heading layer-heading\" data-toggle=\"collapse\" ng-click=\"fillAttrList(layer)\"\n" +
-    "         data-parent=\"#layerpanel-group\" data-target=\"#{{layer.get('metadata').label | stripWhiteSpace}}\">\n" +
+    "         data-parent=\"#layerpanel-group\" data-target=\"#{{layer.get('metadata').uniqueID}}\">\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"layer-title ellipsis\">\n" +
-    "          {{layer.get('metadata').label}}\n" +
+    "          {{layer.get('metadata').title}}\n" +
     "        </div>\n" +
     "        <div class=\"layer-buttons\">\n" +
     "          <span ng-click=\"featureManagerService.startFeatureInsert(layer)\" tooltip-append-to-body=\"true\"\n" +
@@ -71921,7 +72609,7 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div id=\"{{layer.get('metadata').label | stripWhiteSpace}}\" class=\"panel-collapse collapse\">\n" +
+    "    <div id=\"{{layer.get('metadata').uniqueID}}\" class=\"panel-collapse collapse\">\n" +
     "      <div class=\"panel-body layer-inner-panel\">\n" +
     "        <div class=\"btn-group btn-group-justified\">\n" +
     "          <a type=\"button\" ng-click=\"tableViewService.showTable(layer)\" ng-show=\"layer.get('metadata').editable\"\n" +
@@ -71966,11 +72654,11 @@ angular.module("legend/partial/legend.tpl.html", []).run(["$templateCache", func
     "    <div id=\"legend-container\" class=\"panel\">\n" +
     "        <!--<div id=\"legend-panel-heading\" class=\"panel-heading\">Legend</div>-->\n" +
     "        <div id=\"legend-panel\" class=\"panel in legend-panel-body\">\n" +
-    "            <div class=\"panel in legend-panel-body\" ng-repeat=\"layer in mapService.getFeatureLayers()\">\n" +
+    "            <div class=\"panel in legend-panel-body\" ng-repeat=\"layer in mapService.getLayers();\">\n" +
     "                <div class=\"panel-heading legend-item-header\" data-toggle=\"collapse\"\n" +
-    "                    data-target=\"{{'#' + layer.get('metadata').label + 'legend'}}\">{{layer.get('metadata').label}}\n" +
+    "                    data-target=\"{{'#' + layer.get('metadata').uniqueID + 'legend'}}\">{{layer.get('metadata').title}}\n" +
     "                </div>\n" +
-    "                <div class=\"panel-collapse legend-item in legend-panel-body\" id=\"{{layer.get('metadata').label + 'legend'}}\">\n" +
+    "                <div class=\"panel-collapse legend-item in legend-panel-body\" id=\"{{layer.get('metadata').uniqueID + 'legend'}}\">\n" +
     "                    <img ng-src=\"{{getLegendUrl(layer)}}\">\n" +
     "                </div>\n" +
     "            </div>\n" +
@@ -72169,8 +72857,35 @@ angular.module("sync/partials/addsync.tpl.html", []).run(["$templateCache", func
     "");
 }]);
 
+angular.module("sync/partials/remoteselect.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("sync/partials/remoteselect.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "  <div class=\"row\"><p translate=\"multiple_compatible_repos\"></p></div>\n" +
+    "  <br>\n" +
+    "  <select class=\"form-control\" ng-model=\"selectedRepo\" required ng-options=\"repo for repo in remoteService.compatibleRepos\">\n" +
+    "  </select>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" ng-click=\"finish()\"\n" +
+    "          ng-disabled=\"!selectedRepo\" translate=\"continue_btn\">Continue</button>\n" +
+    "</div>\n" +
+    "");
+}]);
+
 angular.module("sync/partials/syncconfig.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("sync/partials/syncconfig.tpl.html",
+    "<div id=\"loading\" class=\"hidden\">\n" +
+    "  <div class=\"loading\">\n" +
+    "    <!-- We make this div spin -->\n" +
+    "    <div class=\"spinner\">\n" +
+    "      <!-- Mask of the quarter of circle -->\n" +
+    "      <div class=\"mask\">\n" +
+    "        <!-- Inner masked circle -->\n" +
+    "        <div class=\"maskedCircle\"></div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>\n" +
     "<div class=\"modal-body\">\n" +
     "  <form name=\"remoteform\" class=\"form-horizontal\">\n" +
     "    <div class=\"form-group\">\n" +
@@ -72178,69 +72893,70 @@ angular.module("sync/partials/syncconfig.tpl.html", []).run(["$templateCache", f
     "        <label class=\"control-label\"><span translate=\"repo\"></span>: </label>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-10\">\n" +
-    "        <select class=\"form-control\" ng-model=\"selectedRepo\" required ng-options=\"repo.name for repo in geogitService.repos\">\n" +
+    "        <select class=\"form-control\" ng-model=\"remoteService.selectedRepo\" required ng-options=\"repo.name for repo in geogitService.repos\" ng-disabled=\"remoteService.editing\">\n" +
     "        </select>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div class=\"form-group\" ng-show=\"selectedRepo\">\n" +
+    "    <div class=\"form-group\" ng-show=\"remoteService.selectedRepo\">\n" +
     "      <div class=\"col-md-2\">\n" +
     "        <label class=\"control-label\"><span translate=\"remote\"></span>: </label>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-5\">\n" +
     "        <div class=\"btn-group custom-width-100\">\n" +
-    "          <button type=\"button\" class=\"btn btn-default dropdown-toggle custom-width-100\" data-toggle=\"dropdown\">\n" +
-    "            <span class=\"pull-left\"> {{selectedText}} </span>\n" +
+    "          <button type=\"button\" class=\"btn btn-default dropdown-toggle custom-width-100\" data-toggle=\"dropdown\" ng-disabled=\"remoteService.editing\">\n" +
+    "            <span class=\"pull-left\"> {{remoteService.selectedText}} </span>\n" +
     "            <span class=\"caret right-and-center\"></span>\n" +
     "          </button>\n" +
     "          <ul class=\"dropdown-menu server-list col-md-12\">\n" +
-    "            <li ng-repeat=\"remote in selectedRepo.remotes\"><a ng-click=\"selectRemote(remote)\">{{remote.name}}</a></li>\n" +
+    "            <li ng-repeat=\"remote in remoteService.selectedRepo.remotes\"><a ng-click=\"remoteService.selectRemote(remote)\">{{remote.name}}</a></li>\n" +
     "            <li class=\"divider\"></li>\n" +
-    "            <li><a ng-click=\"selectRemote(null)\" translate=\"add_remote\">Add Remote</a></li>\n" +
+    "            <li><a ng-click=\"remoteService.selectRemote(null)\" translate=\"new_remote\">New Remote</a></li>\n" +
     "          </ul>\n" +
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div class=\"form-group\" ng-show=\"selectedRepo && !selectedRemote\" ng-class=\"{'has-error': !remoteform.remotename.$valid}\">\n" +
+    "    <hr>\n" +
+    "    <div class=\"form-group\" ng-show=\"remoteService.selectedRepo\" ng-class=\"{'has-error': !remoteform.remotename.$valid}\">\n" +
     "      <div class=\"col-md-2\">\n" +
-    "        <label class=\"control-label\"><span translate=\"repo_name\"></span>: </label>\n" +
+    "        <label class=\"control-label\"><span translate=\"remote_name\"></span>: </label>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-10\">\n" +
-    "        <input id=\"remote-name\" name=\"remotename\" ng-model=\"remoteName\" ng-minlength=\"1\" type=\"text\" class=\"form-control\" placeholder=\"{{'repo_name' | translate}}\" required>\n" +
+    "        <input id=\"remote-name\" name=\"remotename\" ng-model=\"remoteService.remoteName\" ng-minlength=\"1\" type=\"text\" class=\"form-control\" placeholder=\"{{'remote_name' | translate}}\" required  ng-disabled=\"!remoteService.editing && remoteService.selectedRemote\">\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div class=\"form-group\" ng-show=\"selectedRepo && !selectedRemote\" ng-class=\"{'has-error': !remoteform.remoteurl.$valid}\">\n" +
+    "    <div class=\"form-group\" ng-show=\"remoteService.selectedRepo\" ng-class=\"{'has-error': !remoteform.remoteurl.$valid}\">\n" +
     "      <div class=\"col-md-2\">\n" +
     "        <label class=\"control-label\"><span translate=\"repo_url\"></span>: </label>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-10\">\n" +
-    "        <input name=\"remoteurl\" ng-model=\"remoteURL\" type=\"url\" class=\"form-control\" placeholder=\"http://url/geoserver/geogit/workspace:datastore\" required>\n" +
+    "        <input name=\"remoteurl\" ng-model=\"remoteService.remoteURL\" type=\"url\" class=\"form-control\" placeholder=\"http://url/geoserver/geogit/workspace:datastore\" required ng-disabled=\"!remoteService.editing && remoteService.selectedRemote\">\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div class=\"form-group\" ng-show=\"selectedRepo && !selectedRemote\">\n" +
+    "    <div class=\"form-group\" ng-show=\"remoteService.selectedRepo\">\n" +
     "      <div class=\"col-md-2\">\n" +
     "        <label class=\"control-label\"><span translate=\"repo_username\"></span>: </label>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-4\">\n" +
-    "        <input id=\"remoteUsername\" type=\"text\" class=\"form-control\" placeholder=\"{{'repo_username' | translate}}\">\n" +
+    "        <input id=\"remoteUsername\" type=\"text\" ng-model=\"remoteService.remoteUsername\" class=\"form-control\" placeholder=\"{{'repo_username' | translate}}\" ng-disabled=\"!remoteService.editing && remoteService.selectedRemote\">\n" +
     "      </div>\n" +
     "      <div class=\"col-md-2\">\n" +
     "        <label class=\"control-label\"><span translate=\"repo_password\"></span>: </label>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-4\">\n" +
-    "        <input id=\"remotePassword\" type=\"password\" class=\"form-control\" placeholder=\"{{'repo_password' | translate}}\">\n" +
+    "        <input id=\"remotePassword\" type=\"password\" ng-model=\"remoteService.remotePassword\" class=\"form-control\" placeholder=\"{{'repo_password' | translate}}\" ng-disabled=\"!remoteService.editing && remoteService.selectedRemote\">\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </form>\n" +
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
-    "  <button type=\"button\" ng-hide=\"selectedRemote\" ng-class=\"{'disabled': !remoteform.$valid}\"\n" +
-    "          class=\"btn btn-default\" ng-click=\"addRemote(remoteName, remoteURL, remoteUsername, remotePassword)\"\n" +
-    "          translate=\"add_btn\">Add\n" +
+    "  <button type=\"button\" ng-show=\"remoteService.selectedRemote && !remoteService.editing\" class=\"btn btn-default\" ng-click=\"remoteService.startEditing()\" translate=\"edit_btn\">\n" +
+    "    Edit\n" +
     "  </button>\n" +
-    "  <button type=\"button\" ng-show=\"selectedRemote\" class=\"btn btn-danger\" ng-click=\"removeRemote(selectedRemote)\"\n" +
+    "  <button type=\"button\" ng-show=\"remoteService.selectedRemote && !remoteService.editing\" class=\"btn btn-danger\" ng-click=\"remoteService.removeRemote()\"\n" +
     "          translate=\"remove_btn\">Remove\n" +
     "  </button>\n" +
-    "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\" translate=\"done_btn\">Done</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-default\" ng-show=\"remoteService.editing || !remoteService.selectedRemote\" ng-disabled=\"!remoteform.$valid\" translate=\"save_btn\" ng-click=\"finish(true)\">Save</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-default\" ng-show=\"remoteService.editing\" ng-click=\"finish(false)\" translate=\"cancel_btn\">Cancel</button>\n" +
     "</div>\n" +
     "");
 }]);
