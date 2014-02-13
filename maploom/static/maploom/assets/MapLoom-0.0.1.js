@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-02-11
+ * MapLoom - v0.0.1 - 2014-02-13
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -64262,7 +64262,7 @@ ol.tilegrid.XYZOptions;
 }));
 
 /*
- * blueimp Gallery Fullscreen JS 1.1.0
+ * blueimp Gallery Fullscreen JS 1.1.1
  * https://github.com/blueimp/Gallery
  *
  * Copyright 2013, Sebastian Tschan
@@ -64305,7 +64305,8 @@ ol.tilegrid.XYZOptions;
         getFullScreenElement: function () {
             return document.fullscreenElement ||
                 document.webkitFullscreenElement ||
-                document.mozFullScreenElement;
+                document.mozFullScreenElement ||
+                document.msFullscreenElement;
         },
 
         requestFullScreen: function (element) {
@@ -64315,6 +64316,8 @@ ol.tilegrid.XYZOptions;
                 element.webkitRequestFullscreen();
             } else if (element.mozRequestFullScreen) {
                 element.mozRequestFullScreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
             }
         },
 
@@ -64325,6 +64328,8 @@ ol.tilegrid.XYZOptions;
                 document.webkitCancelFullScreen();
             } else if (document.mozCancelFullScreen) {
                 document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
             }
         },
 
@@ -65006,6 +65011,7 @@ ol.tilegrid.XYZOptions;
     'loom_table_view',
     'loom_utils',
     'loom_refresh',
+    'loom_search',
     'loom_test'
   ]);
 }());
@@ -65309,7 +65315,11 @@ ol.tilegrid.XYZOptions;
       'latlon_confirm': '{{value}} is the interpreted value of your coordinates. Is this correct?',
       'degree_minute_second': 'Degrees Minutes Seconds',
       'decimal_degrees': 'Decimal Degrees',
-      'other': 'Other'
+      'other': 'Other',
+      'search': 'Search',
+      'search_no_results': 'No results matched the search query.',
+      'search_error_status': 'Search failed with response code ({{status}}).',
+      'search_error': 'An unknown error occurred while performing the search.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -65515,7 +65525,11 @@ ol.tilegrid.XYZOptions;
       'latlon_confirm': '{{value}} es el valor interpretado de sus coordenadas. \xbfEsto es correcto?',
       'degree_minute_second': 'Grados Minutos Segundos',
       'decimal_degrees': 'Grados Decimales',
-      'other': 'Otro'
+      'other': 'Otro',
+      'search': 'B\xfasqueda',
+      'search_no_results': 'No hay resultados que coincidan con la consulta de b\xfasqueda.',
+      'search_error_status': 'Buscar fallado con el c\xf3digo de respuesta ({{status}}).',
+      'search_error': 'Se ha producido un error desconocido mientras se realiza la b\xfasqueda.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -66010,7 +66024,8 @@ var SERVER_SERVICE_USE_PROXY = true;
           userprofileemail: '',
           authStatus: 401,
           id: 0,
-          proxy: '/proxy/?url='
+          proxy: '/proxy/?url=',
+          nominatimUrl: 'http://nominatim.openstreetmap.org'
         };
         if (goog.isDefAndNotNull($window.config)) {
           goog.object.extend(this.configuration, $window.config, {});
@@ -66208,7 +66223,7 @@ var DiffColorMap = {
         difflayer_ = new ol.layer.Vector({
           metadata: {
             title: translate_('differences'),
-            differencesLayer: true
+            internalLayer: true
           },
           source: new ol.source.Vector({ parser: null }),
           style: new ol.style.Style({
@@ -66237,11 +66252,16 @@ var DiffColorMap = {
               new ol.style.Rule({
                 filter: '(geometryType("linestring") || geometryType("multilinestring"))',
                 symbolizers: [
-                  new ol.style.Fill({
-                    color: ol.expr.parse('change.fill'),
+                  new ol.style.Stroke({
+                    width: 7,
+                    color: ol.expr.parse('change.stroke'),
                     opacity: 0.5
                   }),
-                  new ol.style.Stroke({ color: ol.expr.parse('change.stroke') })
+                  new ol.style.Stroke({
+                    width: 5,
+                    color: ol.expr.parse('change.fill'),
+                    opacity: 0.5
+                  })
                 ]
               })
             ]
@@ -66644,7 +66664,7 @@ var DiffColorMap = {
         featurePanel.map.removeLayer(layer);
       });
       newLayers.forEach(function (layer) {
-        if (!goog.isDefAndNotNull(layer.get('metadata').differencesLayer) || !layer.get('metadata').differencesLayer) {
+        if (!goog.isDefAndNotNull(layer.get('metadata').internalLayer) || !layer.get('metadata').internalLayer) {
           featurePanel.map.addLayer(layer);
         }
       });
@@ -69329,7 +69349,7 @@ var GeoGitRevertFeatureOptions = function () {
     this.getLayers = function (includeHidden, includeImagery) {
       var layers = [];
       this.map.getLayers().forEach(function (layer) {
-        if (goog.isDefAndNotNull(layer.get('metadata')) && !layer.get('metadata').vectorEditLayer && !layer.get('metadata').differencesLayer) {
+        if (goog.isDefAndNotNull(layer.get('metadata')) && !layer.get('metadata').vectorEditLayer && !layer.get('metadata').internalLayer) {
           if (service_.layerIsImagery(layer)) {
             if (goog.isDefAndNotNull(includeImagery) && includeImagery) {
               if (layer.get('visible')) {
@@ -70741,6 +70761,220 @@ var GeoGitRevertFeatureOptions = function () {
       if (this.autoRefresh) {
         refresh(mapService_);
       }
+    };
+  });
+}());
+(function () {
+  var module = angular.module('loom_search_directive', []);
+  module.directive('loomSearch', [
+    '$timeout',
+    '$translate',
+    'searchService',
+    'dialogService',
+    'mapService',
+    function ($timeout, $translate, searchService, dialogService, mapService) {
+      return {
+        restrict: 'C',
+        replace: true,
+        templateUrl: 'search/partial/search.tpl.html',
+        link: function (scope) {
+          scope.searchQuery = '';
+          scope.searchInProgress = false;
+          scope.searchResults = [];
+          function zoomToResult(result) {
+            var boxMin = ol.proj.transform([
+                result.boundingbox[2],
+                result.boundingbox[0]
+              ], 'EPSG:4326', mapService.map.getView().getView2D().getProjection());
+            var boxMax = ol.proj.transform([
+                result.boundingbox[3],
+                result.boundingbox[1]
+              ], 'EPSG:4326', mapService.map.getView().getView2D().getProjection());
+            var newBounds = [
+                boxMin[0],
+                boxMin[1],
+                boxMax[0],
+                boxMax[1]
+              ];
+            var x = newBounds[3] - newBounds[1];
+            var y = newBounds[2] - newBounds[0];
+            x *= 0.5;
+            y *= 0.5;
+            newBounds[1] -= x;
+            newBounds[3] += x;
+            newBounds[0] -= y;
+            newBounds[2] += y;
+            mapService.zoomToExtent(newBounds);
+          }
+          scope.clearResults = function () {
+            scope.searchResults = [];
+            $('#search-results-panel').collapse('hide');
+            searchService.clearSearchLayer();
+          };
+          scope.displayingResults = function () {
+            return scope.searchResults.length > 0;
+          };
+          scope.performSearch = function () {
+            if (scope.displayingResults()) {
+              scope.searchQuery = '';
+              scope.clearResults();
+              return;
+            }
+            if (scope.searchInProgress === true) {
+              return;
+            }
+            $('#search-results-panel').collapse('hide');
+            if (goog.string.removeAll(goog.string.collapseWhitespace(scope.searchQuery), ' ') !== '') {
+              scope.searchInProgress = true;
+              searchService.performSearch(scope.searchQuery).then(function (results) {
+                scope.searchResults = results;
+                if (results.length === 0) {
+                  dialogService.open($translate('search'), $translate('search_no_results'));
+                } else if (results.length === 1) {
+                  zoomToResult(results[0]);
+                  searchService.populateSearchLayer(results);
+                } else {
+                  $timeout(function () {
+                    $('#search-results-panel').collapse('show');
+                  }, 10);
+                  searchService.populateSearchLayer(results);
+                }
+                scope.searchInProgress = false;
+              }, function (_status) {
+                scope.searchInProgress = false;
+                scope.searchResults = [];
+                if (goog.isDefAndNotNull(_status)) {
+                  dialogService.error($translate('search'), $translate('search_error_status', { status: _status }));
+                } else {
+                  dialogService.error($translate('search'), $translate('search_error'));
+                }
+              });
+            } else {
+              scope.searchResults = [];
+            }
+          };
+          scope.resultClicked = function (result) {
+            zoomToResult(result);
+          };
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  angular.module('loom_search', [
+    'loom_search_service',
+    'loom_search_directive'
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_search_service', []);
+  var httpService_ = null;
+  var q_ = null;
+  var configService_ = null;
+  var mapService_ = null;
+  var searchlayer_ = null;
+  module.provider('searchService', function () {
+    this.$get = [
+      '$rootScope',
+      '$http',
+      '$q',
+      '$translate',
+      'configService',
+      'mapService',
+      function ($rootScope, $http, $q, $translate, configService, mapService) {
+        httpService_ = $http;
+        q_ = $q;
+        configService_ = configService;
+        mapService_ = mapService;
+        searchlayer_ = new ol.layer.Vector({
+          metadata: {
+            title: $translate('search'),
+            internalLayer: true
+          },
+          source: new ol.source.Vector({ parser: null }),
+          style: new ol.style.Style({
+            rules: [new ol.style.Rule({
+                filter: 'geometryType("point")',
+                symbolizers: [new ol.style.Shape({
+                    size: 8,
+                    fill: new ol.style.Fill({
+                      color: '#D6AF38',
+                      opacity: 1
+                    }),
+                    stroke: new ol.style.Stroke({ color: '#000000' })
+                  })]
+              })]
+          })
+        });
+        $rootScope.$on('translation_change', function () {
+          searchlayer_.get('metadata').title = $translate('search');
+        });
+        return this;
+      }
+    ];
+    this.performSearch = function (address) {
+      var currentView = mapService_.map.getView().getView2D().calculateExtent([
+          $(window).height(),
+          $(window).width()
+        ]);
+      var minBox = ol.proj.transform([
+          currentView[0],
+          currentView[1]
+        ], mapService_.map.getView().getView2D().getProjection(), 'EPSG:4326');
+      var maxBox = ol.proj.transform([
+          currentView[2],
+          currentView[3]
+        ], mapService_.map.getView().getView2D().getProjection(), 'EPSG:4326');
+      currentView[0] = minBox[0];
+      currentView[1] = minBox[1];
+      currentView[2] = maxBox[0];
+      currentView[3] = maxBox[1];
+      var promise = q_.defer();
+      var nominatimUrl = configService_.configuration.nominatimUrl;
+      if (nominatimUrl.substr(nominatimUrl.length - 1) === '/') {
+        nominatimUrl = nominatimUrl.substr(0, nominatimUrl.length - 1);
+      }
+      var url = nominatimUrl + '/search?q=' + encodeURIComponent(address) + '&format=json&limit=30&viewboxlbrt=' + encodeURIComponent(currentView.toString());
+      httpService_.get(url).then(function (response) {
+        if (goog.isDefAndNotNull(response.data) && goog.isArray(response.data)) {
+          var results = [];
+          forEachArrayish(response.data, function (result) {
+            var bbox = result.boundingbox;
+            for (var i = 0; i < bbox.length; i++) {
+              bbox[i] = parseFloat(bbox[i]);
+            }
+            results.push({
+              location: [
+                parseFloat(result.lon),
+                parseFloat(result.lat)
+              ],
+              boundingbox: bbox,
+              name: result.display_name
+            });
+          });
+          promise.resolve(results);
+        } else {
+          promise.reject(response.status);
+        }
+      }, function (reject) {
+        promise.reject(reject.status);
+      });
+      return promise.promise;
+    };
+    this.populateSearchLayer = function (results) {
+      searchlayer_.clear();
+      mapService_.map.removeLayer(searchlayer_);
+      mapService_.map.addLayer(searchlayer_);
+      forEachArrayish(results, function (result) {
+        var olFeature = new ol.Feature();
+        olFeature.setGeometry(new ol.geom.Point(ol.proj.transform(result.location, 'EPSG:4326', mapService_.map.getView().getView2D().getProjection())));
+        searchlayer_.addFeatures([olFeature]);
+      });
+    };
+    this.clearSearchLayer = function () {
+      searchlayer_.clear();
+      mapService_.map.removeLayer(searchlayer_);
     };
   });
 }());
@@ -72529,7 +72763,7 @@ var sha1 = function (msg) {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -73141,7 +73375,7 @@ angular.module("map/partial/savemap.tpl.html", []).run(["$templateCache", functi
 angular.module("merge/partials/merge.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("merge/partials/merge.tpl.html",
     "<div class=\"modal-body\">\n" +
-    "  <div id=\"loading\" class=\"hidden\">\n" +
+    "  <div id=\"merge-loading\" class=\"hidden\">\n" +
     "    <div class=\"loading\">\n" +
     "      <!-- We make this div spin -->\n" +
     "      <div class=\"spinner\">\n" +
@@ -73248,6 +73482,49 @@ angular.module("notifications/partial/notifications.tpl.html", []).run(["$templa
     "      <div id=\"notification-description-{{notification.id}}\" ng-if=\"notification.type === 'loom-update-notification'\"\n" +
     "           class=\"loom-update-notification\" notification=\"notification\">{{notification.text}}\n" +
     "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
+angular.module("search/partial/search.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/partial/search.tpl.html",
+    "<div class=\"panel flat\" id=\"search-panel\">\n" +
+    "  <div class=\"panel-heading\">\n" +
+    "    <em>\n" +
+    "      <form ng-submit=\"performSearch()\">\n" +
+    "        <div class=\"input-group input-group-sm\">\n" +
+    "          <input type=\"text\" ng-change=\"clearResults()\" ng-model=\"searchQuery\" class=\"search-box form-control\" placeholder=\"{{'search' | translate}}\">\n" +
+    "                <span class=\"input-group-btn\">\n" +
+    "                  <a class=\"btn btn-default\" ng-click=\"performSearch()\" type=\"button\">\n" +
+    "                    <div id=\"search-loading\" ng-show=\"searchInProgress\">\n" +
+    "                      <div class=\"loading\">\n" +
+    "                        <!-- We make this div spin -->\n" +
+    "                        <div class=\"spinner\">\n" +
+    "                          <!-- Mask of the quarter of circle -->\n" +
+    "                          <div class=\"mask\">\n" +
+    "                            <!-- Inner masked circle -->\n" +
+    "                            <div class=\"maskedCircle\"></div>\n" +
+    "                          </div>\n" +
+    "                        </div>\n" +
+    "                      </div>\n" +
+    "                    </div>\n" +
+    "                    <i ng-if=\"!displayingResults()\" class=\"glyphicon glyphicon-search\"></i>\n" +
+    "                    <i ng-if=\"displayingResults()\" class=\"glyphicon glyphicon-remove\"></i>\n" +
+    "                  </a>\n" +
+    "                </span>\n" +
+    "        </div>\n" +
+    "      </form>\n" +
+    "    </em>\n" +
+    "  </div>\n" +
+    "  <div id=\"search-results-panel\" class=\"search-content panel-collapse collapse\">\n" +
+    "    <div id=\"search-collapse-group\" class=\"panel-group\">\n" +
+    "      <ul class=\"list-group\">\n" +
+    "        <li class=\"list-group-item\" ng-click=\"resultClicked(result)\"\n" +
+    "            ng-repeat=\"result in searchResults\" tooltip-popup-delay=\"500\" tooltip-placement=\"right\" tooltip-append-to-body=\"true\" tooltip=\"{{result.name}}\">\n" +
+    "          <span class=\"ellipsis search-result-name\">{{result.name}}</span>\n" +
+    "        </li>\n" +
+    "      </ul>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>");
