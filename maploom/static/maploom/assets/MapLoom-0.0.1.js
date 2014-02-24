@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-02-21
+ * MapLoom - v0.0.1 - 2014-02-24
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -64017,7 +64017,12 @@ goog.require("ol.xml");
       'search_no_results': 'No results matched the search query.',
       'search_error_status': 'Search failed with response code ({{status}}).',
       'search_error': 'An unknown error occurred while performing the search.',
-      'switch_coords': 'Switch Coordinate Display'
+      'switch_coords': 'Switch Coordinate Display',
+      'accept_feature': 'Accept Feature',
+      'cancel_feature': 'Cancel Feature',
+      'add_to_feature': 'Add To Feature',
+      'remove_from_feature': 'Remove From Feature',
+      'draw': 'Draw'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -64228,7 +64233,12 @@ goog.require("ol.xml");
       'search_no_results': 'No hay resultados que coincidan con la consulta de b\xfasqueda.',
       'search_error_status': 'Buscar fallado con el c\xf3digo de respuesta ({{status}}).',
       'search_error': 'Se ha producido un error desconocido mientras se realiza la b\xfasqueda.',
-      'switch_coords': 'Cambie la visualizaci\xf3n de coordenadas'
+      'switch_coords': 'Cambie la visualizaci\xf3n de coordenadas',
+      'accept_feature': 'Aceptar Funci\xf3n',
+      'cancel_feature': 'Cancelar Funci\xf3n',
+      'add_to_feature': 'Agregar a la Funci\xf3n',
+      'remove_from_feature': 'Eliminar de Funci\xf3n',
+      'draw': 'Dibujar'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -66039,6 +66049,27 @@ var DiffColorMap = {
   ]);
 }());
 (function () {
+  var module = angular.module('loom_drawselect_directive', []);
+  module.directive('loomDrawselect', [
+    '$translate',
+    'mapService',
+    function ($translate, mapService) {
+      return {
+        templateUrl: 'featuremanager/partial/drawselect.tpl.html',
+        link: function (scope) {
+          scope.mapService = mapService;
+          scope.drawType = null;
+          scope.geometryTypes = [
+            'Point',
+            'LineString',
+            'Polygon'
+          ];
+        }
+      };
+    }
+  ]);
+}());
+(function () {
   var module = angular.module('loom_exclusive_mode_directive', []);
   module.directive('loomExclusiveMode', [
     'exclusiveModeService',
@@ -66060,11 +66091,16 @@ var DiffColorMap = {
   var buttons_ = [];
   var pulldownService_ = null;
   var enabled_ = false;
+  var geometryType_ = null;
+  var mapService_ = null;
   module.provider('exclusiveModeService', function () {
     this.$get = [
       'pulldownService',
-      function (pulldownService) {
+      'mapService',
+      function (pulldownService, mapService) {
         pulldownService_ = pulldownService;
+        mapService_ = mapService;
+        this.addMode = false;
         return this;
       }
     ];
@@ -66077,6 +66113,9 @@ var DiffColorMap = {
     this.getTitle = function () {
       return title_;
     };
+    this.getType = function () {
+      return geometryType_;
+    };
     this.getButtonOne = function () {
       return buttons_[0];
     };
@@ -66086,7 +66125,13 @@ var DiffColorMap = {
     this.isEnabled = function () {
       return enabled_;
     };
-    this.startExclusiveMode = function (title, buttonOne, buttonTwo) {
+    this.isMultiType = function () {
+      if (goog.isDefAndNotNull(geometryType_)) {
+        return geometryType_.search(/Multi/g) > -1 ? true : geometryType_.toLowerCase() == 'geometrycollection';
+      }
+      return false;
+    };
+    this.startExclusiveMode = function (title, buttonOne, buttonTwo, geometryType) {
       title_ = title;
       buttons_ = [
         buttonOne,
@@ -66095,6 +66140,7 @@ var DiffColorMap = {
       enabled_ = true;
       angular.element('#pulldown-menu').collapse('hide');
       pulldownService_.toggleEnabled = false;
+      geometryType_ = geometryType;
       setTimeout(function () {
         angular.element('#exclusive-mode-container').collapse('show');
       }, 350);
@@ -66108,6 +66154,24 @@ var DiffColorMap = {
         title_ = '';
         buttons_ = [];
       }, 350);
+    };
+    this.addToFeature = function () {
+      if (!this.addMode) {
+        mapService_.removeModify();
+        mapService_.removeSelect();
+        if (geometryType_.toLowerCase() == 'multigeometry' || geometryType_.toLowerCase() == 'geometrycollection') {
+          $('#drawSelectDialog').modal('toggle');
+        } else {
+          mapService_.addDraw(geometryType_);
+        }
+        this.addMode = true;
+      }
+    };
+    this.removeFromFeature = function () {
+      if (mapService_.featureOverlay.getFeatures().getLength() > 0) {
+        mapService_.editLayer.getSource().removeFeature(mapService_.featureOverlay.getFeatures().getAt(0));
+        mapService_.featureOverlay.removeFeature(mapService_.featureOverlay.getFeatures().getAt(0));
+      }
     };
   });
 }());
@@ -66172,7 +66236,8 @@ var DiffColorMap = {
     'loom_exclusive_mode_directive',
     'loom_attribute_edit_directive',
     'loom_feature_manager_service',
-    'loom_exclusive_mode_service'
+    'loom_exclusive_mode_service',
+    'loom_drawselect_directive'
   ]);
 }());
 (function () {
@@ -66194,8 +66259,6 @@ var DiffColorMap = {
   var containerInstance_ = null;
   var overlay_ = null;
   var position_ = null;
-  var modify_ = null;
-  var draw_ = null;
   var enabled_ = true;
   var wfsPostTypes_ = {
       UPDATE: 0,
@@ -66222,16 +66285,12 @@ var DiffColorMap = {
         exclusiveModeService_ = exclusiveModeService;
         dialogService_ = dialogService;
         registerOnMapClick($rootScope, $compile);
-        mapService_.editLayer.getSource().on(ol.source.VectorEventType.ADDFEATURE, function () {
+        mapService_.editLayer.getSource().on(ol.source.VectorEventType.ADDFEATURE, function (event) {
           if (exclusiveModeService_.isEnabled()) {
-            mapService_.map.removeInteraction(draw_);
+            exclusiveModeService_.addMode = false;
+            mapService_.removeDraw();
             mapService_.addSelect();
-            if (goog.isNull(modify_)) {
-              modify_ = new ol.interaction.Modify({ featureOverlay: mapService_.featureOverlay });
-            } else {
-              modify_.setMap(mapService_.map);
-            }
-            mapService_.map.addInteraction(modify_);
+            mapService_.addModify();
           }
         });
         overlay_ = new ol.Overlay({
@@ -66269,7 +66328,7 @@ var DiffColorMap = {
       selectedItemProperties_ = null;
       state_ = null;
       featureInfoPerLayer_ = [];
-      mapService_.clearSelectedFeature();
+      mapService_.clearEditLayer();
     };
     this.show = function (item, position) {
       if (!goog.isDefAndNotNull(item)) {
@@ -66358,9 +66417,9 @@ var DiffColorMap = {
         }
         if (getItemType(selectedItem_) === 'feature') {
           selectedLayer_ = this.getSelectedItemLayer().layer;
-          mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+          mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
         } else {
-          mapService_.clearSelectedFeature();
+          mapService_.clearEditLayer();
         }
         selectedItemProperties_ = props;
       }
@@ -66433,24 +66492,6 @@ var DiffColorMap = {
     this.startFeatureInsert = function (layer) {
       service_.hide();
       enabled_ = false;
-      exclusiveModeService_.startExclusiveMode(translate_('drawing_geometry'), exclusiveModeService_.button(translate_('done_btn'), function () {
-        if (mapService_.editLayer.getSource().getAllFeatures().length < 1) {
-          dialogService_.warn(translate_('adding_feature'), translate_('must_create_feature'), [translate_('btn_ok')], false).then(function (button) {
-            switch (button) {
-            case 0:
-              break;
-            }
-          });
-        } else {
-          var feature = mapService_.editLayer.getSource().getAllFeatures()[0];
-          selectedItem_.geometry.coordinates = feature.getGeometry().getCoordinates();
-          var newGeom = transformGeometry(selectedItem_.geometry, mapService_.map.getView().getView2D().getProjection(), selectedLayer_.get('metadata').projection);
-          selectedItem_.geometry.coordinates = newGeom.getCoordinates();
-          service_.startAttributeEditing(true);
-        }
-      }), exclusiveModeService_.button(translate_('cancel_btn'), function () {
-        service_.endFeatureInsert(false);
-      }));
       var props = [];
       var geometryType = '';
       var geometryName = '';
@@ -66467,20 +66508,83 @@ var DiffColorMap = {
           }
         }
       });
+      geometryType = geometryType.split(':')[1].replace('PropertyType', '');
+      geometryType = geometryType.replace('Curve', 'LineString');
+      geometryType = geometryType.replace('Surface', 'Polygon');
+      exclusiveModeService_.startExclusiveMode(translate_('drawing_geometry'), exclusiveModeService_.button(translate_('accept_feature'), function () {
+        if (mapService_.editLayer.getSource().getAllFeatures().length < 1) {
+          dialogService_.warn(translate_('adding_feature'), translate_('must_create_feature'), [translate_('btn_ok')], false);
+        } else {
+          mapService_.removeDraw();
+          mapService_.removeSelect();
+          mapService_.removeModify();
+          var feature;
+          var index;
+          if (geometryType.search(/^Multi/g) > -1) {
+            feature = new ol.Feature();
+            var geometries = [];
+            for (index = 0; index < mapService_.editLayer.getSource().getAllFeatures().length; index++) {
+              var geom = mapService_.editLayer.getSource().getAllFeatures()[index].getGeometry();
+              if (geometryType.toLowerCase() == 'multigeometry') {
+                geometries.push(geom);
+              } else {
+                geometries.push(geom.getCoordinates()[0]);
+              }
+            }
+            var geometry = transformGeometry({
+                type: geometryType,
+                coordinates: geometries
+              });
+            feature.setGeometry(geometry);
+            mapService_.editLayer.getSource().clear();
+            mapService_.editLayer.getSource().addFeature(feature);
+          } else {
+            feature = mapService_.editLayer.getSource().getAllFeatures()[0];
+          }
+          var newGeom;
+          if (geometryType.toLowerCase() != 'multigeometry') {
+            selectedItem_.geometry.type = feature.getGeometry().getType();
+            selectedItem_.geometry.coordinates = feature.getGeometry().getCoordinates();
+            newGeom = transformGeometry(selectedItem_.geometry, mapService_.map.getView().getView2D().getProjection(), selectedLayer_.get('metadata').projection);
+            selectedItem_.geometry.coordinates = newGeom.getCoordinates();
+          } else {
+            selectedItem_.geometry.type = 'GeometryCollection';
+            var setupGeometryArray = function (geom) {
+              selectedItem_.geometry.geometries = [];
+              for (index = 0; index < geom.getGeometries().length; index++) {
+                var tempGeom = geom.getGeometries()[index];
+                selectedItem_.geometry.geometries.push({
+                  coordinates: tempGeom.getCoordinates(),
+                  type: tempGeom.getType()
+                });
+              }
+            };
+            setupGeometryArray(feature.getGeometry());
+            newGeom = transformGeometry(selectedItem_.geometry, mapService_.map.getView().getView2D().getProjection(), selectedLayer_.get('metadata').projection);
+            setupGeometryArray(newGeom);
+          }
+          service_.startAttributeEditing(true);
+        }
+      }), exclusiveModeService_.button(translate_('cancel_feature'), function () {
+        mapService_.removeDraw();
+        mapService_.removeSelect();
+        mapService_.removeModify();
+        service_.endFeatureInsert(false);
+      }), geometryType);
+      exclusiveModeService_.addMode = true;
       selectedItemProperties_ = props;
       selectedLayer_ = layer;
-      geometryType = geometryType.split(':')[1].replace('PropertyType', '');
       selectedItem_ = {
         geometry: { type: geometryType },
         geometry_name: geometryName,
         properties: {}
       };
       mapService_.map.addLayer(mapService_.editLayer);
-      draw_ = new ol.interaction.Draw({
-        source: mapService_.editLayer.getSource(),
-        type: geometryType
-      });
-      mapService_.map.addInteraction(draw_);
+      if (geometryType.toLowerCase().search('geometry') > -1) {
+        $('#drawSelectDialog').modal('toggle');
+      } else {
+        mapService_.addDraw(geometryType);
+      }
       rootScope_.$broadcast('startFeatureInsert');
     };
     this.endFeatureInsert = function (save, properties, coords) {
@@ -66505,19 +66609,12 @@ var DiffColorMap = {
           } else {
             featureGML = getGeometryGMLFromFeature(feature);
             newPos = feature.getGeometry().getCoordinates();
-            mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+            mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
           }
         } else {
           featureGML = getGeometryGMLFromFeature(feature);
-          if (feature.getGeometry().getType().toLowerCase() == 'multilinestring') {
-            newPos = feature.getGeometry().getCoordinates()[0];
-            newPos = newPos[Math.floor(newPos.length / 2)];
-          } else if (feature.getGeometry().getType().toLowerCase() == 'polygon') {
-            newPos = feature.getGeometry().getCoordinates()[0][0];
-          } else if (feature.getGeometry().getType().toLowerCase() == 'multipolygon') {
-            newPos = feature.getGeometry().getCoordinates()[0][0][0];
-          }
-          mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+          newPos = getNewPositionFromGeometry(feature.getGeometry());
+          mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
         }
         propertyXmlPartial += '<feature:' + selectedItem_.geometry_name + '>' + featureGML + '</feature:' + selectedItem_.geometry_name + '>';
         goog.array.forEach(properties, function (property, index) {
@@ -66530,40 +66627,99 @@ var DiffColorMap = {
         });
         issueWFSPost(wfsPostTypes_.INSERT, propertyXmlPartial, properties, coords, newPos);
       } else {
-        mapService_.map.removeInteraction(draw_);
         service_.hide();
       }
-      if (mapService_.featureOverlay.getFeatures().getLength() > 0) {
-        mapService_.featureOverlay.getFeatures().clear();
-      }
-      mapService_.map.removeInteraction(modify_);
       enabled_ = true;
       rootScope_.$broadcast('endFeatureInsert', save);
     };
     this.startGeometryEditing = function () {
       rootScope_.$broadcast('startGeometryEdit');
-      exclusiveModeService_.startExclusiveMode(translate_('editing_geometry'), exclusiveModeService_.button(translate_('save_btn'), function () {
-        exclusiveModeService_.endExclusiveMode();
-        service_.endGeometryEditing(true);
-      }), exclusiveModeService_.button(translate_('cancel_btn'), function () {
+      var geometryType = selectedItem_.geometry.type;
+      var index;
+      var feature;
+      var coords;
+      var geometry;
+      if (geometryType.search(/^Multi/g) > -1) {
+        var originalCoords = mapService_.editLayer.getSource().getAllFeatures()[0].getGeometry().getCoordinates();
+        mapService_.editLayer.getSource().clear();
+        for (index = 0; index < originalCoords.length; index++) {
+          feature = new ol.Feature();
+          coords = [originalCoords[index]];
+          geometry = transformGeometry({
+            type: geometryType,
+            coordinates: coords
+          });
+          feature.setGeometry(geometry);
+          mapService_.editLayer.getSource().addFeature(feature);
+        }
+      } else if (geometryType.toLowerCase() == 'geometrycollection') {
+        var geometries = mapService_.editLayer.getSource().getAllFeatures()[0].getGeometry().getGeometries();
+        mapService_.editLayer.getSource().clear();
+        for (index = 0; index < geometries.length; index++) {
+          feature = new ol.Feature();
+          geometry = transformGeometry({
+            type: geometries[index].getType(),
+            coordinates: geometries[index].getCoordinates()
+          });
+          feature.setGeometry(geometry);
+          mapService_.editLayer.getSource().addFeature(feature);
+        }
+      }
+      exclusiveModeService_.startExclusiveMode(translate_('editing_geometry'), exclusiveModeService_.button(translate_('accept_feature'), function () {
+        if (mapService_.editLayer.getSource().getAllFeatures().length < 1) {
+          dialogService_.warn(translate_('adding_feature'), translate_('must_create_feature'), [translate_('btn_ok')], false);
+        } else {
+          exclusiveModeService_.endExclusiveMode();
+          service_.endGeometryEditing(true);
+        }
+      }), exclusiveModeService_.button(translate_('cancel_feature'), function () {
         exclusiveModeService_.endExclusiveMode();
         service_.endGeometryEditing(false);
-      }));
-      if (goog.isNull(modify_)) {
-        modify_ = new ol.interaction.Modify({ featureOverlay: mapService_.featureOverlay });
-      } else {
-        modify_.setMap(mapService_.map);
-      }
-      mapService_.map.addInteraction(modify_);
+      }), geometryType);
+      mapService_.addSelect();
+      mapService_.addModify();
       enabled_ = false;
     };
     this.endGeometryEditing = function (save) {
       if (save) {
-        var feature = mapService_.editLayer.getSource().getAllFeatures()[0];
+        var feature;
+        var geometry;
+        var index;
+        var geometryType = selectedItem_.geometry.type;
+        if (geometryType.search(/^Multi/g) > -1) {
+          feature = new ol.Feature();
+          var coordinates = [];
+          for (index = 0; index < mapService_.editLayer.getSource().getAllFeatures().length; index++) {
+            var tempCoords = mapService_.editLayer.getSource().getAllFeatures()[index].getGeometry().getCoordinates();
+            coordinates.push(tempCoords[0]);
+          }
+          geometry = transformGeometry({
+            type: geometryType,
+            coordinates: coordinates
+          });
+          feature.setGeometry(geometry);
+          mapService_.editLayer.getSource().clear();
+          mapService_.editLayer.getSource().addFeature(feature);
+        } else if (geometryType.toLowerCase() == 'geometrycollection') {
+          feature = new ol.Feature();
+          var geometries = [];
+          for (index = 0; index < mapService_.editLayer.getSource().getAllFeatures().length; index++) {
+            geometries.push(mapService_.editLayer.getSource().getAllFeatures()[index].getGeometry());
+          }
+          geometry = transformGeometry({
+            type: 'multigeometry',
+            coordinates: geometries
+          });
+          feature.setGeometry(geometry);
+          mapService_.editLayer.getSource().clear();
+          mapService_.editLayer.getSource().addFeature(feature);
+        } else {
+          feature = mapService_.editLayer.getSource().getAllFeatures()[0];
+        }
         var featureGML = getGeometryGMLFromFeature(feature);
         var partial = '<wfs:Property><wfs:Name>' + selectedItem_.geometry_name + '</wfs:Name><wfs:Value>' + featureGML + '</wfs:Value></wfs:Property>';
         var coords = null;
-        var newPos = null;
+        var newPos;
         if (feature.getGeometry().getType().toLowerCase() == 'point') {
           coords = feature.getGeometry().getCoordinates();
           var transformedGeom = transformGeometry({
@@ -66571,25 +66727,16 @@ var DiffColorMap = {
               coordinates: coords
             }, mapService_.map.getView().getView2D().getProjection(), selectedLayer_.get('metadata').projection);
           coords = transformedGeom.getCoordinates();
-          newPos = feature.getGeometry().getCoordinates();
-        } else if (feature.getGeometry().getType().toLowerCase() == 'multilinestring') {
-          newPos = feature.getGeometry().getCoordinates()[0];
-          newPos = newPos[Math.floor(newPos.length / 2)];
-        } else if (feature.getGeometry().getType().toLowerCase() == 'polygon') {
-          newPos = feature.getGeometry().getCoordinates()[0][0];
-        } else if (feature.getGeometry().getType().toLowerCase() == 'multipolygon') {
-          newPos = feature.getGeometry().getCoordinates()[0][0][0];
         }
+        newPos = getNewPositionFromGeometry(feature.getGeometry());
         issueWFSPost(wfsPostTypes_.UPDATE, partial, null, coords, newPos);
       } else {
-        mapService_.clearSelectedFeature();
-        mapService_.selectFromGeom(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+        mapService_.clearEditLayer();
+        mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
       }
       rootScope_.$broadcast('endGeometryEdit', save);
-      if (mapService_.featureOverlay.getFeatures().getLength() > 0) {
-        mapService_.featureOverlay.getFeatures().clear();
-      }
-      mapService_.map.removeInteraction(modify_);
+      mapService_.removeSelect();
+      mapService_.removeModify();
       enabled_ = true;
     };
     this.startAttributeEditing = function (inserting) {
@@ -66715,14 +66862,14 @@ var DiffColorMap = {
         wfsRequestTypePartial = '<wfs:Update handle="' + commitMsg + '" xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.get('metadata').name + '">' + partial + filter + '</wfs:Update>';
       }
     }
-    var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.1.0" ' + 'handle="' + commitMsg + '" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd"> ' + wfsRequestTypePartial + '</wfs:Transaction>';
+    var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.0.0" ' + 'handle="' + commitMsg + '" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/wfs.xsd"> ' + wfsRequestTypePartial + '</wfs:Transaction>';
     var url = selectedLayer_.get('metadata').url + '/wfs/WfsDispatcher';
     var layerName = selectedLayer_.get('metadata').uniqueID;
     httpService_.post(url, wfsRequestData).success(function (data, status, headers, config) {
       if (postType === wfsPostTypes_.INSERT) {
         var x2js = new X2JS();
         var json = x2js.xml_str2json(data);
-        selectedItem_.id = json.TransactionResponse.InsertResults.Feature.FeatureId._fid;
+        selectedItem_.id = json.WFS_TransactionResponse.InsertResult.FeatureId._fid;
         selectedItem_.type = 'Feature';
       }
       if (goog.isDefAndNotNull(properties)) {
@@ -66743,16 +66890,99 @@ var DiffColorMap = {
       console.log('----[ ERROR: wfs-t post failed! ', data, status, headers, config);
     });
   }
+  function getNewPositionFromGeometry(geometry) {
+    var newPos;
+    var geometryType = geometry.getType().toLowerCase();
+    if (geometryType == 'point') {
+      newPos = geometry.getCoordinates();
+    } else if (geometryType == 'multipoint') {
+      newPos = geometry.getCoordinates()[0];
+    } else if (geometryType == 'linestring') {
+      newPos = geometry.getCoordinates();
+      newPos = newPos[Math.floor(newPos.length / 2)];
+    } else if (geometryType == 'multilinestring') {
+      newPos = geometry.getCoordinates()[0];
+      newPos = newPos[Math.floor(newPos.length / 2)];
+    } else if (geometryType == 'polygon') {
+      newPos = geometry.getCoordinates()[0][0];
+    } else if (geometryType == 'multipolygon') {
+      newPos = geometry.getCoordinates()[0][0][0];
+    } else if (geometryType == 'geometrycollection') {
+      var geom = geometry.getGeometries()[0];
+      geometryType = geom.getType().toLowerCase();
+      if (geometryType == 'point') {
+        newPos = geom.getCoordinates();
+      } else if (geometryType == 'linestring') {
+        newPos = geom.getCoordinates();
+        newPos = newPos[Math.floor(newPos.length / 2)];
+      } else if (geometryType == 'polygon') {
+        newPos = geom.getCoordinates()[0][0];
+      }
+    }
+    return newPos;
+  }
   function getGeometryGMLFromFeature(feature) {
     var featureGML = '';
-    if (feature.getGeometry().getType().toLowerCase() == 'point') {
-      featureGML = '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '"><gml:pos>' + feature.getGeometry().getCoordinates().toString().replace(/,/g, ' ') + '</gml:pos></gml:Point>';
-    } else if (feature.getGeometry().getType().toLowerCase() == 'multilinestring') {
-      featureGML = '<gml:MultiCurve xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '"><gml:curveMember><gml:LineString>' + '<gml:posList>' + feature.getGeometry().getCoordinates().toString().replace(/,/g, ' ') + '</gml:posList>' + '</gml:LineString></gml:curveMember></gml:MultiCurve>';
-    } else if (feature.getGeometry().getType().toLowerCase() == 'polygon') {
-      featureGML = '<gml:Polygon xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:exterior><gml:LinearRing><gml:posList>' + feature.getGeometry().getCoordinates().toString().replace(/,/g, ' ') + '</gml:posList>' + '</gml:LinearRing></gml:exterior></gml:Polygon>';
-    } else if (feature.getGeometry().getType().toLowerCase() == 'multipolygon') {
-      featureGML = '<gml:MultiSurface xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '"><gml:surfaceMember><gml:Polygon>' + '<gml:exterior><gml:LinearRing><gml:posList>' + feature.getGeometry().getCoordinates().toString().replace(/,/g, ' ') + '</gml:posList>' + '</gml:LinearRing></gml:exterior></gml:Polygon></gml:surfaceMember></gml:MultiSurface>';
+    var index = 0;
+    var length = 1;
+    var geometries = [feature.getGeometry()];
+    var buildCoordString = function (coords) {
+      var counter = 0;
+      return String(coords).replace(/,/g, function (all, match) {
+        if (counter === 1) {
+          counter = 0;
+          return ' ';
+        }
+        counter++;
+        return ',';
+      });
+    };
+    var isGeometryCollection = false;
+    if (feature.getGeometry().getType().toLowerCase() == 'geometrycollection') {
+      geometries = feature.getGeometry().getGeometries();
+      length = geometries.length;
+      featureGML += '<gml:MultiGeometry xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">';
+      isGeometryCollection = true;
+    }
+    for (var geometryIndex = 0; geometryIndex < length; geometryIndex++) {
+      var geometry = geometries[geometryIndex];
+      var geometryType = geometry.getType().toLowerCase();
+      if (isGeometryCollection) {
+        featureGML += '<gml:geometryMember>';
+      }
+      if (geometryType == 'point') {
+        featureGML += '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:coordinates decimal="." cs="," ts=" ">' + geometry.getCoordinates().toString() + '</gml:coordinates></gml:Point>';
+      } else if (geometryType == 'linestring') {
+        featureGML += '<gml:LineString xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates().toString()) + '</gml:coordinates></gml:LineString>';
+      } else if (geometryType == 'polygon') {
+        for (var coordIndex = 0; coordIndex < geometry.getCoordinates().length; coordIndex++) {
+        }
+        featureGML += '<gml:Polygon xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:outerBoundaryIs><gml:LinearRing><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates().toString()) + '</gml:coordinates>' + '</gml:LinearRing></gml:outerBoundaryIs></gml:Polygon>';
+      } else if (geometryType == 'multipoint') {
+        featureGML += '<gml:MultiPoint xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">';
+        for (index = 0; index < geometry.getCoordinates().length; index++) {
+          featureGML += '<gml:pointMember><gml:Point><gml:coordinates decimal="." cs="," ts=" ">' + geometry.getCoordinates()[index].toString() + '</gml:coordinates></gml:Point></gml:pointMember>';
+        }
+        featureGML += '</gml:MultiPoint>';
+      } else if (geometryType == 'multilinestring') {
+        featureGML += '<gml:MultiLineString xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">';
+        for (index = 0; index < geometry.getCoordinates().length; index++) {
+          featureGML += '<gml:lineMember><gml:LineString>' + '<gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[index].toString()) + '</gml:coordinates></gml:LineString></gml:lineMember>';
+        }
+        featureGML += '</gml:MultiLineString>';
+      } else if (geometryType == 'multipolygon') {
+        featureGML += '<gml:MultiPolygon xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">';
+        for (index = 0; index < geometry.getCoordinates().length; index++) {
+          featureGML += '<gml:polygonMember><gml:Polygon>' + '<gml:outerBoundaryIs><gml:LinearRing><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[index].toString()) + '</gml:coordinates>' + '</gml:LinearRing></gml:outerBoundaryIs></gml:Polygon></gml:polygonMember>';
+        }
+        featureGML += '</gml:MultiPolygon>';
+      }
+      if (isGeometryCollection) {
+        featureGML += '</gml:geometryMember>';
+      }
+    }
+    if (isGeometryCollection) {
+      featureGML += '</gml:MultiGeometry>';
     }
     return featureGML;
   }
@@ -67197,7 +67427,7 @@ var GeoGitRevertFeatureOptions = function () {
       http.get(url).then(function (response) {
         response.data.featureType.workspace = workspaceRoute.workspace;
         var featureType = response.data.featureType;
-        url = layer.get('metadata').url + '/wfs?service=wfs&version=1.0.0&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
+        url = layer.get('metadata').url + '/wfs?service=wfs&version=2.0.0&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
         http.get(url).then(function (response) {
           var x2js = new X2JS();
           var json = x2js.xml_str2json(response.data);
@@ -67932,6 +68162,8 @@ var GeoGitRevertFeatureOptions = function () {
   var translate_ = null;
   var dragZoomActive = false;
   var select = null;
+  var draw = null;
+  var modify = null;
   var createVectorEditLayer = function () {
     return new ol.layer.Vector({
       metadata: { vectorEditLayer: true },
@@ -67980,6 +68212,100 @@ var GeoGitRevertFeatureOptions = function () {
       }
     });
   };
+  var createFeatureOverlay = function () {
+    var overlayStyle = function () {
+        var styles = {};
+        styles['Polygon'] = [
+          new ol.style.Style({
+            fill: new ol.style.Fill({
+              color: [
+                255,
+                255,
+                255,
+                0.5
+              ]
+            })
+          }),
+          new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: [
+                255,
+                255,
+                255,
+                1
+              ],
+              width: 6
+            })
+          }),
+          new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: [
+                0,
+                153,
+                255,
+                1
+              ],
+              width: 4
+            })
+          })
+        ];
+        styles['MultiPolygon'] = styles['Polygon'];
+        styles['LineString'] = [
+          new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: [
+                255,
+                255,
+                255,
+                1
+              ],
+              width: 6
+            })
+          }),
+          new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: [
+                0,
+                153,
+                255,
+                1
+              ],
+              width: 4
+            })
+          })
+        ];
+        styles['MultiLineString'] = styles['LineString'];
+        styles['Point'] = [new ol.style.Style({
+            image: new ol.style.Circle({
+              radius: 12,
+              fill: new ol.style.Fill({
+                color: [
+                  0,
+                  153,
+                  255,
+                  0.75
+                ]
+              }),
+              stroke: new ol.style.Stroke({
+                color: [
+                  255,
+                  255,
+                  255,
+                  1
+                ],
+                width: 1.5
+              })
+            }),
+            zIndex: 100000
+          })];
+        styles['MultiPoint'] = styles['Point'];
+        styles['GeometryCollection'] = styles['Polygon'].concat(styles['Point']);
+        return function (feature, resolution) {
+          return styles[feature.getGeometry().getType()];
+        };
+      }();
+    return new ol.FeatureOverlay({ styleFunction: overlayStyle });
+  };
   module.provider('mapService', function () {
     this.$get = [
       '$translate',
@@ -68014,98 +68340,7 @@ var GeoGitRevertFeatureOptions = function () {
         }
         this.map = this.createMap();
         this.editLayer = createVectorEditLayer();
-        var overlayStyle = function () {
-            var styles = {};
-            styles['Polygon'] = [
-              new ol.style.Style({
-                fill: new ol.style.Fill({
-                  color: [
-                    255,
-                    255,
-                    255,
-                    0.5
-                  ]
-                })
-              }),
-              new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                  color: [
-                    255,
-                    255,
-                    255,
-                    1
-                  ],
-                  width: 6
-                })
-              }),
-              new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                  color: [
-                    0,
-                    153,
-                    255,
-                    1
-                  ],
-                  width: 4
-                })
-              })
-            ];
-            styles['MultiPolygon'] = styles['Polygon'];
-            styles['LineString'] = [
-              new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                  color: [
-                    255,
-                    255,
-                    255,
-                    1
-                  ],
-                  width: 6
-                })
-              }),
-              new ol.style.Style({
-                stroke: new ol.style.Stroke({
-                  color: [
-                    0,
-                    153,
-                    255,
-                    1
-                  ],
-                  width: 4
-                })
-              })
-            ];
-            styles['MultiLineString'] = styles['LineString'];
-            styles['Point'] = [new ol.style.Style({
-                image: new ol.style.Circle({
-                  radius: 12,
-                  fill: new ol.style.Fill({
-                    color: [
-                      0,
-                      153,
-                      255,
-                      0.75
-                    ]
-                  }),
-                  stroke: new ol.style.Stroke({
-                    color: [
-                      255,
-                      255,
-                      255,
-                      1
-                    ],
-                    width: 1.5
-                  })
-                }),
-                zIndex: 100000
-              })];
-            styles['MultiPoint'] = styles['Point'];
-            styles['GeometryCollection'] = styles['Polygon'].concat(styles['Point']);
-            return function (feature, resolution) {
-              return styles[feature.getGeometry().getType()];
-            };
-          }();
-        this.featureOverlay = new ol.FeatureOverlay({ styleFunction: overlayStyle });
+        this.featureOverlay = createFeatureOverlay();
         var localServer = serverService_.getServerLocalGeoserver();
         serverService_.populateLayersConfig(serverService_.getServerIndex(localServer.id));
         return this;
@@ -68507,26 +68742,48 @@ var GeoGitRevertFeatureOptions = function () {
       });
       return map;
     };
-    this.selectFromGeom = function (geom, crs) {
-      this.clearSelectedFeature();
+    this.addToEditLayer = function (geom, crs) {
+      this.clearEditLayer();
       var newFeature = new ol.Feature();
       var newGeom = transformGeometry(geom, crs, this.map.getView().getView2D().getProjection());
       newFeature.setGeometry(newGeom);
       this.editLayer.getSource().addFeature(newFeature);
-      this.addSelect();
       this.map.addLayer(this.editLayer);
     };
+    this.clearEditLayer = function () {
+      this.editLayer.getSource().clear();
+      this.map.removeLayer(this.editLayer);
+    };
     this.addSelect = function () {
+      this.featureOverlay = createFeatureOverlay();
       select = new ol.interaction.Select({
         layer: this.editLayer,
         featureOverlay: this.featureOverlay
       });
       this.map.addInteraction(select);
     };
-    this.clearSelectedFeature = function () {
-      this.editLayer.getSource().clear();
-      this.map.removeLayer(this.editLayer);
+    this.addDraw = function (geometryType) {
+      draw = new ol.interaction.Draw({
+        source: this.editLayer.getSource(),
+        type: geometryType
+      });
+      this.map.addInteraction(draw);
+    };
+    this.addModify = function () {
+      modify = new ol.interaction.Modify({ featureOverlay: this.featureOverlay });
+      this.map.addInteraction(modify);
+    };
+    this.removeSelect = function () {
       this.map.removeInteraction(select);
+    };
+    this.removeDraw = function () {
+      this.map.removeInteraction(draw);
+    };
+    this.removeModify = function () {
+      this.map.removeInteraction(modify);
+    };
+    this.hasSelectedFeature = function () {
+      return this.featureOverlay.getFeatures().getLength() > 0;
     };
   });
 }());
@@ -71051,12 +71308,31 @@ var transformGeometry = function (geometry, crsFrom, crsTo) {
       newGeom = new ol.geom.MultiPolygon($.extend(true, [], geometry.coordinates));
     }
     break;
+  case 'geometry': {
+      newGeom = new ol.geom.Geometry($.extend(true, [], geometry.coordinates));
+    }
+    break;
+  case 'multigeometry': {
+      newGeom = new ol.geom.GeometryCollection($.extend(true, [], geometry.coordinates));
+    }
+    break;
+  case 'geometrycollection': {
+      var geometries = [];
+      for (var index = 0; index < geometry.geometries.length; index++) {
+        geometries.push(transformGeometry(geometry.geometries[index]));
+      }
+      newGeom = new ol.geom.GeometryCollection($.extend(true, [], geometries));
+    }
+    break;
   default: {
-      console.log(geometry.geometry.type, 'Not a valid geometry type');
+      console.log(geometry.type, 'Not a valid geometry type');
+      return;
     }
   }
-  var transform = ol.proj.getTransform(crsFrom, crsTo);
-  newGeom.transform(transform);
+  if (goog.isDefAndNotNull(crsFrom) && goog.isDefAndNotNull(crsTo)) {
+    var transform = ol.proj.getTransform(crsFrom, crsTo);
+    newGeom.transform(transform);
+  }
   return newGeom;
 };
 var validateInteger = function (property, key) {
@@ -71544,9 +71820,9 @@ var parseMultiPoint_ = function (str) {
   var parts = [];
   for (var i = 0, ii = points.length; i < ii; ++i) {
     point = points[i].replace(regExes.trimParens, '$1');
-    parts.push(parsePoint_.apply(this, [point]));
+    parts.push(parsePoint_.apply(this, [point]).getCoordinates());
   }
-  return ol.geom.MultiPoint.fromParts(parts);
+  return new ol.geom.MultiPoint(parts);
 };
 var parseMultiLineString_ = function (str) {
   var line;
@@ -71554,12 +71830,12 @@ var parseMultiLineString_ = function (str) {
   var parts = [];
   for (var i = 0, ii = lines.length; i < ii; ++i) {
     line = lines[i].replace(regExes.trimParens, '$1');
-    parts.push(parseLineString_.apply(this, [line]));
+    parts.push(parseLineString_.apply(this, [line]).getCoordinates());
   }
-  return ol.geom.MultiLineString.fromParts(parts);
+  return new ol.geom.MultiLineString(parts);
 };
 var parsePolygon_ = function (str) {
-  var ring, linestring, linearring;
+  var ring, linestring;
   var rings = goog.string.trim(str).split(regExes.parenComma);
   var coordinates = [];
   for (var i = 0, ii = rings.length; i < ii; ++i) {
@@ -71575,9 +71851,9 @@ var parseMultiPolygon_ = function (str) {
   var parts = [];
   for (var i = 0, ii = polygons.length; i < ii; ++i) {
     polygon = polygons[i].replace(regExes.trimParens, '$1');
-    parts.push(parsePolygon_.apply(this, [polygon]));
+    parts.push(parsePolygon_.apply(this, [polygon]).getCoordinates());
   }
-  return ol.geom.MultiPolygon.fromParts(parts);
+  return new ol.geom.MultiPolygon(parts);
 };
 var parseGeometryCollection_ = function (str) {
   str = str.replace(regExes.geomCollection, '|$1');
@@ -71644,7 +71920,7 @@ var WKT = {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -71978,13 +72254,35 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "");
 }]);
 
+angular.module("featuremanager/partial/drawselect.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("featuremanager/partial/drawselect.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "  <div class=\"row\"><p>Please select the geometry type you wish to draw.</p></div>\n" +
+    "  <br>\n" +
+    "  <select class=\"form-control\" ng-model=\"drawType\" required ng-options=\"type for type in geometryTypes\">\n" +
+    "  </select>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" ng-click=\"mapService.addDraw(drawType)\" data-dismiss=\"modal\" ng-disabled=\"!drawType\" translate=\"continue_btn\">Continue</button>\n" +
+    "</div>\n" +
+    "");
+}]);
+
 angular.module("featuremanager/partial/exclusivemode.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("featuremanager/partial/exclusivemode.tpl.html",
     "<div id=\"exclusive-mode-container\" class=\"panel-group collapse flat-top\">\n" +
     "  <div id=\"exclusive-mode-panel\" class=\"panel in\">\n" +
     "    <div align=\"center\"><h5>{{exclusiveModeService.getTitle()}}</h5></div>\n" +
-    "    <button ng-click=\"exclusiveModeService.getButtonOne().callback()\" class=\"btn btn-default\">{{exclusiveModeService.getButtonOne().title}}</button>\n" +
-    "    <button ng-click=\"exclusiveModeService.getButtonTwo().callback()\" class=\"btn btn-default\">{{exclusiveModeService.getButtonTwo().title}}</button>\n" +
+    "    <button ng-click=\"exclusiveModeService.getButtonTwo().callback()\" class=\"btn btn-sm btn-danger\" tooltip-append-to-body=\"true\"\n" +
+    "            tooltip-placement=\"bottom\" tooltip=\"{{exclusiveModeService.getButtonTwo().title}}\"><i class=\"glyphicon glyphicon-remove\"></i></button>\n" +
+    "    <div ng-show=\"exclusiveModeService.isMultiType()\" class=\"btn-group\">\n" +
+    "      <button class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\" ng-click=\"exclusiveModeService.addToFeature()\"\n" +
+    "              tooltip-placement=\"bottom\" tooltip=\"{{'add_to_feature' | translate}}\"><i class=\"glyphicon glyphicon-plus\"></i></button>\n" +
+    "      <button class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\" ng-click=\"exclusiveModeService.removeFromFeature()\"\n" +
+    "              tooltip-placement=\"bottom\" tooltip=\"{{'remove_from_feature' | translate}}\"><i class=\"glyphicon glyphicon-minus\"></i></button>\n" +
+    "    </div>\n" +
+    "    <button ng-click=\"exclusiveModeService.getButtonOne().callback()\" ng-class=\"{'pull-right': !exclusiveModeService.isMultiType()}\" class=\"btn btn-sm btn-primary\" tooltip-append-to-body=\"true\"\n" +
+    "            tooltip-placement=\"bottom\" tooltip=\"{{exclusiveModeService.getButtonOne().title}}\"><i class=\"glyphicon glyphicon-ok\"></i></button>\n" +
     "  </div>\n" +
     "</div>\n" +
     "");
