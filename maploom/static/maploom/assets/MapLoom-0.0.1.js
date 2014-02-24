@@ -64667,7 +64667,7 @@ var SERVER_SERVICE_USE_PROXY = true;
           if (goog.isDefAndNotNull(config) && (config.method.toLowerCase() === 'post' || config.method.toLowerCase() === 'put')) {
             config.headers['X-CSRFToken'] = service_.csrfToken;
           }
-          if (goog.isDefAndNotNull(config) && goog.isDefAndNotNull(config.url) && config.url.indexOf('http') === 0 && config.url.indexOf('http://' + $location.host()) < 0) {
+          if (goog.isDefAndNotNull(config) && goog.isDefAndNotNull(config.url) && config.url.indexOf('http') === 0 && config.url.indexOf('http://' + $location.host()) !== 0) {
             var configCopy = $.extend(true, {}, config);
             var proxy = service_.configuration.proxy;
             if (goog.isDefAndNotNull(proxy)) {
@@ -65705,15 +65705,6 @@ var DiffColorMap = {
           } else {
             panel.geometry = item;
           }
-        });
-        panel.attributes = panel.attributes.sort(function (a, b) {
-          if (a.attributename > b.attributename) {
-            return 1;
-          }
-          if (a.attributename < b.attributename) {
-            return -1;
-          }
-          return 0;
         });
         var geom = WKT.read(panel.getGeometry());
         var localCrs = crs_;
