@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-02-24
+ * MapLoom - v0.0.1 - 2014-02-25
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -61636,7 +61636,7 @@ goog.require("ol.xml");
 
 
 /*
- * blueimp Gallery JS 2.13.0
+ * blueimp Gallery JS 2.14.0
  * https://github.com/blueimp/Gallery
  *
  * Copyright 2013, Sebastian Tschan
@@ -61667,7 +61667,7 @@ goog.require("ol.xml");
     'use strict';
 
     function Gallery(list, options) {
-        if (!list || !list.length || document.body.style.maxHeight === undefined) {
+        if (document.body.style.maxHeight === undefined) {
             // document.body.style.maxHeight is undefined on IE6 and lower
             return null;
         }
@@ -61675,6 +61675,13 @@ goog.require("ol.xml");
             // Called as function instead of as constructor,
             // so we simply return a new instance:
             return new Gallery(list, options);
+        }
+        if (!list || !list.length) {
+            this.console.log(
+                'blueimp Gallery: No or empty list provided as first argument.',
+                list
+            );
+            return;
         }
         this.list = list;
         this.num = list.length;
@@ -61823,6 +61830,10 @@ goog.require("ol.xml");
             disableScroll: false,
             startSlideshow: true
         },
+
+        console: window.console && typeof window.console.log === 'function' ?
+            window.console :
+            {log: function () {}},
 
         // Detect touch, transition, transform and background-size support:
         support: (function (element) {
@@ -62895,12 +62906,20 @@ goog.require("ol.xml");
                 };
             this.container = $(this.options.container);
             if (!this.container.length) {
+                this.console.log(
+                    'blueimp Gallery: Widget container not found.',
+                    this.options.container
+                );
                 return false;
             }
             this.slidesContainer = this.container.find(
                 this.options.slidesContainer
             ).first();
             if (!this.slidesContainer.length) {
+                this.console.log(
+                    'blueimp Gallery: Slides container not found.',
+                    this.options.slidesContainer
+                );
                 return false;
             }
             this.titleElement = this.container.find(
@@ -66501,8 +66520,12 @@ var DiffColorMap = {
         }
       });
       geometryType = geometryType.split(':')[1].replace('PropertyType', '');
-      geometryType = geometryType.replace('Curve', 'LineString');
-      geometryType = geometryType.replace('Surface', 'Polygon');
+      if (settings.DescribeFeatureTypeVersion == '1.1.0') {
+        geometryType = geometryType.replace('Curve', 'Geometry');
+      } else if (settings.DescribeFeatureTypeVersion == '2.0.0') {
+        geometryType = geometryType.replace('Curve', 'LineString');
+        geometryType = geometryType.replace('Surface', 'Polygon');
+      }
       exclusiveModeService_.startExclusiveMode(translate_('drawing_geometry'), exclusiveModeService_.button(translate_('accept_feature'), function () {
         if (mapService_.editLayer.getSource().getAllFeatures().length < 1) {
           dialogService_.warn(translate_('adding_feature'), translate_('must_create_feature'), [translate_('btn_ok')], false);
@@ -67419,7 +67442,7 @@ var GeoGitRevertFeatureOptions = function () {
       http.get(url).then(function (response) {
         response.data.featureType.workspace = workspaceRoute.workspace;
         var featureType = response.data.featureType;
-        url = layer.get('metadata').url + '/wfs?service=wfs&version=2.0.0&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
+        url = layer.get('metadata').url + '/wfs?service=wfs&version=' + settings.DescribeFeatureTypeVersion + '&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
         http.get(url).then(function (response) {
           var x2js = new X2JS();
           var json = x2js.xml_str2json(response.data);
@@ -71245,7 +71268,8 @@ var coordinateDisplays = {
   };
 var settings = {
     coordinateDisplay: coordinateDisplays.DMS,
-    DDPrecision: 8
+    DDPrecision: 8,
+    DescribeFeatureTypeVersion: '1.1.0'
   };
 var forEachArrayish = function (arrayish, funct) {
   if (goog.isArray(arrayish)) {
