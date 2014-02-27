@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-02-26
+ * MapLoom - v0.0.1 - 2014-02-27
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -66372,6 +66372,7 @@ var DiffColorMap = {
   var containerInstance_ = null;
   var overlay_ = null;
   var position_ = null;
+  var clickPosition_ = null;
   var enabled_ = true;
   var wfsPostTypes_ = {
       UPDATE: 0,
@@ -66531,6 +66532,7 @@ var DiffColorMap = {
         if (getItemType(selectedItem_) === 'feature') {
           selectedLayer_ = this.getSelectedItemLayer().layer;
           mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+          position = getNewPositionFromGeometry(mapService_.editLayer.getSource().getAllFeatures()[0].getGeometry(), clickPosition_);
         } else {
           mapService_.clearEditLayer();
         }
@@ -66626,8 +66628,8 @@ var DiffColorMap = {
         geometryType = geometryType.replace('Curve', 'Geometry');
       } else if (settings.DescribeFeatureTypeVersion == '2.0.0') {
         geometryType = geometryType.replace('Curve', 'LineString');
-        geometryType = geometryType.replace('Surface', 'Polygon');
       }
+      geometryType = geometryType.replace('Surface', 'Polygon');
       exclusiveModeService_.startExclusiveMode(translate_('drawing_geometry'), exclusiveModeService_.button(translate_('accept_feature'), function () {
         if (mapService_.editLayer.getSource().getAllFeatures().length < 1) {
           dialogService_.warn(translate_('adding_feature'), translate_('must_create_feature'), [translate_('btn_ok')], false);
@@ -66916,6 +66918,7 @@ var DiffColorMap = {
           completed += 1;
           if (completed === layers.length) {
             if (infoPerLayer.length > 0) {
+              clickPosition_ = evt.coordinate;
               service_.show(infoPerLayer, evt.coordinate);
             }
           } else {
@@ -67007,34 +67010,35 @@ var DiffColorMap = {
       console.log('----[ ERROR: wfs-t post failed! ', data, status, headers, config);
     });
   }
-  function getNewPositionFromGeometry(geometry) {
+  function getNewPositionFromGeometry(geometry, clickPos) {
     var newPos;
     var geometryType = geometry.getType().toLowerCase();
+    if (!goog.isDefAndNotNull(clickPos)) {
+      clickPos = ol.extent.getCenter(geometry.getExtent());
+    }
     if (geometryType == 'point') {
-      newPos = geometry.getCoordinates();
+      newPos = geometry.getClosestPoint(clickPos);
     } else if (geometryType == 'multipoint') {
-      newPos = geometry.getCoordinates()[0];
+      newPos = geometry.getClosestPoint(clickPos);
     } else if (geometryType == 'linestring') {
-      newPos = geometry.getCoordinates();
-      newPos = newPos[Math.floor(newPos.length / 2)];
+      newPos = geometry.getClosestPoint(clickPos);
     } else if (geometryType == 'multilinestring') {
-      newPos = geometry.getCoordinates()[0];
-      newPos = newPos[Math.floor(newPos.length / 2)];
+      newPos = geometry.getClosestPoint(clickPos);
     } else if (geometryType == 'polygon') {
-      newPos = geometry.getCoordinates()[0][0];
-    } else if (geometryType == 'multipolygon') {
-      newPos = geometry.getCoordinates()[0][0][0];
-    } else if (geometryType == 'geometrycollection') {
-      var geom = geometry.getGeometries()[0];
-      geometryType = geom.getType().toLowerCase();
-      if (geometryType == 'point') {
-        newPos = geom.getCoordinates();
-      } else if (geometryType == 'linestring') {
-        newPos = geom.getCoordinates();
-        newPos = newPos[Math.floor(newPos.length / 2)];
-      } else if (geometryType == 'polygon') {
-        newPos = geom.getCoordinates()[0][0];
+      if (geometry.containsCoordinate(clickPos)) {
+        return clickPos;
       }
+      newPos = geometry.getClosestPoint(clickPos);
+    } else if (geometryType == 'multipolygon') {
+      if (geometry.containsCoordinate(clickPos)) {
+        return clickPos;
+      }
+      newPos = geometry.getClosestPoint(clickPos);
+    } else if (geometryType == 'geometrycollection') {
+      if (geometry.containsCoordinate(clickPos)) {
+        return clickPos;
+      }
+      newPos = geometry.getClosestPoint(clickPos);
     }
     return newPos;
   }
