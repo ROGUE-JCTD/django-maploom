@@ -63974,6 +63974,7 @@ goog.require("ol.xml");
       'cancel_merge': 'Cancel the merge',
       'complete_merge': 'Complete the merge',
       'save_btn': 'Save',
+      'save_copy_btn': 'Save Copy',
       'single_conflict': '1 conflict remains',
       'multiple_conflicts': '{{value}} conflicts remain',
       'sure_cancel_merge': 'Are you sure you want to cancel the merge process?',
@@ -64086,7 +64087,7 @@ goog.require("ol.xml");
       'word_wrap': 'Toggle Word Wrap',
       'title': 'Title',
       'abstract': 'Abstract',
-      'save_this_map': 'Save this map.',
+      'save_this_map': 'Save this map',
       'save_failed': 'Save failed',
       'map_save_failed': 'Map save failed with the following status: {{value}}.',
       'fetch': 'Fetch',
@@ -64191,6 +64192,7 @@ goog.require("ol.xml");
       'cancel_merge': 'Cancelar la fusion',
       'complete_merge': 'Completar la fusion',
       'save_btn': 'Guardar',
+      'save_copy_btn': 'es_save_copy',
       'single_conflict': '1 conflicto pendiente',
       'multiple_conflicts': '{{value}} conflictos pendientes',
       'sure_cancel_merge': 'Esta seguro que desea cancelar el proceso de fusion?',
@@ -64303,7 +64305,7 @@ goog.require("ol.xml");
       'word_wrap': 'Ajuste de l\xednea de alternancia',
       'title': 'es_Title',
       'abstract': 'es_Abstract',
-      'save_this_map': 'es_Save this map.',
+      'save_this_map': 'es_Save this map',
       'save_failed': 'es_Save failed',
       'map_save_failed': 'es_Map save failed with the following status: {{value}}.',
       'fetch': 'es_Fetch',
@@ -68740,7 +68742,10 @@ var GeoGitRevertFeatureOptions = function () {
     this.updateMap = function (data) {
       service_.id = data.id;
     };
-    this.save = function () {
+    this.save = function (copy) {
+      if (goog.isDefAndNotNull(copy) && copy) {
+        service_.id = null;
+      }
       var cfg = {
           about: {
             abstract: service_.abstract,
@@ -68766,8 +68771,6 @@ var GeoGitRevertFeatureOptions = function () {
         cfg.map.layers.push(layer.get('metadata').config);
       });
       console.log('--- save.cfg: ', cfg);
-      console.log('--- save.cfg string: ', JSON.stringify(cfg));
-      console.log('+++++++[ token: ', cookiesService_.csrftoken);
       httpService_({
         url: service_.getSaveURL(),
         method: service_.getSaveHTTPMethod(),
@@ -68775,9 +68778,8 @@ var GeoGitRevertFeatureOptions = function () {
         headers: { 'X-CSRFToken': configService_.csrfToken }
       }).success(function (data, status, headers, config) {
         service_.updateMap(data);
-        console.log('====[ map.save great success. ', data, status, headers, config);
+        console.log('----[ map.save success. ', data, status, headers, config);
       }).error(function (data, status, headers, config) {
-        console.log('----[ ERROR: map.save failed! ', data, status, headers, config);
         dialogService_.error(translate_('save_failed'), translate_('map_save_failed', { value: status }));
       });
     };
@@ -72720,7 +72722,10 @@ angular.module("map/partial/savemap.tpl.html", []).run(["$templateCache", functi
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
     "    <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">{{'close_btn' | translate }}</button>\n" +
-    "    <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-class=\"{'disabled': !configService.username}\" ng-click=\"mapService.save()\">{{'save_btn' | translate}}</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-class=\"{'disabled': !configService.username}\"\n" +
+    "          ng-click=\"mapService.save(true)\" ng-show=\"mapService.id\" >{{'save_copy_btn' | translate}}</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-class=\"{'disabled': !configService.username}\"\n" +
+    "          ng-click=\"mapService.save()\">{{'save_btn' | translate}}</button>\n" +
     "</div>\n" +
     "\n" +
     "\n" +
