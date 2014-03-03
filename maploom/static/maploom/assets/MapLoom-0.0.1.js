@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-02-27
+ * MapLoom - v0.0.1 - 2014-03-03
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -65791,7 +65791,7 @@ var DiffColorMap = {
         service_.merged.olFeature = new ol.Feature();
         service_.merged.olFeature.set('MapLoomChange', DiffColorMap[feature.change]);
         service_.merged.olFeature.setGeometry(geom);
-        service_.merged.featureLayer.addFeatures([service_.merged.olFeature]);
+        service_.merged.featureLayer.getSource().addFeature(service_.merged.olFeature);
         service_.performFeatureDiff(feature, ours_, ancestor_, service_.left);
         service_.performFeatureDiff(feature, theirs_, ancestor_, service_.right);
         break;
