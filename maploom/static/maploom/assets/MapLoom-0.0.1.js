@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-03
+ * MapLoom - v0.0.1 - 2014-03-06
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -67494,7 +67494,7 @@ var GeoGitRevertFeatureOptions = function () {
     };
     this.isNotLayerGroup = function (layer) {
       var featureType = layer.get('metadata').name;
-      var url = layer.get('metadata').url + '/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=DescribeLayer&layers=' + featureType;
+      var url = layer.get('metadata').url + '/wms?version=' + settings.WMSVersion + '&request=DescribeLayer&layers=' + featureType;
       var deferredResponse = q.defer();
       http.get(url).then(function (response) {
         var strings = response.data.split('</LayerDescription>');
@@ -67548,7 +67548,7 @@ var GeoGitRevertFeatureOptions = function () {
       http.get(url).then(function (response) {
         response.data.featureType.workspace = workspaceRoute.workspace;
         var featureType = response.data.featureType;
-        url = layer.get('metadata').url + '/wfs?service=wfs&version=' + settings.DescribeFeatureTypeVersion + '&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
+        url = layer.get('metadata').url + '/wfs?version=' + settings.WFSVersion + '&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
         http.get(url).then(function (response) {
           var x2js = new X2JS();
           var json = x2js.xml_str2json(response.data);
@@ -68525,8 +68525,8 @@ var GeoGitRevertFeatureOptions = function () {
       }
       if (goog.isDefAndNotNull(layer.get('metadata').editable) && layer.get('metadata').editable) {
         var layerTypeName = layer.get('metadata').name;
-        var url = layer.get('metadata').url + '/ows?service=wps&version=1.0.0';
-        var wpsPostData = '' + '<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0" service="WPS" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'xmlns="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" ' + 'xmlns:ogc="http://www.opengis.net/ogc" ' + 'xmlns:wcs="http://www.opengis.net/wcs/1.1.1" ' + 'xmlns:xlink="http://www.w3.org/1999/xlink" ' + 'xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 ' + 'http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">' + '<ows:Identifier>gs:Bounds</ows:Identifier>' + '<wps:DataInputs>' + '<wps:Input>' + '<ows:Identifier>features</ows:Identifier>' + '<wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">' + '<wps:Body>' + '<wfs:GetFeature service="WFS" version="1.0.0" outputFormat="GML2" ' + 'xmlns:geonode="http://www.geonode.org/">' + '<wfs:Query typeName="' + layerTypeName + '"/>' + '</wfs:GetFeature>' + '</wps:Body>' + '</wps:Reference>' + '</wps:Input>' + '</wps:DataInputs>' + '<wps:ResponseForm>' + '<wps:RawDataOutput>' + '<ows:Identifier>bounds</ows:Identifier>' + '</wps:RawDataOutput>' + '</wps:ResponseForm>' + '</wps:Execute>';
+        var url = layer.get('metadata').url + '/wps?version=' + settings.WPSVersion;
+        var wpsPostData = '' + '<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="' + settings.WPSVersion + '" service="WPS" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'xmlns="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" ' + 'xmlns:ogc="http://www.opengis.net/ogc" ' + 'xmlns:wcs="http://www.opengis.net/wcs/1.1.1" ' + 'xmlns:xlink="http://www.w3.org/1999/xlink" ' + 'xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 ' + 'http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">' + '<ows:Identifier>gs:Bounds</ows:Identifier>' + '<wps:DataInputs>' + '<wps:Input>' + '<ows:Identifier>features</ows:Identifier>' + '<wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">' + '<wps:Body>' + '<wfs:GetFeature service="WFS" version="' + settings.WFSVersion + '" outputFormat="GML2" ' + 'xmlns:geonode="http://www.geonode.org/">' + '<wfs:Query typeName="' + layerTypeName + '"/>' + '</wfs:GetFeature>' + '</wps:Body>' + '</wps:Reference>' + '</wps:Input>' + '</wps:DataInputs>' + '<wps:ResponseForm>' + '<wps:RawDataOutput>' + '<ows:Identifier>bounds</ows:Identifier>' + '</wps:RawDataOutput>' + '</wps:ResponseForm>' + '</wps:Execute>';
         httpService_.post(url, wpsPostData).success(function (data, status, headers, config) {
           var x2js = new X2JS();
           var json = x2js.xml_str2json(data);
@@ -71065,7 +71065,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     this.showTable = function (layer) {
       service_.featureList = [];
       service_.attributeNameList = [];
-      var url = layer.get('metadata').url + '/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=' + layer.get('metadata').name;
+      var url = layer.get('metadata').url + '/wfs?version=' + settings.WFSVersion + '&request=GetFeature&typeNames=' + layer.get('metadata').name;
       http_.get(url).then(function (response) {
         var x2js = new X2JS();
         var json = x2js.xml_str2json(response.data);
@@ -71271,7 +71271,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     }
   }
   function getWfsData(lon, lat, date) {
-    return '' + '<?xml version="1.0" encoding="UTF-8"?>' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs"' + ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service= "WFS" version="1.1.0" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd">' + '<wfs:Insert>' + '<feature:' + config.layerName + ' xmlns:feature="http://www.geonode.org/">' + '<feature:' + config.geomAttributeName + '>' + '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + config.layerProjection + '">' + '<gml:pos>' + lon + ' ' + lat + '</gml:pos>' + '</gml:Point>' + '</feature:' + config.geomAttributeName + '>' + '<feature:' + config.attributeName + '>' + config.attributeValuePrefix + ' runCounter: ' + runCounter + ' ' + date + '</feature:' + config.attributeName + '>' + '</feature:' + config.layerName + '>' + '</wfs:Insert>' + '</wfs:Transaction>';
+    return '' + '<?xml version="1.0" encoding="UTF-8"?>' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs"' + ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service= "WFS" version="' + settings.WFSVersion + '" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd">' + '<wfs:Insert>' + '<feature:' + config.layerName + ' xmlns:feature="http://www.geonode.org/">' + '<feature:' + config.geomAttributeName + '>' + '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + config.layerProjection + '">' + '<gml:pos>' + lon + ' ' + lat + '</gml:pos>' + '</gml:Point>' + '</feature:' + config.geomAttributeName + '>' + '<feature:' + config.attributeName + '>' + config.attributeValuePrefix + ' runCounter: ' + runCounter + ' ' + date + '</feature:' + config.attributeName + '>' + '</feature:' + config.layerName + '>' + '</wfs:Insert>' + '</wfs:Transaction>';
   }
   function run() {
     runCounter += 1;
@@ -71430,7 +71430,9 @@ var coordinateDisplays = {
 var settings = {
     coordinateDisplay: coordinateDisplays.DMS,
     DDPrecision: 8,
-    DescribeFeatureTypeVersion: '1.1.0'
+    WFSVersion: '1.1.0',
+    WMSVersion: '1.1.1',
+    WPSVersion: '1.0.0'
   };
 var forEachArrayish = function (arrayish, funct) {
   if (goog.isArray(arrayish)) {
