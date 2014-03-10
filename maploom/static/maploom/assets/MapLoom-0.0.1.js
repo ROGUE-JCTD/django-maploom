@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-07
+ * MapLoom - v0.0.1 - 2014-03-10
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -64128,7 +64128,16 @@ goog.require("ol.xml");
       'add_to_feature': 'Add To Feature',
       'remove_from_feature': 'Remove From Feature',
       'draw': 'Draw',
-      'zoom_to_data': 'Zoom to data'
+      'zoom_to_data': 'Zoom to data',
+      'show_layer_info': 'Show Layer Info',
+      'workspace': 'Workspace',
+      'featuretype': 'FeatureType',
+      'keywords': 'Keywords',
+      'srs': 'SRS',
+      'server': 'Server',
+      'datastoretype': 'Datastore Type',
+      'branch': 'Branch',
+      'layerinfo': 'Layer Info'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -64346,7 +64355,16 @@ goog.require("ol.xml");
       'add_to_feature': 'Agregar a la Funci\xf3n',
       'remove_from_feature': 'Eliminar de Funci\xf3n',
       'draw': 'Dibujar',
-      'zoom_to_data': 'Enfocar a los datos'
+      'zoom_to_data': 'Enfocar a los datos',
+      'show_layer_info': 'Mostrar informaci\xf3n de las capas',
+      'workspace': 'Espacio de trabajo',
+      'featuretype': 'Tipo de funcion',
+      'keywords': 'Palabras clave',
+      'srs': 'SRS',
+      'server': 'Servidor',
+      'datastoretype': 'Tipo de almacen de datos',
+      'branch': 'Rama',
+      'layerinfo': 'Informacion de las Capas'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -64431,6 +64449,7 @@ goog.require("ol.xml");
   angular.module('loom_addlayers', [
     'loom_addlayers_directive',
     'loom_add_server_directive',
+    'loom_layerinfo_popover_directive',
     'loom_server_service'
   ]);
 }());
@@ -64451,6 +64470,78 @@ goog.require("ol.xml");
           scope.addServer = function (info) {
             var id = serverService.addServer(info);
             $rootScope.$broadcast('server-added', id);
+          };
+        }
+      };
+    }
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_layerinfo_popover_directive', []);
+  module.directive('loomLayerinfoPopover', [
+    '$translate',
+    function ($translate) {
+      return {
+        restrict: 'C',
+        replace: false,
+        link: function (scope, element) {
+          var safeName = function () {
+            if (goog.isDefAndNotNull(scope.layer.name)) {
+              var split = scope.layer.name.split(':');
+              return split[split.length - 1];
+            }
+            return '';
+          };
+          var safeTitle = function () {
+            if (goog.isDefAndNotNull(scope.layer.title)) {
+              return scope.layer.title;
+            }
+            return '';
+          };
+          var safeWorkspace = function () {
+            if (goog.isDefAndNotNull(scope.layer.prefix)) {
+              return scope.layer.prefix;
+            }
+            return '';
+          };
+          var safeAbstract = function () {
+            if (goog.isDefAndNotNull(scope.layer.abstract)) {
+              return scope.layer.abstract;
+            }
+            return '';
+          };
+          var buildKeywords = function () {
+            var keywords = '';
+            if (goog.isDefAndNotNull(scope.layer.keywords) && scope.layer.keywords.length > 0) {
+              keywords += scope.layer.keywords[0].value;
+              if (goog.isDefAndNotNull(scope.layer.keywords[0].vocabulary)) {
+                keywords += ' (' + scope.layer.keywords[0].vocabulary + ')';
+              }
+              for (var index = 0; index < scope.layer.keywords.length; index++) {
+                keywords += ', ' + scope.layer.keywords[index].value;
+                if (goog.isDefAndNotNull(scope.layer.keywords[index].vocabulary)) {
+                  keywords += ' (' + scope.layer.keywords[index].vocabulary + ')';
+                }
+              }
+            }
+            return keywords;
+          };
+          var content = '<div class="popover-label">' + $translate('server_name') + ':</div>' + '<div class="popover-value">' + safeName() + '</div>' + '<div class="popover-label">' + $translate('title') + ':</div>' + '<div class="popover-value">' + safeTitle() + '</div>' + '<div class="popover-label">' + $translate('workspace') + ':</div>' + '<div class="popover-value">' + safeWorkspace() + '</div>' + '<div class="popover-label">' + $translate('abstract') + ':</div>' + '<div class="popover-value">' + safeAbstract() + '</div>' + '<div class="popover-label">' + $translate('keywords') + ':</div>' + '<div class="popover-value">' + buildKeywords() + '</div>';
+          element.popover({
+            trigger: 'manual',
+            animation: false,
+            html: true,
+            content: content,
+            container: 'body',
+            title: scope.layer.title
+          });
+          scope.showPopover = function () {
+            if (element.closest('.collapsing').length === 0) {
+              element.popover('show');
+            }
+          };
+          scope.hidePopover = function () {
+            element.popover('hide');
           };
         }
       };
@@ -67629,6 +67720,10 @@ var GeoGitRevertFeatureOptions = function () {
                   metadata.projection = featureType.srs;
                   metadata.workspace = featureType.workspace;
                   metadata.nativeName = featureType.nativeName;
+                  metadata.abstract = featureType.abstract;
+                  metadata.keywords = featureType.keywords;
+                  metadata.dataStoreType = dataStore.type;
+                  rootScope.$broadcast('layerInfoLoaded', layer);
                   service_.getCommitId(layer).then(function (response) {
                     metadata.repoCommitId = response;
                   });
@@ -67886,7 +67981,7 @@ var GeoGitRevertFeatureOptions = function () {
           var prettyMessage = function () {
             return scope.commit.message;
           };
-          var content = '<div class="history-popover-content">' + '<div class="history-popover-label">' + $translate('author_name') + ':</div>' + '<div class="history-popover-value">' + safeName(scope.commit.author.name) + '</div>' + '<div class="history-popover-label">' + $translate('author_email') + ':</div>' + '<div class="history-popover-value">' + safeEmail(scope.commit.author.email) + '</div>' + '<div class="history-popover-label">' + $translate('committer_name') + ':</div>' + '<div class="history-popover-value">' + safeName(scope.commit.committer.name) + '</div>' + '<div class="history-popover-label">' + $translate('committer_email') + ':</div>' + '<div class="history-popover-value">' + safeEmail(scope.commit.committer.email) + '</div>' + '<div class="history-popover-label">' + $translate('commit_time') + ':</div>' + '<div class="history-popover-value">' + prettyTime(scope.commit.committer.timestamp) + '</div>' + '<div class="history-popover-label">' + $translate('message') + ':</div>' + '<div class="history-popover-value">' + prettyMessage() + '</div>';
+          var content = '<div class="popover-label">' + $translate('author_name') + ':</div>' + '<div class="popover-value">' + safeName(scope.commit.author.name) + '</div>' + '<div class="popover-label">' + $translate('author_email') + ':</div>' + '<div class="popover-value">' + safeEmail(scope.commit.author.email) + '</div>' + '<div class="popover-label">' + $translate('committer_name') + ':</div>' + '<div class="popover-value">' + safeName(scope.commit.committer.name) + '</div>' + '<div class="popover-label">' + $translate('committer_email') + ':</div>' + '<div class="popover-value">' + safeEmail(scope.commit.committer.email) + '</div>' + '<div class="popover-label">' + $translate('commit_time') + ':</div>' + '<div class="popover-value">' + prettyTime(scope.commit.committer.timestamp) + '</div>' + '<div class="popover-label">' + $translate('message') + ':</div>' + '<div class="popover-value">' + prettyMessage() + '</div>';
           element.popover({
             trigger: 'manual',
             animation: false,
@@ -68096,6 +68191,72 @@ var GeoGitRevertFeatureOptions = function () {
   }
 }());
 (function () {
+  var module = angular.module('loom_layer_info_directive', []);
+  module.directive('loomLayerInfo', [
+    '$translate',
+    'serverService',
+    function ($translate, serverService) {
+      return {
+        templateUrl: 'layers/partials/layerinfo.tpl.html',
+        link: function (scope) {
+          var resetVariables = function () {
+            scope.layer = null;
+            scope.name = null;
+            scope.title = null;
+            scope.workspace = null;
+            scope.featureType = null;
+            scope.abstract = null;
+            scope.srs = null;
+            scope.serverName = null;
+            scope.datastoreType = null;
+            scope.keywords = null;
+            scope.repoName = null;
+            scope.branchName = null;
+          };
+          resetVariables();
+          scope.$on('getLayerInfo', function (evt, layer) {
+            resetVariables();
+            scope.layer = layer;
+            var metadata = scope.layer.get('metadata');
+            if (goog.isDefAndNotNull(metadata.name)) {
+              var split = metadata.name.split(':');
+              scope.name = split[split.length - 1];
+            }
+            if (goog.isDefAndNotNull(metadata.title)) {
+              scope.title = metadata.title;
+            }
+            if (goog.isDefAndNotNull(metadata.workspace)) {
+              scope.workspace = metadata.workspace;
+            }
+            if (goog.isDefAndNotNull(metadata.nativeName)) {
+              scope.featureType = metadata.nativeName;
+            }
+            if (goog.isDefAndNotNull(metadata.abstract)) {
+              scope.abstract = metadata.abstract;
+            }
+            if (goog.isDefAndNotNull(metadata.projection)) {
+              scope.srs = metadata.projection;
+            }
+            if (goog.isDefAndNotNull(metadata.dataStoreType)) {
+              scope.datastoreType = metadata.dataStoreType;
+            }
+            if (goog.isDefAndNotNull(metadata.keywords)) {
+              scope.keywords = metadata.keywords.string.toString();
+            }
+            if (metadata.isGeoGit) {
+              scope.branchName = metadata.branchName;
+              scope.repoName = metadata.repoName;
+            }
+            var server = serverService.getServerById(scope.layer.get('metadata').serverId);
+            scope.serverName = server.name;
+            element.closest('.modal').modal('toggle');
+          });
+        }
+      };
+    }
+  ]);
+}());
+(function () {
   var module = angular.module('loom_layers_directive', []);
   module.directive('loomLayers', [
     '$rootScope',
@@ -68190,6 +68351,9 @@ var GeoGitRevertFeatureOptions = function () {
               }
             }
           };
+          scope.getLayerInfo = function (layer) {
+            $rootScope.$broadcast('getLayerInfo', layer);
+          };
           scope.$on('layers-loaded', function (event, serverIndex) {
             scope.updateLayerTitles(serverIndex);
           });
@@ -68199,7 +68363,10 @@ var GeoGitRevertFeatureOptions = function () {
   ]);
 }());
 (function () {
-  angular.module('loom_layers', ['loom_layers_directive']);
+  angular.module('loom_layers', [
+    'loom_layers_directive',
+    'loom_layer_info_directive'
+  ]);
 }());
 (function () {
   var module = angular.module('loom_legend_directive', []);
@@ -71724,7 +71891,7 @@ var sha1 = function (msg) {
     function ($rootScope, $translate) {
       return {
         restrict: 'E',
-        template: '<div class="row">' + '<div ng-show="(editable !== \'false\')" ng-class="{\'col-md-6\': (time === \'true\'),' + ' \'col-md-12\': (time === \'false\') || (seperateTime === \'false\')}">' + '<div class="form-group">' + '<div class="input-group date datepicker">' + '<input type="text" class="form-control"/>' + '<span class="input-group-addon">' + '<span class="glyphicon glyphicon-calendar"></span>' + '</span>' + '</div>' + '</div>' + '</div>' + '<div ng-show="(editable !== \'false\') && (time === \'true\') && (seperateTime === \'true\')" +' + 'class="col-md-6">' + '<div class="form-group">' + '<div class="input-group date timepicker">' + '<input type="text" class="form-control"/>' + '<span class="input-group-addon">' + '<span class="glyphicon glyphicon-time"></span>' + '</span>' + '</div>' + '</div>' + '</div>' + '<div ng-show="(editable === \'false\')">' + '<input type="text" ng-model="disabledText" disabled class="disabled-date form-control"/>' + '</div>' + '</div>',
+        template: '<div class="row">' + '<div ng-show="(editable !== \'false\') && (date === \'true\')"' + ' ng-class="{\'col-md-6\': (time === \'true\'),' + ' \'col-md-12\': (time === \'false\') || (seperateTime === \'false\')}">' + '<div class="form-group">' + '<div class="input-group date datepicker">' + '<input type="text" class="form-control"/>' + '<span class="input-group-addon">' + '<span class="glyphicon glyphicon-calendar"></span>' + '</span>' + '</div>' + '</div>' + '</div>' + '<div ng-show="(editable !== \'false\') && (time === \'true\') && ((seperateTime === \'true\') ||' + ' (date === \'false\'))" ng-class="{\'col-md-6\': (date === \'true\' && seperateTime === \'true\'),' + ' \'col-md-12\': (date === \'false\')}">' + '<div class="form-group">' + '<div class="input-group date timepicker">' + '<input type="text" class="form-control"/>' + '<span class="input-group-addon">' + '<span class="glyphicon glyphicon-time"></span>' + '</span>' + '</div>' + '</div>' + '</div>' + '<div ng-show="(editable === \'false\')">' + '<input type="text" ng-model="disabledText" disabled class="disabled-date form-control"/>' + '</div>' + '</div>',
         replace: true,
         scope: {
           dateObject: '=dateObject',
@@ -71741,6 +71908,11 @@ var sha1 = function (msg) {
           } else {
             scope.time = attrs.time;
           }
+          if (!goog.isDefAndNotNull(attrs.date)) {
+            scope.date = 'true';
+          } else {
+            scope.date = attrs.date;
+          }
           if (!goog.isDefAndNotNull(attrs.seperateTime)) {
             scope.seperateTime = 'true';
           } else {
@@ -71748,27 +71920,43 @@ var sha1 = function (msg) {
           }
           var updateDateTime = function () {
             var newDate = new Date();
-            var date = element.find('.datepicker').data('DateTimePicker').getDate();
+            var date = element.find('.datepicker').data('DateTimePicker');
             if (goog.isDefAndNotNull(date)) {
+              date = date.getDate();
               newDate.setFullYear(date.year(), date.month(), date.date());
-              if (scope.time === 'true' && scope.seperateTime === 'true') {
-                var time = element.find('.timepicker').data('DateTimePicker').getDate();
-                if (goog.isDefAndNotNull(time)) {
-                  newDate.setHours(time.hour(), time.minute(), time.second(), time.millisecond());
-                } else {
-                  newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
-                }
-              } else {
-                newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
-              }
-              if (!scope.$$phase && !$rootScope.$$phase) {
-                scope.$apply(function () {
+            }
+            var time = element.find('.timepicker').data('DateTimePicker');
+            if (goog.isDefAndNotNull(time)) {
+              time = time.getDate();
+              newDate.setHours(time.hour(), time.minute(), time.second(), time.millisecond());
+            }
+            if (!scope.$$phase && !$rootScope.$$phase) {
+              scope.$apply(function () {
+                if (time && date) {
                   scope.dateObject[scope.dateKey] = newDate.toISOString();
                   scope.disabledText = newDate.toISOString();
-                });
-              } else {
+                } else if (time) {
+                  var timeString = newDate.toISOString().split('T')[1];
+                  scope.dateObject[scope.dateKey] = timeString;
+                  scope.disabledText = timeString;
+                } else if (date) {
+                  var dateString = newDate.toISOString().split('T')[0];
+                  scope.dateObject[scope.dateKey] = dateString;
+                  scope.disabledText = dateString;
+                }
+              });
+            } else {
+              if (time && date) {
                 scope.dateObject[scope.dateKey] = newDate.toISOString();
                 scope.disabledText = newDate.toISOString();
+              } else if (time) {
+                var timeString = newDate.toISOString().split('T')[1];
+                scope.dateObject[scope.dateKey] = timeString;
+                scope.disabledText = timeString;
+              } else if (date) {
+                var dateString = newDate.toISOString().split('T')[0];
+                scope.dateObject[scope.dateKey] = dateString;
+                scope.disabledText = dateString;
               }
             }
           };
@@ -71790,8 +71978,10 @@ var sha1 = function (msg) {
             timeOptions.defaultDate = scope.dateObject[scope.dateKey];
           }
           var setUpPickers = function () {
-            element.find('.datepicker').datetimepicker(dateOptions);
-            element.find('.datepicker').on('change.dp', updateDateTime);
+            if (scope.date === 'true') {
+              element.find('.datepicker').datetimepicker(dateOptions);
+              element.find('.datepicker').on('change.dp', updateDateTime);
+            }
             if (scope.time === 'true' && scope.seperateTime === 'true') {
               element.find('.timepicker').datetimepicker(timeOptions);
               element.find('.timepicker').on('change.dp', updateDateTime);
@@ -72099,7 +72289,7 @@ var WKT = {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -72129,18 +72319,18 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "      <input id=\"layer-filter\" ng-model=\"filterLayers\" type=\"text\" class=\"form-control\" placeholder=\"{{'filter_layers' | translate}}\">\n" +
     "    </div>\n" +
     "    <hr>\n" +
-    "    <div class=\"form-group\">\n" +
+    "    <div class=\"form-group layer-container\">\n" +
     "      <ul id=\"layer-list\" class=\"list-group\">\n" +
-    "        <li ng-repeat=\"layerConfig in layersConfig = serverService.getLayersConfig(currentServerIndex) | filter:filterLayers | filter:filterAddedLayers\"\n" +
-    "            class=\"list-group-item\">\n" +
+    "        <li ng-repeat=\"layer in layersConfig = serverService.getLayersConfig(currentServerIndex) | filter:filterLayers | filter:filterAddedLayers\"\n" +
+    "            class=\"list-group-item loom-layerinfo-popover\" data-placement=\"left\" ng-mouseenter=\"showPopover()\" ng-mouseleave=\"hidePopover()\">\n" +
     "          <div class=\"row\">\n" +
     "            <div class=\"col-xs-2\">\n" +
-    "              <div class=\"loom-check-button btn btn-xs\" ng-model=\"layerConfig.add\" btn-checkbox btn-checkbox-true=\"true\"\n" +
+    "              <div class=\"loom-check-button btn btn-xs\" ng-model=\"layer.add\" btn-checkbox btn-checkbox-true=\"true\"\n" +
     "                   btn-checkbox-false=\"false\">\n" +
-    "                <i class=\"glyphicon\" ng-class=\"{'glyphicon-unchecked': !layerConfig.add, 'glyphicon-check': layerConfig.add}\"></i>\n" +
+    "                <i class=\"glyphicon\" ng-class=\"{'glyphicon-unchecked': !layer.add, 'glyphicon-check': layer.add}\"></i>\n" +
     "              </div>\n" +
     "            </div>\n" +
-    "            <div class=\"ellipsis\">{{layerConfig.title}}</div>\n" +
+    "            <div class=\"ellipsis\">{{layer.title}}</div>\n" +
     "          </div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
@@ -72399,6 +72589,7 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "      <div ng-switch on=\"prop.type\">\n" +
     "        <datetimepicker ng-switch-when=\"xsd:dateTime\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\"></datetimepicker>\n" +
     "        <datetimepicker ng-switch-when=\"xsd:date\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\" time=\"false\"></datetimepicker>\n" +
+    "        <datetimepicker ng-switch-when=\"xsd:time\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\" date=\"false\"></datetimepicker>\n" +
     "        <div ng-switch-when=\"simpleType\" class=\"input-group\">\n" +
     "          <div class=\"input-group-btn\" ng-class=\"{'dropup': $last}\">\n" +
     "            <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">\n" +
@@ -72522,7 +72713,7 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "                class=\"btn btn-sm btn-default glyphicon glyphicon-camera\"></button>-->\n" +
     "        <button type=\"button\" ng-click=\"featureManagerService.startAttributeEditing()\"\n" +
     "                tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'edit_attributes' | translate}}\"\n" +
-    "                class=\"btn btn-sm btn-default glyphicon glyphicon-list\"></button>\n" +
+    "                class=\"btn btn-sm btn-default glyphicon glyphicon-list-alt\"></button>\n" +
     "        <button type=\"button\" ng-click=\"featureManagerService.startGeometryEditing()\"\n" +
     "                tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'edit_geometry' | translate}}\"\n" +
     "                class=\"btn btn-sm btn-default glyphicon glyphicon-edit\"></button>\n" +
@@ -72617,9 +72808,61 @@ angular.module("history/partial/historypanel.tpl.html", []).run(["$templateCache
     "");
 }]);
 
+angular.module("layers/partials/layerinfo.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("layers/partials/layerinfo.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "  <div ng-show=\"name\">\n" +
+    "    <div><h4 translate=\"server_name\"></h4></div>\n" +
+    "    <div class=\"well\">{{name}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"title\">\n" +
+    "    <div><h4 translate=\"title\"></h4></div>\n" +
+    "    <div class=\"well\">{{title}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"workspace\">\n" +
+    "    <div><h4 translate=\"workspace\"></h4></div>\n" +
+    "    <div class=\"well\">{{workspace}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"featureType\">\n" +
+    "    <div><h4 translate=\"featuretype\"></h4></div>\n" +
+    "    <div class=\"well\">{{featureType}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"abstract\">\n" +
+    "    <div><h4 translate=\"abstract\"></h4></div>\n" +
+    "    <div class=\"well\">{{abstract}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"keywords\">\n" +
+    "    <div><h4 translate=\"keywords\"></h4></div>\n" +
+    "    <div class=\"well\">{{keywords}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"srs\">\n" +
+    "    <div><h4 translate=\"srs\"></h4></div>\n" +
+    "    <div class=\"well\">{{srs}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"serverName\">\n" +
+    "    <div><h4 translate=\"server\"></h4></div>\n" +
+    "    <div class=\"well\">{{serverName}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"datastoreType\">\n" +
+    "    <div><h4 translate=\"datastoretype\"></h4></div>\n" +
+    "    <div class=\"well\">{{datastoreType}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"repoName\">\n" +
+    "    <div><h4 translate=\"repo\"></h4></div>\n" +
+    "    <div class=\"well\">{{repoName}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"branchName\">\n" +
+    "    <div><h4 translate=\"branch\"></h4></div>\n" +
+    "    <div class=\"well\">{{branchName}}</div>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "<div class=\"modal-footer\">\n" +
+    "</div>");
+}]);
+
 angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("layers/partials/layers.tpl.html",
-    "<div id=\"layerpanel-group\" class=\"panel-group loom-arrangeable\" arrangeable-handle=\"div.layer-heading\"\n" +
+    "<div id=\"layerpanel-group\" class=\"panel-group loom-arrangeable layer-container\" arrangeable-handle=\"div.layer-heading\"\n" +
     "     arrangeable-item-selector=\"div.panel\" arrangeable-callback=\"reorderLayer\"\n" +
     "     arrangeable-placeholder='<div class=\"placeholder\"></div>'>\n" +
     "  <div class=\"panel\"\n" +
@@ -72637,11 +72880,6 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "                ng-class=\"{'disabled': (!layer.get('visible') || !layer.get('metadata').schema)}\">\n" +
     "            <i class=\"glyphicon glyphicon-pencil\"></i>\n" +
     "          </span>\n" +
-    "          <span ng-click=\"mapService.zoomToLayerFeatures(layer)\" tooltip-append-to-body=\"true\"\n" +
-    "                tooltip-placement=\"top\" tooltip=\"{{'zoom_to_data' | translate}}\"\n" +
-    "                stop-event=\"click mousedown\" class=\"btn btn-xs btn-default\">\n" +
-    "            <i class=\"glyphicon glyphicon-resize-small\"></i>\n" +
-    "          </span>\n" +
     "          <span ng-click=\"toggleVisibility(layer)\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
     "                tooltip-placement=\"top\" tooltip=\"{{'toggle_visibility' | translate}}\"\n" +
     "                class=\"btn btn-xs btn-default layer-visible-button\" ng-class=\"{'layer-visible': layer.get('visible')}\">\n" +
@@ -72653,30 +72891,43 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "    </div>\n" +
     "    <div id=\"{{layer.get('metadata').uniqueID}}\" class=\"panel-collapse collapse\">\n" +
     "      <div class=\"panel-body layer-inner-panel\">\n" +
-    "        <div class=\"btn-group btn-group-justified\">\n" +
-    "          <a type=\"button\" ng-click=\"tableViewService.showTable(layer)\" ng-show=\"layer.get('metadata').editable\"\n" +
-    "             class=\"btn btn-xs btn-default\">\n" +
-    "            <i class=\"glyphicon glyphicon-list\"></i>\n" +
-    "            {{'show_table' | translate}}\n" +
-    "          </a>\n" +
-    "          <a type=\"button\" ng-show=\"isGeogit(layer)\" ng-click=\"showHistory(layer)\"\n" +
-    "             class=\"btn btn-xs btn-default\">\n" +
-    "            <i class=\"glyphicon glyphicon-time\"></i>\n" +
-    "            {{'show_history' | translate}}\n" +
-    "          </a>\n" +
-    "        </div>\n" +
-    "        <div>\n" +
-    "          <label id=\"attribute-label\" for=\"attributeRow\" ng-show=\"layer.get('metadata').editable\">{{'attributes' | translate}}</label>\n" +
-    "          <div id=\"attributeRow\" class=\"row\" ng-show=\"layer.get('metadata').editable\">\n" +
-    "            <ul class=\"list-group\">\n" +
-    "              <li class=\"list-group-item\" ng-repeat=\"attribute in attrList\">{{attribute}}</li>\n" +
-    "            </ul>\n" +
+    "        <div class=\"btn-group-wrap\">\n" +
+    "          <div class=\"btn-group\">\n" +
+    "            <a type=\"button\" ng-click=\"mapService.zoomToLayerFeatures(layer)\" tooltip-append-to-body=\"true\"\n" +
+    "               tooltip-placement=\"top\" tooltip=\"{{'zoom_to_data' | translate}}\"\n" +
+    "               class=\"btn btn-sm btn-default\">\n" +
+    "              <i class=\"glyphicon glyphicon-resize-small\"></i>\n" +
+    "            </a>\n" +
+    "            <a type=\"button\" ng-click=\"tableViewService.showTable(layer)\" ng-show=\"layer.get('metadata').editable\"\n" +
+    "               class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\"\n" +
+    "               tooltip-placement=\"top\" tooltip=\"{{'show_table' | translate}}\">\n" +
+    "              <i class=\"glyphicon glyphicon-list\"></i>\n" +
+    "            </a>\n" +
+    "            <a type=\"button\" ng-show=\"isGeogit(layer)\" ng-click=\"showHistory(layer)\"\n" +
+    "               class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\"\n" +
+    "               tooltip-placement=\"top\" tooltip=\"{{'show_history' | translate}}\">\n" +
+    "              <i class=\"glyphicon glyphicon-time\"></i>\n" +
+    "            </a>\n" +
+    "            <a type=\"button\" tooltip-append-to-body=\"true\" ng-click=\"getLayerInfo(layer)\"\n" +
+    "               tooltip-placement=\"top\" tooltip=\"{{'show_layer_info' | translate}}\"\n" +
+    "               class=\"btn btn-sm btn-default\">\n" +
+    "              <i class=\"glyphicon glyphicon-info-sign\"></i>\n" +
+    "            </a>\n" +
+    "            <a type=\"button\" ng-click=\"removeLayer(layer)\" id=\"remove-button\"\n" +
+    "               class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\"\n" +
+    "               tooltip-placement=\"top\" tooltip=\"{{'remove_layer' | translate}}\">\n" +
+    "              <i class=\"glyphicon glyphicon-trash\"></i>\n" +
+    "            </a>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <button ng-click=\"removeLayer(layer)\" id=\"remove-button\" class=\"remove-layer-button btn btn-sm btn-block\">\n" +
-    "          <i class=\"glyphicon glyphicon-minus-sign\"></i>\n" +
-    "          <span translate=\"remove_layer\"></span>\n" +
-    "        </button>\n" +
+    "        <label id=\"attribute-label\" for=\"attributeRow\" ng-show=\"layer.get('metadata').editable\">{{'attributes' |\n" +
+    "          translate}}</label>\n" +
+    "\n" +
+    "        <div id=\"attributeRow\" class=\"row\" ng-show=\"layer.get('metadata').editable\">\n" +
+    "          <ul class=\"list-group\">\n" +
+    "            <li class=\"list-group-item\" ng-repeat=\"attribute in attrList\">{{attribute}}</li>\n" +
+    "          </ul>\n" +
+    "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
