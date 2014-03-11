@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-10
+ * MapLoom - v0.0.1 - 2014-03-11
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -22306,11 +22306,32 @@ goog.global = this;
 /**
  * A hook for overriding the define values in uncompiled mode.
  *
- * In uncompiled mode, {@code CLOSURE_DEFINES} may be defined before loading
- * base.js.  If a key is defined in {@code CLOSURE_DEFINES}, {@code goog.define}
- * will use the value instead of the default value.  This allows flags to be
- * overwritten without compilation (this is normally accomplished with the
- * compiler's "define" flag).
+ * In uncompiled mode, {@code CLOSURE_UNCOMPILED_DEFINES} may be defined before
+ * loading base.js.  If a key is defined in {@code CLOSURE_UNCOMPILED_DEFINES},
+ * {@code goog.define} will use the value instead of the default value.  This
+ * allows flags to be overwritten without compilation (this is normally
+ * accomplished with the compiler's "define" flag).
+ *
+ * Example:
+ * <pre>
+ *   var CLOSURE_UNCOMPILED_DEFINES = {'goog.DEBUG': false};
+ * </pre>
+ *
+ * @type {Object.<string, (string|number|boolean)>|undefined}
+ */
+goog.global.CLOSURE_UNCOMPILED_DEFINES;
+
+
+/**
+ * A hook for overriding the define values in uncompiled or compiled mode,
+ * like CLOSURE_UNCOMPILED_DEFINES but effective in compiled code.  In
+ * uncompiled code CLOSURE_UNCOMPILED_DEFINES takes precedence.
+ *
+ * Also unlike CLOSURE_UNCOMPILED_DEFINES the values must be number, boolean or
+ * string literals or the compiler will emit an error.
+ *
+ * While any @define value may be set, only those set with goog.define will be
+ * effective for uncompiled code.
  *
  * Example:
  * <pre>
@@ -22365,9 +22386,10 @@ goog.exportPath_ = function(name, opt_object, opt_objectToExportTo) {
 
 /**
  * Defines a named value. In uncompiled mode, the value is retreived from
- * CLOSURE_DEFINES if the object is defined and has the property specified,
- * and otherwise used the defined defaultValue. When compiled, the default
- * can be overridden using compiler command-line options.
+ * CLOSURE_DEFINES or CLOSURE_UNCOMPILED_DEFINES if the object is defined and
+ * has the property specified, and otherwise used the defined defaultValue.
+ * When compiled, the default can be overridden using compiler command-line
+ * options.
  *
  * @param {string} name The distinguished name to provide.
  * @param {string|number|boolean} defaultValue
@@ -22375,8 +22397,13 @@ goog.exportPath_ = function(name, opt_object, opt_objectToExportTo) {
 goog.define = function(name, defaultValue) {
   var value = defaultValue;
   if (!COMPILED) {
-    if (goog.global.CLOSURE_DEFINES && Object.prototype.hasOwnProperty.call(
-        goog.global.CLOSURE_DEFINES, name)) {
+    if (goog.global.CLOSURE_UNCOMPILED_DEFINES &&
+        Object.prototype.hasOwnProperty.call(
+            goog.global.CLOSURE_UNCOMPILED_DEFINES, name)) {
+      value = goog.global.CLOSURE_UNCOMPILED_DEFINES[name];
+    } else if (goog.global.CLOSURE_DEFINES &&
+        Object.prototype.hasOwnProperty.call(
+            goog.global.CLOSURE_DEFINES, name)) {
       value = goog.global.CLOSURE_DEFINES[name];
     }
   }
@@ -24002,7 +24029,7 @@ goog.addDependency('cssom/cssom.js', ['goog.cssom', 'goog.cssom.CssRuleType'], [
 goog.addDependency('cssom/cssom_test.js', ['goog.cssomTest'], ['goog.array', 'goog.cssom', 'goog.cssom.CssRuleType', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('cssom/iframe/style.js', ['goog.cssom.iframe.style'], ['goog.cssom', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.dom.classes', 'goog.string', 'goog.style', 'goog.userAgent']);
 goog.addDependency('cssom/iframe/style_test.js', ['goog.cssom.iframe.styleTest'], ['goog.cssom', 'goog.cssom.iframe.style', 'goog.dom', 'goog.dom.DomHelper', 'goog.testing.jsunit', 'goog.userAgent']);
-goog.addDependency('datasource/datamanager.js', ['goog.ds.DataManager'], ['goog.ds.BasicNodeList', 'goog.ds.DataNode', 'goog.ds.Expr', 'goog.string', 'goog.structs', 'goog.structs.Map']);
+goog.addDependency('datasource/datamanager.js', ['goog.ds.DataManager'], ['goog.ds.BasicNodeList', 'goog.ds.DataNode', 'goog.ds.Expr', 'goog.object', 'goog.string', 'goog.structs', 'goog.structs.Map']);
 goog.addDependency('datasource/datasource.js', ['goog.ds.BaseDataNode', 'goog.ds.BasicNodeList', 'goog.ds.DataNode', 'goog.ds.DataNodeList', 'goog.ds.EmptyNodeList', 'goog.ds.LoadState', 'goog.ds.SortedNodeList', 'goog.ds.Util', 'goog.ds.logger'], ['goog.array', 'goog.log']);
 goog.addDependency('datasource/datasource_test.js', ['goog.ds.JsDataSourceTest'], ['goog.dom.xml', 'goog.ds.DataManager', 'goog.ds.JsDataSource', 'goog.ds.SortedNodeList', 'goog.ds.XmlDataSource', 'goog.testing.jsunit']);
 goog.addDependency('datasource/expr.js', ['goog.ds.Expr'], ['goog.ds.BasicNodeList', 'goog.ds.EmptyNodeList', 'goog.string']);
@@ -24058,7 +24085,7 @@ goog.addDependency('debug/errorhandler_test.js', ['goog.debug.ErrorHandlerTest']
 goog.addDependency('debug/errorhandlerweakdep.js', ['goog.debug.errorHandlerWeakDep'], []);
 goog.addDependency('debug/errorreporter.js', ['goog.debug.ErrorReporter', 'goog.debug.ErrorReporter.ExceptionEvent'], ['goog.asserts', 'goog.debug', 'goog.debug.ErrorHandler', 'goog.debug.entryPointRegistry', 'goog.events', 'goog.events.Event', 'goog.events.EventTarget', 'goog.log', 'goog.net.XhrIo', 'goog.object', 'goog.string', 'goog.uri.utils', 'goog.userAgent']);
 goog.addDependency('debug/errorreporter_test.js', ['goog.debug.ErrorReporterTest'], ['goog.debug.ErrorReporter', 'goog.events', 'goog.functions', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent']);
-goog.addDependency('debug/fancywindow.js', ['goog.debug.FancyWindow'], ['goog.array', 'goog.debug.DebugWindow', 'goog.debug.LogManager', 'goog.debug.Logger', 'goog.dom.DomHelper', 'goog.object', 'goog.string', 'goog.userAgent']);
+goog.addDependency('debug/fancywindow.js', ['goog.debug.FancyWindow'], ['goog.array', 'goog.debug.DebugWindow', 'goog.debug.LogManager', 'goog.debug.Logger', 'goog.dom.DomHelper', 'goog.dom.safe', 'goog.html.SafeHtml', 'goog.object', 'goog.string', 'goog.userAgent']);
 goog.addDependency('debug/formatter.js', ['goog.debug.Formatter', 'goog.debug.HtmlFormatter', 'goog.debug.TextFormatter'], ['goog.debug.RelativeTimeProvider', 'goog.string']);
 goog.addDependency('debug/fpsdisplay.js', ['goog.debug.FpsDisplay'], ['goog.asserts', 'goog.async.AnimationDelay', 'goog.ui.Component']);
 goog.addDependency('debug/fpsdisplay_test.js', ['goog.debug.FpsDisplayTest'], ['goog.debug.FpsDisplay', 'goog.testing.AsyncTestCase', 'goog.testing.jsunit']);
@@ -24153,12 +24180,14 @@ goog.addDependency('dom/tagiterator.js', ['goog.dom.TagIterator', 'goog.dom.TagW
 goog.addDependency('dom/tagiterator_test.js', ['goog.dom.TagIteratorTest'], ['goog.dom', 'goog.dom.TagIterator', 'goog.dom.TagWalkType', 'goog.iter', 'goog.iter.StopIteration', 'goog.testing.dom', 'goog.testing.jsunit']);
 goog.addDependency('dom/tagname.js', ['goog.dom.TagName'], []);
 goog.addDependency('dom/tagname_test.js', ['goog.dom.TagNameTest'], ['goog.dom.TagName', 'goog.object', 'goog.testing.jsunit']);
+goog.addDependency('dom/tags.js', ['goog.dom.tags'], ['goog.object']);
+goog.addDependency('dom/tags_test.js', ['goog.dom.tagsTest'], ['goog.dom.tags', 'goog.testing.jsunit']);
 goog.addDependency('dom/textrange.js', ['goog.dom.TextRange'], ['goog.array', 'goog.dom', 'goog.dom.AbstractRange', 'goog.dom.RangeType', 'goog.dom.SavedRange', 'goog.dom.TagName', 'goog.dom.TextRangeIterator', 'goog.dom.browserrange', 'goog.string', 'goog.userAgent']);
 goog.addDependency('dom/textrange_test.js', ['goog.dom.TextRangeTest'], ['goog.dom', 'goog.dom.ControlRange', 'goog.dom.Range', 'goog.dom.TextRange', 'goog.math.Coordinate', 'goog.style', 'goog.testing.ExpectedFailures', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('dom/textrangeiterator.js', ['goog.dom.TextRangeIterator'], ['goog.array', 'goog.dom.NodeType', 'goog.dom.RangeIterator', 'goog.dom.TagName', 'goog.iter.StopIteration']);
 goog.addDependency('dom/textrangeiterator_test.js', ['goog.dom.TextRangeIteratorTest'], ['goog.dom', 'goog.dom.TagName', 'goog.dom.TextRangeIterator', 'goog.iter.StopIteration', 'goog.testing.dom', 'goog.testing.jsunit']);
 goog.addDependency('dom/vendor.js', ['goog.dom.vendor'], ['goog.string', 'goog.userAgent']);
-goog.addDependency('dom/vendor_test.js', ['goog.dom.vendorTest'], ['goog.array', 'goog.dom.vendor', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent']);
+goog.addDependency('dom/vendor_test.js', ['goog.dom.vendorTest'], ['goog.array', 'goog.dom.vendor', 'goog.labs.userAgent.util', 'goog.testing.MockUserAgent', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgentTestUtil']);
 goog.addDependency('dom/viewportsizemonitor.js', ['goog.dom.ViewportSizeMonitor'], ['goog.dom', 'goog.events', 'goog.events.EventTarget', 'goog.events.EventType', 'goog.math.Size']);
 goog.addDependency('dom/viewportsizemonitor_test.js', ['goog.dom.ViewportSizeMonitorTest'], ['goog.dom.ViewportSizeMonitor', 'goog.events', 'goog.events.Event', 'goog.events.EventTarget', 'goog.events.EventType', 'goog.math.Size', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit']);
 goog.addDependency('dom/xml.js', ['goog.dom.xml'], ['goog.dom', 'goog.dom.NodeType']);
@@ -24325,6 +24354,7 @@ goog.addDependency('fx/draglistgroup_test.js', ['goog.fx.DragListGroupTest'], ['
 goog.addDependency('fx/dragscrollsupport.js', ['goog.fx.DragScrollSupport'], ['goog.Disposable', 'goog.Timer', 'goog.dom', 'goog.events.EventHandler', 'goog.events.EventType', 'goog.math.Coordinate', 'goog.style']);
 goog.addDependency('fx/dragscrollsupport_test.js', ['goog.fx.DragScrollSupportTest'], ['goog.fx.DragScrollSupport', 'goog.math.Coordinate', 'goog.testing.MockClock', 'goog.testing.events', 'goog.testing.jsunit']);
 goog.addDependency('fx/easing.js', ['goog.fx.easing'], []);
+goog.addDependency('fx/easing_test.js', ['goog.fx.easingTest'], ['goog.fx.easing', 'goog.testing.jsunit']);
 goog.addDependency('fx/fx.js', ['goog.fx'], ['goog.asserts', 'goog.fx.Animation', 'goog.fx.Animation.EventType', 'goog.fx.Animation.State', 'goog.fx.AnimationEvent', 'goog.fx.Transition.EventType', 'goog.fx.easing']);
 goog.addDependency('fx/fx_test.js', ['goog.fxTest'], ['goog.fx.Animation', 'goog.object', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit']);
 goog.addDependency('fx/transition.js', ['goog.fx.Transition', 'goog.fx.Transition.EventType'], []);
@@ -24372,14 +24402,16 @@ goog.addDependency('history/html5history.js', ['goog.history.Html5History', 'goo
 goog.addDependency('history/html5history_test.js', ['goog.history.Html5HistoryTest'], ['goog.history.Html5History', 'goog.testing.MockControl', 'goog.testing.jsunit', 'goog.testing.mockmatchers']);
 goog.addDependency('html/legacyconversions.js', ['goog.html.legacyconversions'], ['goog.html.SafeHtml', 'goog.html.SafeUrl', 'goog.html.TrustedResourceUrl']);
 goog.addDependency('html/legacyconversions_test.js', ['goog.html.legacyconversionsTest'], ['goog.html.SafeHtml', 'goog.html.SafeUrl', 'goog.html.TrustedResourceUrl', 'goog.html.legacyconversions', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit']);
-goog.addDependency('html/safehtml.js', ['goog.html.SafeHtml'], ['goog.asserts', 'goog.i18n.bidi.DirectionalString', 'goog.string', 'goog.string.TypedString']);
+goog.addDependency('html/safehtml.js', ['goog.html.SafeHtml'], ['goog.asserts', 'goog.dom.tags', 'goog.html.SafeUrl', 'goog.i18n.bidi.Dir', 'goog.i18n.bidi.DirectionalString', 'goog.object', 'goog.string', 'goog.string.Const', 'goog.string.TypedString']);
 goog.addDependency('html/safehtml_test.js', ['goog.html.safeHtmlTest'], ['goog.html.SafeHtml', 'goog.html.SafeUrl', 'goog.html.testing', 'goog.html.uncheckedconversions', 'goog.i18n.bidi.Dir', 'goog.string.Const', 'goog.testing.jsunit']);
+goog.addDependency('html/safestyle.js', ['goog.html.SafeStyle'], ['goog.asserts', 'goog.string', 'goog.string.Const', 'goog.string.TypedString']);
+goog.addDependency('html/safestyle_test.js', ['goog.html.safeStyleTest'], ['goog.html.SafeStyle', 'goog.string.Const', 'goog.testing.jsunit']);
 goog.addDependency('html/safeurl.js', ['goog.html.SafeUrl'], ['goog.asserts', 'goog.i18n.bidi.Dir', 'goog.i18n.bidi.DirectionalString', 'goog.string.Const', 'goog.string.TypedString']);
 goog.addDependency('html/safeurl_test.js', ['goog.html.safeUrlTest'], ['goog.html.SafeUrl', 'goog.i18n.bidi.Dir', 'goog.string.Const', 'goog.testing.jsunit']);
-goog.addDependency('html/testing.js', ['goog.html.testing'], ['goog.html.SafeHtml', 'goog.html.SafeUrl', 'goog.html.TrustedResourceUrl']);
+goog.addDependency('html/testing.js', ['goog.html.testing'], ['goog.html.SafeHtml', 'goog.html.SafeStyle', 'goog.html.SafeUrl', 'goog.html.TrustedResourceUrl']);
 goog.addDependency('html/trustedresourceurl.js', ['goog.html.TrustedResourceUrl'], ['goog.asserts', 'goog.i18n.bidi.Dir', 'goog.i18n.bidi.DirectionalString', 'goog.string.Const', 'goog.string.TypedString']);
 goog.addDependency('html/trustedresourceurl_test.js', ['goog.html.trustedResourceUrlTest'], ['goog.html.TrustedResourceUrl', 'goog.i18n.bidi.Dir', 'goog.string.Const', 'goog.testing.jsunit']);
-goog.addDependency('html/uncheckedconversions.js', ['goog.html.uncheckedconversions'], ['goog.asserts', 'goog.html.SafeHtml', 'goog.html.SafeUrl', 'goog.html.TrustedResourceUrl', 'goog.string', 'goog.string.Const']);
+goog.addDependency('html/uncheckedconversions.js', ['goog.html.uncheckedconversions'], ['goog.asserts', 'goog.html.SafeHtml', 'goog.html.SafeStyle', 'goog.html.SafeUrl', 'goog.html.TrustedResourceUrl', 'goog.string', 'goog.string.Const']);
 goog.addDependency('html/uncheckedconversions_test.js', ['goog.html.uncheckedconversionsTest'], ['goog.html.SafeHtml', 'goog.html.SafeUrl', 'goog.html.TrustedResourceUrl', 'goog.html.uncheckedconversions', 'goog.i18n.bidi.Dir', 'goog.string.Const', 'goog.testing.jsunit']);
 goog.addDependency('html/utils.js', ['goog.html.utils'], ['goog.string']);
 goog.addDependency('html/utils_test.js', ['goog.html.UtilsTest'], ['goog.array', 'goog.dom.TagName', 'goog.html.utils', 'goog.object', 'goog.testing.jsunit']);
@@ -24419,7 +24451,7 @@ goog.addDependency('i18n/ordinalrules.js', ['goog.i18n.ordinalRules'], []);
 goog.addDependency('i18n/pluralrules.js', ['goog.i18n.pluralRules'], []);
 goog.addDependency('i18n/pluralrules_test.js', ['goog.i18n.pluralRulesTest'], ['goog.i18n.pluralRules', 'goog.testing.jsunit']);
 goog.addDependency('i18n/timezone.js', ['goog.i18n.TimeZone'], ['goog.array', 'goog.date.DateLike', 'goog.string']);
-goog.addDependency('i18n/timezone_test.js', ['goog.i18n.TimeZoneTest'], ['goog.i18n.TimeZone', 'goog.testing.jsunit']);
+goog.addDependency('i18n/timezone_test.js', ['goog.i18n.TimeZoneTest'], ['goog.i18n.TimeZone', 'goog.testing.ExpectedFailures', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('i18n/uchar.js', ['goog.i18n.uChar'], []);
 goog.addDependency('i18n/uchar/localnamefetcher.js', ['goog.i18n.uChar.LocalNameFetcher'], ['goog.i18n.uChar', 'goog.i18n.uChar.NameFetcher', 'goog.log']);
 goog.addDependency('i18n/uchar/localnamefetcher_test.js', ['goog.i18n.uChar.LocalNameFetcherTest'], ['goog.i18n.uChar.LocalNameFetcher', 'goog.testing.jsunit', 'goog.testing.recordFunction']);
@@ -24465,11 +24497,11 @@ goog.addDependency('labs/net/webchannel/channel.js', ['goog.labs.net.webChannel.
 goog.addDependency('labs/net/webchannel/channelrequest.js', ['goog.labs.net.webChannel.ChannelRequest'], ['goog.Timer', 'goog.async.Throttle', 'goog.events.EventHandler', 'goog.labs.net.webChannel.requestStats', 'goog.labs.net.webChannel.requestStats.ServerReachability', 'goog.labs.net.webChannel.requestStats.Stat', 'goog.net.ErrorCode', 'goog.net.EventType', 'goog.net.XmlHttp', 'goog.object', 'goog.uri.utils.StandardQueryParam', 'goog.userAgent']);
 goog.addDependency('labs/net/webchannel/channelrequest_test.js', ['goog.labs.net.webChannel.channelRequestTest'], ['goog.Uri', 'goog.functions', 'goog.labs.net.webChannel.ChannelRequest', 'goog.labs.net.webChannel.WebChannelDebug', 'goog.labs.net.webChannel.requestStats', 'goog.labs.net.webChannel.requestStats.ServerReachability', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.testing.net.XhrIo', 'goog.testing.recordFunction']);
 goog.addDependency('labs/net/webchannel/connectionstate.js', ['goog.labs.net.webChannel.ConnectionState'], []);
-goog.addDependency('labs/net/webchannel/forwardchannelrequestpool.js', ['goog.labs.net.webChannel.ForwardChannelRequestPool'], ['goog.structs', 'goog.structs.Set']);
+goog.addDependency('labs/net/webchannel/forwardchannelrequestpool.js', ['goog.labs.net.webChannel.ForwardChannelRequestPool'], ['goog.array', 'goog.structs.Set']);
 goog.addDependency('labs/net/webchannel/forwardchannelrequestpool_test.js', ['goog.labs.net.webChannel.forwardChannelRequestPoolTest'], ['goog.labs.net.webChannel.ChannelRequest', 'goog.labs.net.webChannel.ForwardChannelRequestPool', 'goog.testing.PropertyReplacer', 'goog.testing.asserts', 'goog.testing.jsunit']);
 goog.addDependency('labs/net/webchannel/netutils.js', ['goog.labs.net.webChannel.netUtils'], ['goog.Uri', 'goog.labs.net.webChannel.WebChannelDebug']);
 goog.addDependency('labs/net/webchannel/requeststats.js', ['goog.labs.net.webChannel.requestStats', 'goog.labs.net.webChannel.requestStats.Event', 'goog.labs.net.webChannel.requestStats.ServerReachability', 'goog.labs.net.webChannel.requestStats.ServerReachabilityEvent', 'goog.labs.net.webChannel.requestStats.Stat', 'goog.labs.net.webChannel.requestStats.StatEvent', 'goog.labs.net.webChannel.requestStats.TimingEvent'], ['goog.events.Event', 'goog.events.EventTarget']);
-goog.addDependency('labs/net/webchannel/webchannelbase.js', ['goog.labs.net.webChannel.WebChannelBase'], ['goog.Uri', 'goog.array', 'goog.asserts', 'goog.debug.TextFormatter', 'goog.json', 'goog.labs.net.webChannel.BaseTestChannel', 'goog.labs.net.webChannel.Channel', 'goog.labs.net.webChannel.ChannelRequest', 'goog.labs.net.webChannel.ConnectionState', 'goog.labs.net.webChannel.ForwardChannelRequestPool', 'goog.labs.net.webChannel.WebChannelDebug', 'goog.labs.net.webChannel.Wire', 'goog.labs.net.webChannel.WireV8', 'goog.labs.net.webChannel.netUtils', 'goog.labs.net.webChannel.requestStats', 'goog.labs.net.webChannel.requestStats.Stat', 'goog.log', 'goog.net.XhrIo', 'goog.string', 'goog.structs', 'goog.structs.CircularBuffer']);
+goog.addDependency('labs/net/webchannel/webchannelbase.js', ['goog.labs.net.webChannel.WebChannelBase'], ['goog.Uri', 'goog.array', 'goog.asserts', 'goog.debug.TextFormatter', 'goog.json', 'goog.labs.net.webChannel.BaseTestChannel', 'goog.labs.net.webChannel.Channel', 'goog.labs.net.webChannel.ChannelRequest', 'goog.labs.net.webChannel.ConnectionState', 'goog.labs.net.webChannel.ForwardChannelRequestPool', 'goog.labs.net.webChannel.WebChannelDebug', 'goog.labs.net.webChannel.Wire', 'goog.labs.net.webChannel.WireV8', 'goog.labs.net.webChannel.netUtils', 'goog.labs.net.webChannel.requestStats', 'goog.labs.net.webChannel.requestStats.Stat', 'goog.log', 'goog.net.XhrIo', 'goog.object', 'goog.string', 'goog.structs', 'goog.structs.CircularBuffer']);
 goog.addDependency('labs/net/webchannel/webchannelbase_test.js', ['goog.labs.net.webChannel.webChannelBaseTest'], ['goog.Timer', 'goog.array', 'goog.dom', 'goog.functions', 'goog.json', 'goog.labs.net.webChannel.ChannelRequest', 'goog.labs.net.webChannel.ForwardChannelRequestPool', 'goog.labs.net.webChannel.WebChannelBase', 'goog.labs.net.webChannel.WebChannelBaseTransport', 'goog.labs.net.webChannel.WebChannelDebug', 'goog.labs.net.webChannel.Wire', 'goog.labs.net.webChannel.netUtils', 'goog.labs.net.webChannel.requestStats', 'goog.labs.net.webChannel.requestStats.Stat', 'goog.structs.Map', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.asserts', 'goog.testing.jsunit']);
 goog.addDependency('labs/net/webchannel/webchannelbasetransport.js', ['goog.labs.net.webChannel.WebChannelBaseTransport'], ['goog.asserts', 'goog.events.EventTarget', 'goog.labs.net.webChannel.WebChannelBase', 'goog.log', 'goog.net.WebChannel', 'goog.net.WebChannelTransport', 'goog.string.path']);
 goog.addDependency('labs/net/webchannel/webchannelbasetransport_test.js', ['goog.labs.net.webChannel.webChannelBaseTransportTest'], ['goog.events', 'goog.labs.net.webChannel.WebChannelBaseTransport', 'goog.net.WebChannel', 'goog.testing.jsunit']);
@@ -24625,7 +24657,7 @@ goog.addDependency('module/modulemanager_test.js', ['goog.module.ModuleManagerTe
 goog.addDependency('module/testdata/modA_1.js', ['goog.module.testdata.modA_1'], []);
 goog.addDependency('module/testdata/modA_2.js', ['goog.module.testdata.modA_2'], ['goog.module.ModuleManager']);
 goog.addDependency('module/testdata/modB_1.js', ['goog.module.testdata.modB_1'], ['goog.module.ModuleManager']);
-goog.addDependency('net/browserchannel.js', ['goog.net.BrowserChannel', 'goog.net.BrowserChannel.Error', 'goog.net.BrowserChannel.Event', 'goog.net.BrowserChannel.Handler', 'goog.net.BrowserChannel.LogSaver', 'goog.net.BrowserChannel.QueuedMap', 'goog.net.BrowserChannel.ServerReachability', 'goog.net.BrowserChannel.ServerReachabilityEvent', 'goog.net.BrowserChannel.Stat', 'goog.net.BrowserChannel.StatEvent', 'goog.net.BrowserChannel.State', 'goog.net.BrowserChannel.TimingEvent'], ['goog.Uri', 'goog.array', 'goog.asserts', 'goog.debug.TextFormatter', 'goog.events.Event', 'goog.events.EventTarget', 'goog.json', 'goog.json.EvalJsonProcessor', 'goog.log', 'goog.net.BrowserTestChannel', 'goog.net.ChannelDebug', 'goog.net.ChannelRequest', 'goog.net.XhrIo', 'goog.net.tmpnetwork', 'goog.string', 'goog.structs', 'goog.structs.CircularBuffer']);
+goog.addDependency('net/browserchannel.js', ['goog.net.BrowserChannel', 'goog.net.BrowserChannel.Error', 'goog.net.BrowserChannel.Event', 'goog.net.BrowserChannel.Handler', 'goog.net.BrowserChannel.LogSaver', 'goog.net.BrowserChannel.QueuedMap', 'goog.net.BrowserChannel.ServerReachability', 'goog.net.BrowserChannel.ServerReachabilityEvent', 'goog.net.BrowserChannel.Stat', 'goog.net.BrowserChannel.StatEvent', 'goog.net.BrowserChannel.State', 'goog.net.BrowserChannel.TimingEvent'], ['goog.Uri', 'goog.array', 'goog.asserts', 'goog.debug.TextFormatter', 'goog.events.Event', 'goog.events.EventTarget', 'goog.json', 'goog.json.EvalJsonProcessor', 'goog.log', 'goog.net.BrowserTestChannel', 'goog.net.ChannelDebug', 'goog.net.ChannelRequest', 'goog.net.XhrIo', 'goog.net.tmpnetwork', 'goog.object', 'goog.string', 'goog.structs', 'goog.structs.CircularBuffer']);
 goog.addDependency('net/browserchannel_test.js', ['goog.net.BrowserChannelTest'], ['goog.Timer', 'goog.array', 'goog.dom', 'goog.functions', 'goog.json', 'goog.net.BrowserChannel', 'goog.net.ChannelDebug', 'goog.net.ChannelRequest', 'goog.net.tmpnetwork', 'goog.structs.Map', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.asserts', 'goog.testing.jsunit', 'goog.testing.recordFunction']);
 goog.addDependency('net/browsertestchannel.js', ['goog.net.BrowserTestChannel'], ['goog.json.EvalJsonProcessor', 'goog.net.ChannelRequest', 'goog.net.ChannelRequest.Error', 'goog.net.tmpnetwork', 'goog.string.Parser', 'goog.userAgent']);
 goog.addDependency('net/bulkloader.js', ['goog.net.BulkLoader'], ['goog.events.EventHandler', 'goog.events.EventTarget', 'goog.log', 'goog.net.BulkLoaderHelper', 'goog.net.EventType', 'goog.net.XhrIo']);
@@ -24675,9 +24707,9 @@ goog.addDependency('net/websocket_test.js', ['goog.net.WebSocketTest'], ['goog.d
 goog.addDependency('net/wrapperxmlhttpfactory.js', ['goog.net.WrapperXmlHttpFactory'], ['goog.net.XhrLike', 'goog.net.XmlHttpFactory']);
 goog.addDependency('net/xhrio.js', ['goog.net.XhrIo', 'goog.net.XhrIo.ResponseType'], ['goog.Timer', 'goog.array', 'goog.debug.entryPointRegistry', 'goog.events.EventTarget', 'goog.json', 'goog.log', 'goog.net.ErrorCode', 'goog.net.EventType', 'goog.net.HttpStatus', 'goog.net.XmlHttp', 'goog.object', 'goog.string', 'goog.structs', 'goog.structs.Map', 'goog.uri.utils', 'goog.userAgent']);
 goog.addDependency('net/xhrio_test.js', ['goog.net.XhrIoTest'], ['goog.Uri', 'goog.debug.EntryPointMonitor', 'goog.debug.ErrorHandler', 'goog.debug.entryPointRegistry', 'goog.events', 'goog.functions', 'goog.net.EventType', 'goog.net.WrapperXmlHttpFactory', 'goog.net.XhrIo', 'goog.net.XmlHttp', 'goog.object', 'goog.string', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.testing.net.XhrIo', 'goog.testing.recordFunction']);
-goog.addDependency('net/xhriopool.js', ['goog.net.XhrIoPool'], ['goog.net.XhrIo', 'goog.structs', 'goog.structs.PriorityPool']);
+goog.addDependency('net/xhriopool.js', ['goog.net.XhrIoPool'], ['goog.net.XhrIo', 'goog.structs.PriorityPool']);
 goog.addDependency('net/xhrlike.js', ['goog.net.XhrLike'], []);
-goog.addDependency('net/xhrmanager.js', ['goog.net.XhrManager', 'goog.net.XhrManager.Event', 'goog.net.XhrManager.Request'], ['goog.events', 'goog.events.Event', 'goog.events.EventHandler', 'goog.events.EventTarget', 'goog.net.ErrorCode', 'goog.net.EventType', 'goog.net.XhrIo', 'goog.net.XhrIoPool', 'goog.structs', 'goog.structs.Map']);
+goog.addDependency('net/xhrmanager.js', ['goog.net.XhrManager', 'goog.net.XhrManager.Event', 'goog.net.XhrManager.Request'], ['goog.events', 'goog.events.Event', 'goog.events.EventHandler', 'goog.events.EventTarget', 'goog.net.ErrorCode', 'goog.net.EventType', 'goog.net.XhrIo', 'goog.net.XhrIoPool', 'goog.structs.Map']);
 goog.addDependency('net/xhrmanager_test.js', ['goog.net.XhrManagerTest'], ['goog.events', 'goog.net.EventType', 'goog.net.XhrIo', 'goog.net.XhrManager', 'goog.testing.jsunit', 'goog.testing.net.XhrIoPool', 'goog.testing.recordFunction']);
 goog.addDependency('net/xmlhttp.js', ['goog.net.DefaultXmlHttpFactory', 'goog.net.XmlHttp', 'goog.net.XmlHttp.OptionType', 'goog.net.XmlHttp.ReadyState', 'goog.net.XmlHttpDefines'], ['goog.asserts', 'goog.net.WrapperXmlHttpFactory', 'goog.net.XmlHttpFactory']);
 goog.addDependency('net/xmlhttpfactory.js', ['goog.net.XmlHttpFactory'], ['goog.net.XhrLike']);
@@ -24754,8 +24786,8 @@ goog.addDependency('soy/data.js', ['goog.soy.data', 'goog.soy.data.SanitizedCont
 goog.addDependency('soy/renderer.js', ['goog.soy.InjectedDataSupplier', 'goog.soy.Renderer'], ['goog.asserts', 'goog.dom', 'goog.html.uncheckedconversions', 'goog.soy', 'goog.soy.data.SanitizedContent', 'goog.soy.data.SanitizedContentKind', 'goog.string.Const']);
 goog.addDependency('soy/renderer_test.js', ['goog.soy.RendererTest'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.html.SafeHtml', 'goog.i18n.bidi.Dir', 'goog.soy.Renderer', 'goog.soy.data.SanitizedContentKind', 'goog.soy.testHelper', 'goog.testing.jsunit', 'goog.testing.recordFunction']);
 goog.addDependency('soy/soy.js', ['goog.soy'], ['goog.asserts', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.soy.data.SanitizedContent', 'goog.soy.data.SanitizedContentKind', 'goog.string']);
-goog.addDependency('soy/soy_test.js', ['goog.soy.testHelper'], ['goog.dom', 'goog.dom.TagName', 'goog.i18n.bidi.Dir', 'goog.soy.data.SanitizedContent', 'goog.soy.data.SanitizedContentKind', 'goog.string', 'goog.userAgent']);
-goog.addDependency('soy/soy_unittest.js', ['goog.soyTest'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.functions', 'goog.soy', 'goog.soy.testHelper', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit']);
+goog.addDependency('soy/soy_test.js', ['goog.soyTest'], ['goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.functions', 'goog.soy', 'goog.soy.testHelper', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit']);
+goog.addDependency('soy/soy_testhelper.js', ['goog.soy.testHelper'], ['goog.dom', 'goog.dom.TagName', 'goog.i18n.bidi.Dir', 'goog.soy.data.SanitizedContent', 'goog.soy.data.SanitizedContentKind', 'goog.string', 'goog.userAgent']);
 goog.addDependency('spell/spellcheck.js', ['goog.spell.SpellCheck', 'goog.spell.SpellCheck.WordChangedEvent'], ['goog.Timer', 'goog.events.EventTarget', 'goog.structs.Set']);
 goog.addDependency('spell/spellcheck_test.js', ['goog.spell.SpellCheckTest'], ['goog.spell.SpellCheck', 'goog.testing.jsunit']);
 goog.addDependency('stats/basicstat.js', ['goog.stats.BasicStat'], ['goog.array', 'goog.iter', 'goog.log', 'goog.object', 'goog.string.format', 'goog.structs.CircularBuffer']);
@@ -24851,19 +24883,26 @@ goog.addDependency('style/bidi_test.js', ['goog.style.bidiTest'], ['goog.dom', '
 goog.addDependency('style/cursor.js', ['goog.style.cursor'], ['goog.userAgent']);
 goog.addDependency('style/cursor_test.js', ['goog.style.cursorTest'], ['goog.style.cursor', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('style/style.js', ['goog.style'], ['goog.array', 'goog.asserts', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.vendor', 'goog.math.Box', 'goog.math.Coordinate', 'goog.math.Rect', 'goog.math.Size', 'goog.object', 'goog.string', 'goog.userAgent']);
-goog.addDependency('style/style_test.js', ['goog.style_test'], ['goog.array', 'goog.color', 'goog.dom', 'goog.events.BrowserEvent', 'goog.math.Box', 'goog.math.Coordinate', 'goog.math.Rect', 'goog.math.Size', 'goog.object', 'goog.string', 'goog.style', 'goog.testing.ExpectedFailures', 'goog.testing.PropertyReplacer', 'goog.testing.asserts', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgent.product', 'goog.userAgent.product.isVersion', 'goog.userAgentTestUtil', 'goog.userAgentTestUtil.UserAgents']);
+goog.addDependency('style/style_test.js', ['goog.style_test'], ['goog.array', 'goog.color', 'goog.dom', 'goog.events.BrowserEvent', 'goog.labs.userAgent.util', 'goog.math.Box', 'goog.math.Coordinate', 'goog.math.Rect', 'goog.math.Size', 'goog.object', 'goog.string', 'goog.style', 'goog.testing.ExpectedFailures', 'goog.testing.MockUserAgent', 'goog.testing.asserts', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgent.product', 'goog.userAgent.product.isVersion', 'goog.userAgentTestUtil', 'goog.userAgentTestUtil.UserAgents']);
 goog.addDependency('style/style_webkit_scrollbars_test.js', ['goog.style.webkitScrollbarsTest'], ['goog.asserts', 'goog.style', 'goog.styleScrollbarTester', 'goog.testing.ExpectedFailures', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('style/stylescrollbartester.js', ['goog.styleScrollbarTester'], ['goog.dom', 'goog.style', 'goog.testing.asserts']);
-goog.addDependency('style/transition.js', ['goog.style.transition', 'goog.style.transition.Css3Property'], ['goog.array', 'goog.asserts', 'goog.dom.vendor', 'goog.style', 'goog.userAgent']);
+goog.addDependency('style/transition.js', ['goog.style.transition', 'goog.style.transition.Css3Property'], ['goog.array', 'goog.asserts', 'goog.dom.vendor', 'goog.functions', 'goog.style', 'goog.userAgent']);
 goog.addDependency('style/transition_test.js', ['goog.style.transitionTest'], ['goog.style', 'goog.style.transition', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('testing/asserts.js', ['goog.testing.JsUnitException', 'goog.testing.asserts'], ['goog.testing.stacktrace']);
+goog.addDependency('testing/asserts_test.js', ['goog.testing.assertsTest'], ['goog.array', 'goog.dom', 'goog.iter.Iterator', 'goog.iter.StopIteration', 'goog.structs.Map', 'goog.structs.Set', 'goog.testing.asserts', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('testing/async/mockcontrol.js', ['goog.testing.async.MockControl'], ['goog.asserts', 'goog.async.Deferred', 'goog.debug', 'goog.testing.asserts', 'goog.testing.mockmatchers.IgnoreArgument']);
-goog.addDependency('testing/async/mockcontrol_test.js', ['goog.testing.MockControlTest'], ['goog.async.Deferred', 'goog.testing.MockControl', 'goog.testing.asserts', 'goog.testing.async.MockControl', 'goog.testing.jsunit']);
+goog.addDependency('testing/async/mockcontrol_test.js', ['goog.testing.async.MockControlTest'], ['goog.async.Deferred', 'goog.testing.MockControl', 'goog.testing.asserts', 'goog.testing.async.MockControl', 'goog.testing.jsunit']);
 goog.addDependency('testing/asynctestcase.js', ['goog.testing.AsyncTestCase', 'goog.testing.AsyncTestCase.ControlBreakingException'], ['goog.testing.TestCase', 'goog.testing.TestCase.Test', 'goog.testing.asserts']);
+goog.addDependency('testing/asynctestcase_async_test.js', ['goog.testing.AsyncTestCaseAsyncTest'], ['goog.testing.AsyncTestCase', 'goog.testing.jsunit']);
+goog.addDependency('testing/asynctestcase_noasync_test.js', ['goog.testing.AsyncTestCaseSyncTest'], ['goog.testing.AsyncTestCase', 'goog.testing.jsunit']);
+goog.addDependency('testing/asynctestcase_test.js', ['goog.testing.AsyncTestCaseTest'], ['goog.debug.Error', 'goog.testing.AsyncTestCase', 'goog.testing.asserts', 'goog.testing.jsunit']);
 goog.addDependency('testing/benchmark.js', ['goog.testing.benchmark'], ['goog.dom', 'goog.dom.TagName', 'goog.testing.PerformanceTable', 'goog.testing.PerformanceTimer', 'goog.testing.TestCase']);
 goog.addDependency('testing/continuationtestcase.js', ['goog.testing.ContinuationTestCase', 'goog.testing.ContinuationTestCase.Step', 'goog.testing.ContinuationTestCase.Test'], ['goog.array', 'goog.events.EventHandler', 'goog.testing.TestCase', 'goog.testing.TestCase.Test', 'goog.testing.asserts']);
+goog.addDependency('testing/continuationtestcase_test.js', ['goog.testing.ContinuationTestCaseTest'], ['goog.events', 'goog.events.EventTarget', 'goog.testing.ContinuationTestCase', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.TestCase', 'goog.testing.jsunit']);
 goog.addDependency('testing/deferredtestcase.js', ['goog.testing.DeferredTestCase'], ['goog.async.Deferred', 'goog.testing.AsyncTestCase', 'goog.testing.TestCase']);
+goog.addDependency('testing/deferredtestcase_test.js', ['goog.testing.DeferredTestCaseTest'], ['goog.async.Deferred', 'goog.testing.DeferredTestCase', 'goog.testing.TestCase', 'goog.testing.TestRunner', 'goog.testing.jsunit', 'goog.testing.recordFunction']);
 goog.addDependency('testing/dom.js', ['goog.testing.dom'], ['goog.array', 'goog.asserts', 'goog.dom', 'goog.dom.NodeIterator', 'goog.dom.NodeType', 'goog.dom.TagIterator', 'goog.dom.TagName', 'goog.dom.classlist', 'goog.iter', 'goog.object', 'goog.string', 'goog.style', 'goog.testing.asserts', 'goog.userAgent']);
+goog.addDependency('testing/dom_test.js', ['goog.testing.domTest'], ['goog.dom', 'goog.dom.TagName', 'goog.testing.dom', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('testing/editor/dom.js', ['goog.testing.editor.dom'], ['goog.dom.NodeType', 'goog.dom.TagIterator', 'goog.dom.TagWalkType', 'goog.iter', 'goog.string', 'goog.testing.asserts']);
 goog.addDependency('testing/editor/dom_test.js', ['goog.testing.editor.domTest'], ['goog.dom', 'goog.dom.TagName', 'goog.functions', 'goog.testing.editor.dom', 'goog.testing.jsunit']);
 goog.addDependency('testing/editor/fieldmock.js', ['goog.testing.editor.FieldMock'], ['goog.dom', 'goog.dom.Range', 'goog.editor.Field', 'goog.testing.LooseMock', 'goog.testing.mockmatchers']);
@@ -24872,11 +24911,13 @@ goog.addDependency('testing/editor/testhelper_test.js', ['goog.testing.editor.Te
 goog.addDependency('testing/events/eventobserver.js', ['goog.testing.events.EventObserver'], ['goog.array']);
 goog.addDependency('testing/events/eventobserver_test.js', ['goog.testing.events.EventObserverTest'], ['goog.array', 'goog.events', 'goog.events.Event', 'goog.events.EventTarget', 'goog.testing.events.EventObserver', 'goog.testing.jsunit']);
 goog.addDependency('testing/events/events.js', ['goog.testing.events', 'goog.testing.events.Event'], ['goog.Disposable', 'goog.asserts', 'goog.dom.NodeType', 'goog.events', 'goog.events.BrowserEvent', 'goog.events.BrowserFeature', 'goog.events.EventTarget', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.object', 'goog.style', 'goog.userAgent']);
+goog.addDependency('testing/events/events_test.js', ['goog.testing.eventsTest'], ['goog.array', 'goog.dom', 'goog.events', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.math.Coordinate', 'goog.string', 'goog.style', 'goog.testing.PropertyReplacer', 'goog.testing.events', 'goog.testing.jsunit', 'goog.testing.recordFunction', 'goog.userAgent']);
 goog.addDependency('testing/events/matchers.js', ['goog.testing.events.EventMatcher'], ['goog.events.Event', 'goog.testing.mockmatchers.ArgumentMatcher']);
 goog.addDependency('testing/events/matchers_test.js', ['goog.testing.events.EventMatcherTest'], ['goog.events.Event', 'goog.testing.events.EventMatcher', 'goog.testing.jsunit']);
 goog.addDependency('testing/events/onlinehandler.js', ['goog.testing.events.OnlineHandler'], ['goog.events.EventTarget', 'goog.net.NetworkStatusMonitor']);
 goog.addDependency('testing/events/onlinehandler_test.js', ['goog.testing.events.OnlineHandlerTest'], ['goog.events', 'goog.net.NetworkStatusMonitor', 'goog.testing.events.EventObserver', 'goog.testing.events.OnlineHandler', 'goog.testing.jsunit']);
 goog.addDependency('testing/expectedfailures.js', ['goog.testing.ExpectedFailures'], ['goog.debug.DivConsole', 'goog.dom', 'goog.dom.TagName', 'goog.events', 'goog.events.EventType', 'goog.log', 'goog.style', 'goog.testing.JsUnitException', 'goog.testing.TestCase', 'goog.testing.asserts']);
+goog.addDependency('testing/expectedfailures_test.js', ['goog.testing.ExpectedFailuresTest'], ['goog.debug.Logger', 'goog.testing.ExpectedFailures', 'goog.testing.JsUnitException', 'goog.testing.jsunit']);
 goog.addDependency('testing/fs/blob.js', ['goog.testing.fs.Blob'], ['goog.crypt.base64']);
 goog.addDependency('testing/fs/blob_test.js', ['goog.testing.fs.BlobTest'], ['goog.testing.fs.Blob', 'goog.testing.jsunit']);
 goog.addDependency('testing/fs/directoryentry_test.js', ['goog.testing.fs.DirectoryEntryTest'], ['goog.array', 'goog.fs.DirectoryEntry', 'goog.fs.Error', 'goog.testing.AsyncTestCase', 'goog.testing.MockClock', 'goog.testing.fs.FileSystem', 'goog.testing.jsunit']);
@@ -24894,24 +24935,34 @@ goog.addDependency('testing/fs/fs_test.js', ['goog.testing.fsTest'], ['goog.test
 goog.addDependency('testing/fs/integration_test.js', ['goog.testing.fs.integrationTest'], ['goog.async.Deferred', 'goog.async.DeferredList', 'goog.events', 'goog.fs', 'goog.fs.DirectoryEntry', 'goog.fs.Error', 'goog.fs.FileSaver', 'goog.testing.AsyncTestCase', 'goog.testing.PropertyReplacer', 'goog.testing.fs', 'goog.testing.jsunit']);
 goog.addDependency('testing/fs/progressevent.js', ['goog.testing.fs.ProgressEvent'], ['goog.events.Event']);
 goog.addDependency('testing/functionmock.js', ['goog.testing', 'goog.testing.FunctionMock', 'goog.testing.GlobalFunctionMock', 'goog.testing.MethodMock'], ['goog.object', 'goog.testing.LooseMock', 'goog.testing.Mock', 'goog.testing.MockInterface', 'goog.testing.PropertyReplacer', 'goog.testing.StrictMock']);
+goog.addDependency('testing/functionmock_test.js', ['goog.testing.FunctionMockTest'], ['goog.array', 'goog.string', 'goog.testing', 'goog.testing.FunctionMock', 'goog.testing.Mock', 'goog.testing.StrictMock', 'goog.testing.asserts', 'goog.testing.jsunit', 'goog.testing.mockmatchers']);
 goog.addDependency('testing/graphics.js', ['goog.testing.graphics'], ['goog.graphics.Path.Segment', 'goog.testing.asserts']);
 goog.addDependency('testing/i18n/asserts.js', ['goog.testing.i18n.asserts'], ['goog.testing.jsunit']);
 goog.addDependency('testing/i18n/asserts_test.js', ['goog.testing.i18n.assertsTest'], ['goog.testing.ExpectedFailures', 'goog.testing.i18n.asserts']);
 goog.addDependency('testing/jsunit.js', ['goog.testing.jsunit'], ['goog.testing.TestCase', 'goog.testing.TestRunner']);
 goog.addDependency('testing/loosemock.js', ['goog.testing.LooseExpectationCollection', 'goog.testing.LooseMock'], ['goog.array', 'goog.structs.Map', 'goog.testing.Mock']);
+goog.addDependency('testing/loosemock_test.js', ['goog.testing.LooseMockTest'], ['goog.testing.LooseMock', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.testing.mockmatchers']);
 goog.addDependency('testing/messaging/mockmessagechannel.js', ['goog.testing.messaging.MockMessageChannel'], ['goog.messaging.AbstractChannel', 'goog.testing.asserts']);
 goog.addDependency('testing/messaging/mockmessageevent.js', ['goog.testing.messaging.MockMessageEvent'], ['goog.events.BrowserEvent', 'goog.events.EventType', 'goog.testing.events']);
 goog.addDependency('testing/messaging/mockmessageport.js', ['goog.testing.messaging.MockMessagePort'], ['goog.events.EventTarget']);
 goog.addDependency('testing/messaging/mockportnetwork.js', ['goog.testing.messaging.MockPortNetwork'], ['goog.messaging.PortNetwork', 'goog.testing.messaging.MockMessageChannel']);
 goog.addDependency('testing/mock.js', ['goog.testing.Mock', 'goog.testing.MockExpectation'], ['goog.array', 'goog.object', 'goog.testing.JsUnitException', 'goog.testing.MockInterface', 'goog.testing.mockmatchers']);
+goog.addDependency('testing/mock_test.js', ['goog.testing.MockTest'], ['goog.array', 'goog.testing', 'goog.testing.Mock', 'goog.testing.MockControl', 'goog.testing.MockExpectation', 'goog.testing.jsunit']);
 goog.addDependency('testing/mockclassfactory.js', ['goog.testing.MockClassFactory', 'goog.testing.MockClassRecord'], ['goog.array', 'goog.object', 'goog.testing.LooseMock', 'goog.testing.StrictMock', 'goog.testing.TestCase', 'goog.testing.mockmatchers']);
+goog.addDependency('testing/mockclassfactory_test.js', ['fake.BaseClass', 'fake.ChildClass', 'goog.testing.MockClassFactoryTest'], ['goog.testing', 'goog.testing.MockClassFactory', 'goog.testing.jsunit']);
 goog.addDependency('testing/mockclock.js', ['goog.testing.MockClock'], ['goog.Disposable', 'goog.testing.PropertyReplacer', 'goog.testing.events', 'goog.testing.events.Event', 'goog.testing.watchers']);
+goog.addDependency('testing/mockclock_test.js', ['goog.testing.MockClockTest'], ['goog.events', 'goog.functions', 'goog.testing.MockClock', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.testing.recordFunction']);
 goog.addDependency('testing/mockcontrol.js', ['goog.testing.MockControl'], ['goog.array', 'goog.testing', 'goog.testing.LooseMock', 'goog.testing.StrictMock']);
+goog.addDependency('testing/mockcontrol_test.js', ['goog.testing.MockControlTest'], ['goog.testing.Mock', 'goog.testing.MockControl', 'goog.testing.jsunit']);
 goog.addDependency('testing/mockinterface.js', ['goog.testing.MockInterface'], []);
 goog.addDependency('testing/mockmatchers.js', ['goog.testing.mockmatchers', 'goog.testing.mockmatchers.ArgumentMatcher', 'goog.testing.mockmatchers.IgnoreArgument', 'goog.testing.mockmatchers.InstanceOf', 'goog.testing.mockmatchers.ObjectEquals', 'goog.testing.mockmatchers.RegexpMatch', 'goog.testing.mockmatchers.SaveArgument', 'goog.testing.mockmatchers.TypeOf'], ['goog.array', 'goog.dom', 'goog.testing.asserts']);
+goog.addDependency('testing/mockmatchers_test.js', ['goog.testing.mockmatchersTest'], ['goog.dom', 'goog.testing.jsunit', 'goog.testing.mockmatchers', 'goog.testing.mockmatchers.ArgumentMatcher']);
 goog.addDependency('testing/mockrandom.js', ['goog.testing.MockRandom'], ['goog.Disposable']);
+goog.addDependency('testing/mockrandom_test.js', ['goog.testing.MockRandomTest'], ['goog.testing.MockRandom', 'goog.testing.jsunit']);
 goog.addDependency('testing/mockrange.js', ['goog.testing.MockRange'], ['goog.dom.AbstractRange', 'goog.testing.LooseMock']);
+goog.addDependency('testing/mockrange_test.js', ['goog.testing.MockRangeTest'], ['goog.testing.MockRange', 'goog.testing.jsunit']);
 goog.addDependency('testing/mockstorage.js', ['goog.testing.MockStorage'], ['goog.structs.Map']);
+goog.addDependency('testing/mockstorage_test.js', ['goog.testing.MockStorageTest'], ['goog.testing.MockStorage', 'goog.testing.jsunit']);
 goog.addDependency('testing/mockuseragent.js', ['goog.testing.MockUserAgent'], ['goog.Disposable', 'goog.labs.userAgent.util', 'goog.testing.PropertyReplacer', 'goog.userAgent']);
 goog.addDependency('testing/mockuseragent_test.js', ['goog.testing.MockUserAgentTest'], ['goog.dispose', 'goog.testing.MockUserAgent', 'goog.testing.jsunit', 'goog.userAgent']);
 goog.addDependency('testing/multitestrunner.js', ['goog.testing.MultiTestRunner', 'goog.testing.MultiTestRunner.TestFrame'], ['goog.Timer', 'goog.array', 'goog.dom', 'goog.dom.classlist', 'goog.events.EventHandler', 'goog.functions', 'goog.string', 'goog.ui.Component', 'goog.ui.ServerChart', 'goog.ui.TableSorter']);
@@ -24921,16 +24972,24 @@ goog.addDependency('testing/net/xhriopool.js', ['goog.testing.net.XhrIoPool'], [
 goog.addDependency('testing/objectpropertystring.js', ['goog.testing.ObjectPropertyString'], []);
 goog.addDependency('testing/performancetable.js', ['goog.testing.PerformanceTable'], ['goog.dom', 'goog.testing.PerformanceTimer']);
 goog.addDependency('testing/performancetimer.js', ['goog.testing.PerformanceTimer', 'goog.testing.PerformanceTimer.Task'], ['goog.array', 'goog.async.Deferred', 'goog.math']);
+goog.addDependency('testing/performancetimer_test.js', ['goog.testing.PerformanceTimerTest'], ['goog.async.Deferred', 'goog.dom', 'goog.math', 'goog.testing.MockClock', 'goog.testing.PerformanceTimer', 'goog.testing.jsunit']);
 goog.addDependency('testing/propertyreplacer.js', ['goog.testing.PropertyReplacer'], ['goog.testing.ObjectPropertyString', 'goog.userAgent']);
+goog.addDependency('testing/propertyreplacer_test.js', ['goog.testing.PropertyReplacerTest'], ['goog.testing.PropertyReplacer', 'goog.testing.asserts', 'goog.testing.jsunit']);
 goog.addDependency('testing/proto2/proto2.js', ['goog.testing.proto2'], ['goog.proto2.Message', 'goog.proto2.ObjectSerializer', 'goog.testing.asserts']);
 goog.addDependency('testing/proto2/proto2_test.js', ['goog.testing.proto2Test'], ['goog.testing.jsunit', 'goog.testing.proto2', 'proto2.TestAllTypes']);
 goog.addDependency('testing/pseudorandom.js', ['goog.testing.PseudoRandom'], ['goog.Disposable']);
+goog.addDependency('testing/pseudorandom_test.js', ['goog.testing.PseudoRandomTest'], ['goog.testing.PseudoRandom', 'goog.testing.jsunit']);
 goog.addDependency('testing/recordfunction.js', ['goog.testing.FunctionCall', 'goog.testing.recordConstructor', 'goog.testing.recordFunction'], ['goog.testing.asserts']);
+goog.addDependency('testing/recordfunction_test.js', ['goog.testing.recordFunctionTest'], ['goog.functions', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.testing.recordConstructor', 'goog.testing.recordFunction']);
 goog.addDependency('testing/shardingtestcase.js', ['goog.testing.ShardingTestCase'], ['goog.asserts', 'goog.testing.TestCase']);
+goog.addDependency('testing/shardingtestcase_test.js', ['goog.testing.ShardingTestCaseTest'], ['goog.testing.ShardingTestCase', 'goog.testing.TestCase', 'goog.testing.asserts', 'goog.testing.jsunit']);
 goog.addDependency('testing/singleton.js', ['goog.testing.singleton'], []);
+goog.addDependency('testing/singleton_test.js', ['goog.testing.singletonTest'], ['goog.testing.asserts', 'goog.testing.jsunit', 'goog.testing.singleton']);
 goog.addDependency('testing/stacktrace.js', ['goog.testing.stacktrace', 'goog.testing.stacktrace.Frame'], []);
+goog.addDependency('testing/stacktrace_test.js', ['goog.testing.stacktraceTest'], ['goog.functions', 'goog.string', 'goog.testing.ExpectedFailures', 'goog.testing.PropertyReplacer', 'goog.testing.StrictMock', 'goog.testing.asserts', 'goog.testing.jsunit', 'goog.testing.stacktrace', 'goog.testing.stacktrace.Frame', 'goog.userAgent']);
 goog.addDependency('testing/storage/fakemechanism.js', ['goog.testing.storage.FakeMechanism'], ['goog.storage.mechanism.IterableMechanism', 'goog.structs.Map']);
 goog.addDependency('testing/strictmock.js', ['goog.testing.StrictMock'], ['goog.array', 'goog.testing.Mock']);
+goog.addDependency('testing/strictmock_test.js', ['goog.testing.StrictMockTest'], ['goog.testing.StrictMock', 'goog.testing.jsunit']);
 goog.addDependency('testing/style/layoutasserts.js', ['goog.testing.style.layoutasserts'], ['goog.style', 'goog.testing.asserts', 'goog.testing.style']);
 goog.addDependency('testing/style/layoutasserts_test.js', ['goog.testing.style.layoutassertsTest'], ['goog.dom', 'goog.style', 'goog.testing.jsunit', 'goog.testing.style.layoutasserts']);
 goog.addDependency('testing/style/style.js', ['goog.testing.style'], ['goog.dom', 'goog.math.Rect', 'goog.style']);
@@ -24945,6 +25004,7 @@ goog.addDependency('testing/ui/style.js', ['goog.testing.ui.style'], ['goog.arra
 goog.addDependency('testing/ui/style_test.js', ['goog.testing.ui.styleTest'], ['goog.dom', 'goog.testing.jsunit', 'goog.testing.ui.style']);
 goog.addDependency('testing/watchers.js', ['goog.testing.watchers'], []);
 goog.addDependency('timer/timer.js', ['goog.Timer'], ['goog.events.EventTarget']);
+goog.addDependency('timer/timer_test.js', ['goog.TimerTest'], ['goog.Timer', 'goog.events', 'goog.testing.MockClock', 'goog.testing.jsunit']);
 goog.addDependency('tweak/entries.js', ['goog.tweak.BaseEntry', 'goog.tweak.BasePrimitiveSetting', 'goog.tweak.BaseSetting', 'goog.tweak.BooleanGroup', 'goog.tweak.BooleanInGroupSetting', 'goog.tweak.BooleanSetting', 'goog.tweak.ButtonAction', 'goog.tweak.NumericSetting', 'goog.tweak.StringSetting'], ['goog.array', 'goog.asserts', 'goog.log', 'goog.object']);
 goog.addDependency('tweak/entries_test.js', ['goog.tweak.BaseEntryTest'], ['goog.testing.MockControl', 'goog.testing.jsunit', 'goog.tweak.testhelpers']);
 goog.addDependency('tweak/registry.js', ['goog.tweak.Registry'], ['goog.asserts', 'goog.log', 'goog.object', 'goog.string', 'goog.tweak.BaseEntry', 'goog.uri.utils']);
@@ -25006,7 +25066,7 @@ goog.addDependency('ui/datepicker.js', ['goog.ui.DatePicker', 'goog.ui.DatePicke
 goog.addDependency('ui/datepickerrenderer.js', ['goog.ui.DatePickerRenderer'], []);
 goog.addDependency('ui/decorate.js', ['goog.ui.decorate'], ['goog.ui.registry']);
 goog.addDependency('ui/defaultdatepickerrenderer.js', ['goog.ui.DefaultDatePickerRenderer'], ['goog.dom', 'goog.dom.TagName', 'goog.ui.DatePickerRenderer']);
-goog.addDependency('ui/dialog.js', ['goog.ui.Dialog', 'goog.ui.Dialog.ButtonSet', 'goog.ui.Dialog.ButtonSet.DefaultButtons', 'goog.ui.Dialog.DefaultButtonCaptions', 'goog.ui.Dialog.DefaultButtonKeys', 'goog.ui.Dialog.Event', 'goog.ui.Dialog.EventType'], ['goog.a11y.aria', 'goog.a11y.aria.Role', 'goog.a11y.aria.State', 'goog.asserts', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.dom.classlist', 'goog.dom.safe', 'goog.events', 'goog.events.Event', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.fx.Dragger', 'goog.html.SafeHtml', 'goog.html.legacyconversions', 'goog.math.Rect', 'goog.string', 'goog.structs', 'goog.structs.Map', 'goog.style', 'goog.ui.ModalPopup', 'goog.userAgent']);
+goog.addDependency('ui/dialog.js', ['goog.ui.Dialog', 'goog.ui.Dialog.ButtonSet', 'goog.ui.Dialog.ButtonSet.DefaultButtons', 'goog.ui.Dialog.DefaultButtonCaptions', 'goog.ui.Dialog.DefaultButtonKeys', 'goog.ui.Dialog.Event', 'goog.ui.Dialog.EventType'], ['goog.a11y.aria', 'goog.a11y.aria.Role', 'goog.a11y.aria.State', 'goog.asserts', 'goog.dom', 'goog.dom.NodeType', 'goog.dom.TagName', 'goog.dom.classlist', 'goog.dom.safe', 'goog.events', 'goog.events.Event', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.fx.Dragger', 'goog.html.SafeHtml', 'goog.html.legacyconversions', 'goog.math.Rect', 'goog.string', 'goog.structs.Map', 'goog.style', 'goog.ui.ModalPopup']);
 goog.addDependency('ui/dimensionpicker.js', ['goog.ui.DimensionPicker'], ['goog.events.EventType', 'goog.events.KeyCodes', 'goog.math.Size', 'goog.ui.Component', 'goog.ui.Control', 'goog.ui.DimensionPickerRenderer', 'goog.ui.registry']);
 goog.addDependency('ui/dimensionpickerrenderer.js', ['goog.ui.DimensionPickerRenderer'], ['goog.a11y.aria', 'goog.a11y.aria.State', 'goog.dom', 'goog.dom.TagName', 'goog.i18n.bidi', 'goog.style', 'goog.ui.ControlRenderer', 'goog.userAgent']);
 goog.addDependency('ui/dragdropdetector.js', ['goog.ui.DragDropDetector', 'goog.ui.DragDropDetector.EventType', 'goog.ui.DragDropDetector.ImageDropEvent', 'goog.ui.DragDropDetector.LinkDropEvent'], ['goog.dom', 'goog.dom.TagName', 'goog.events.Event', 'goog.events.EventHandler', 'goog.events.EventTarget', 'goog.events.EventType', 'goog.math.Coordinate', 'goog.string', 'goog.style', 'goog.userAgent']);
@@ -25100,7 +25160,7 @@ goog.addDependency('ui/popup.js', ['goog.ui.Popup', 'goog.ui.Popup.AbsolutePosit
 goog.addDependency('ui/popupbase.js', ['goog.ui.PopupBase', 'goog.ui.PopupBase.EventType', 'goog.ui.PopupBase.Type'], ['goog.Timer', 'goog.dom', 'goog.events', 'goog.events.EventHandler', 'goog.events.EventTarget', 'goog.events.EventType', 'goog.events.KeyCodes', 'goog.fx.Transition', 'goog.style', 'goog.userAgent']);
 goog.addDependency('ui/popupcolorpicker.js', ['goog.ui.PopupColorPicker'], ['goog.dom.classlist', 'goog.events.EventType', 'goog.positioning.AnchoredPosition', 'goog.positioning.Corner', 'goog.ui.ColorPicker', 'goog.ui.Component', 'goog.ui.Popup']);
 goog.addDependency('ui/popupdatepicker.js', ['goog.ui.PopupDatePicker'], ['goog.events.EventType', 'goog.positioning.AnchoredPosition', 'goog.positioning.Corner', 'goog.positioning.Overflow', 'goog.style', 'goog.ui.Component', 'goog.ui.DatePicker', 'goog.ui.Popup', 'goog.ui.PopupBase']);
-goog.addDependency('ui/popupmenu.js', ['goog.ui.PopupMenu'], ['goog.events.EventType', 'goog.positioning.AnchoredViewportPosition', 'goog.positioning.Corner', 'goog.positioning.MenuAnchoredPosition', 'goog.positioning.ViewportClientPosition', 'goog.structs', 'goog.structs.Map', 'goog.style', 'goog.ui.Component.EventType', 'goog.ui.Menu', 'goog.ui.PopupBase', 'goog.userAgent']);
+goog.addDependency('ui/popupmenu.js', ['goog.ui.PopupMenu'], ['goog.events.EventType', 'goog.positioning.AnchoredViewportPosition', 'goog.positioning.Corner', 'goog.positioning.MenuAnchoredPosition', 'goog.positioning.Overflow', 'goog.positioning.ViewportClientPosition', 'goog.structs.Map', 'goog.style', 'goog.ui.Component', 'goog.ui.Menu', 'goog.ui.PopupBase', 'goog.userAgent']);
 goog.addDependency('ui/progressbar.js', ['goog.ui.ProgressBar', 'goog.ui.ProgressBar.Orientation'], ['goog.a11y.aria', 'goog.asserts', 'goog.dom', 'goog.dom.classlist', 'goog.events', 'goog.events.EventType', 'goog.ui.Component', 'goog.ui.RangeModel', 'goog.userAgent']);
 goog.addDependency('ui/prompt.js', ['goog.ui.Prompt'], ['goog.Timer', 'goog.dom', 'goog.events', 'goog.events.EventType', 'goog.functions', 'goog.string', 'goog.ui.Component', 'goog.ui.Dialog', 'goog.userAgent']);
 goog.addDependency('ui/rangemodel.js', ['goog.ui.RangeModel'], ['goog.events.EventTarget', 'goog.ui.Component']);
@@ -25145,8 +25205,8 @@ goog.addDependency('ui/toolbarselect.js', ['goog.ui.ToolbarSelect'], ['goog.ui.S
 goog.addDependency('ui/toolbarseparator.js', ['goog.ui.ToolbarSeparator'], ['goog.ui.Separator', 'goog.ui.ToolbarSeparatorRenderer', 'goog.ui.registry']);
 goog.addDependency('ui/toolbarseparatorrenderer.js', ['goog.ui.ToolbarSeparatorRenderer'], ['goog.dom.classlist', 'goog.ui.INLINE_BLOCK_CLASSNAME', 'goog.ui.MenuSeparatorRenderer']);
 goog.addDependency('ui/toolbartogglebutton.js', ['goog.ui.ToolbarToggleButton'], ['goog.ui.ToggleButton', 'goog.ui.ToolbarButtonRenderer', 'goog.ui.registry']);
-goog.addDependency('ui/tooltip.js', ['goog.ui.Tooltip', 'goog.ui.Tooltip.CursorTooltipPosition', 'goog.ui.Tooltip.ElementTooltipPosition', 'goog.ui.Tooltip.State'], ['goog.Timer', 'goog.array', 'goog.dom', 'goog.events', 'goog.events.EventType', 'goog.math.Box', 'goog.math.Coordinate', 'goog.positioning', 'goog.positioning.AnchoredPosition', 'goog.positioning.Corner', 'goog.positioning.Overflow', 'goog.positioning.OverflowStatus', 'goog.positioning.ViewportPosition', 'goog.structs.Set', 'goog.style', 'goog.ui.Popup', 'goog.ui.PopupBase']);
-goog.addDependency('ui/tree/basenode.js', ['goog.ui.tree.BaseNode', 'goog.ui.tree.BaseNode.EventType'], ['goog.Timer', 'goog.a11y.aria', 'goog.asserts', 'goog.events.KeyCodes', 'goog.string', 'goog.string.StringBuffer', 'goog.style', 'goog.ui.Component', 'goog.userAgent']);
+goog.addDependency('ui/tooltip.js', ['goog.ui.Tooltip', 'goog.ui.Tooltip.CursorTooltipPosition', 'goog.ui.Tooltip.ElementTooltipPosition', 'goog.ui.Tooltip.State'], ['goog.Timer', 'goog.array', 'goog.dom', 'goog.dom.safe', 'goog.events', 'goog.events.EventType', 'goog.html.legacyconversions', 'goog.math.Box', 'goog.math.Coordinate', 'goog.positioning', 'goog.positioning.AnchoredPosition', 'goog.positioning.Corner', 'goog.positioning.Overflow', 'goog.positioning.OverflowStatus', 'goog.positioning.ViewportPosition', 'goog.structs.Set', 'goog.style', 'goog.ui.Popup', 'goog.ui.PopupBase']);
+goog.addDependency('ui/tree/basenode.js', ['goog.ui.tree.BaseNode', 'goog.ui.tree.BaseNode.EventType'], ['goog.Timer', 'goog.a11y.aria', 'goog.asserts', 'goog.dom.safe', 'goog.events.Event', 'goog.events.KeyCodes', 'goog.html.SafeHtml', 'goog.html.legacyconversions', 'goog.string', 'goog.string.StringBuffer', 'goog.style', 'goog.ui.Component']);
 goog.addDependency('ui/tree/treecontrol.js', ['goog.ui.tree.TreeControl'], ['goog.a11y.aria', 'goog.asserts', 'goog.dom.classlist', 'goog.events.EventType', 'goog.events.FocusHandler', 'goog.events.KeyHandler', 'goog.log', 'goog.ui.tree.BaseNode', 'goog.ui.tree.TreeNode', 'goog.ui.tree.TypeAhead', 'goog.userAgent']);
 goog.addDependency('ui/tree/treenode.js', ['goog.ui.tree.TreeNode'], ['goog.ui.tree.BaseNode']);
 goog.addDependency('ui/tree/typeahead.js', ['goog.ui.tree.TypeAhead', 'goog.ui.tree.TypeAhead.Offset'], ['goog.array', 'goog.events.KeyCodes', 'goog.string', 'goog.structs.Trie']);
@@ -25157,6 +25217,7 @@ goog.addDependency('ui/zippy.js', ['goog.ui.Zippy', 'goog.ui.Zippy.Events', 'goo
 goog.addDependency('uri/uri.js', ['goog.Uri', 'goog.Uri.QueryData'], ['goog.array', 'goog.string', 'goog.structs', 'goog.structs.Map', 'goog.uri.utils', 'goog.uri.utils.ComponentIndex', 'goog.uri.utils.StandardQueryParam']);
 goog.addDependency('uri/uri_test.js', ['goog.UriTest'], ['goog.Uri', 'goog.testing.jsunit']);
 goog.addDependency('uri/utils.js', ['goog.uri.utils', 'goog.uri.utils.ComponentIndex', 'goog.uri.utils.QueryArray', 'goog.uri.utils.QueryValue', 'goog.uri.utils.StandardQueryParam'], ['goog.asserts', 'goog.string', 'goog.userAgent']);
+goog.addDependency('uri/utils_test.js', ['goog.uri.utilsTest'], ['goog.functions', 'goog.string', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.uri.utils']);
 goog.addDependency('useragent/adobereader.js', ['goog.userAgent.adobeReader'], ['goog.string', 'goog.userAgent']);
 goog.addDependency('useragent/adobereader_test.js', ['goog.userAgent.adobeReaderTest'], ['goog.testing.jsunit', 'goog.userAgent.adobeReader']);
 goog.addDependency('useragent/flash.js', ['goog.userAgent.flash'], ['goog.string']);
@@ -25169,11 +25230,11 @@ goog.addDependency('useragent/platform.js', ['goog.userAgent.platform'], ['goog.
 goog.addDependency('useragent/platform_test.js', ['goog.userAgent.platformTest'], ['goog.testing.MockUserAgent', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgent.platform']);
 goog.addDependency('useragent/product.js', ['goog.userAgent.product'], ['goog.userAgent']);
 goog.addDependency('useragent/product_isversion.js', ['goog.userAgent.product.isVersion'], ['goog.userAgent.product']);
-goog.addDependency('useragent/product_test.js', ['goog.userAgent.productTest'], ['goog.array', 'goog.testing.MockUserAgent', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgent.product', 'goog.userAgent.product.isVersion', 'goog.userAgentTestUtil']);
-goog.addDependency('useragent/useragent.js', ['goog.userAgent'], ['goog.string']);
+goog.addDependency('useragent/product_test.js', ['goog.userAgent.productTest'], ['goog.array', 'goog.labs.userAgent.util', 'goog.testing.MockUserAgent', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgent.product', 'goog.userAgent.product.isVersion', 'goog.userAgentTestUtil']);
+goog.addDependency('useragent/useragent.js', ['goog.userAgent'], ['goog.labs.userAgent.browser', 'goog.labs.userAgent.engine', 'goog.labs.userAgent.util', 'goog.string']);
 goog.addDependency('useragent/useragent_quirks_test.js', ['goog.userAgentQuirksTest'], ['goog.testing.jsunit', 'goog.userAgent']);
-goog.addDependency('useragent/useragent_test.js', ['goog.userAgentTest'], ['goog.array', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgentTestUtil']);
-goog.addDependency('useragent/useragenttestutil.js', ['goog.userAgentTestUtil', 'goog.userAgentTestUtil.UserAgents'], ['goog.userAgent']);
+goog.addDependency('useragent/useragent_test.js', ['goog.userAgentTest'], ['goog.array', 'goog.labs.userAgent.util', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit', 'goog.userAgent', 'goog.userAgentTestUtil']);
+goog.addDependency('useragent/useragenttestutil.js', ['goog.userAgentTestUtil', 'goog.userAgentTestUtil.UserAgents'], ['goog.labs.userAgent.browser', 'goog.labs.userAgent.engine', 'goog.userAgent']);
 goog.addDependency('vec/float32array.js', ['goog.vec.Float32Array'], []);
 goog.addDependency('vec/float64array.js', ['goog.vec.Float64Array'], []);
 goog.addDependency('vec/mat3.js', ['goog.vec.Mat3'], ['goog.vec']);
@@ -25198,6 +25259,7 @@ goog.addDependency('vec/vec4d.js', ['goog.vec.vec4d', 'goog.vec.vec4d.Type'], ['
 goog.addDependency('vec/vec4f.js', ['goog.vec.vec4f', 'goog.vec.vec4f.Type'], ['goog.vec']);
 goog.addDependency('webgl/webgl.js', ['goog.webgl'], []);
 goog.addDependency('window/window.js', ['goog.window'], ['goog.string', 'goog.userAgent']);
+goog.addDependency('window/window_test.js', ['goog.windowTest'], ['goog.dom', 'goog.events', 'goog.string', 'goog.testing.AsyncTestCase', 'goog.testing.jsunit', 'goog.window']);
 
 /*
   proj4js.js -- Javascript reprojection library. 
@@ -63903,6 +63965,15 @@ goog.require("ol.xml");
           $scope.pageTitle = toState.data.pageTitle;
         }
       });
+      $('body').on('show.bs.modal', function (e) {
+        var modals = $('.modal.in');
+        var backdrops = $('.modal-backdrop');
+        for (var i = 0; i < modals.length; i++) {
+          modals.eq(i).css('z-index', 760 - (modals.length - i) * 20);
+          backdrops.eq(i).css('z-index', 750 - (modals.length - i) * 20);
+        }
+        $(e.target).css('z-index', 760);
+      });
       $scope.mapService = mapService;
       $scope.refreshService = refreshService;
     }
@@ -64109,6 +64180,7 @@ goog.require("ol.xml");
       'newer_feature_version': 'This feature has been modified since this notification was posted.' + '  Would you like to compare with the newest version?',
       'undo_successful': 'Undo Successful',
       'undo_no_changes': 'The merge resulted in no changes.',
+      'sure_undo_changes': 'Are you sure you want to undo the changes introduced in this commit? ' + '(Note: The change will still be a part of the feature\'s history.)',
       'fixed_feature': 'Fixed Feature',
       'undo_conflicts': 'Undo Conflicts',
       'changes_undone': 'The changes to the feature have been successfully undone.',
@@ -64137,7 +64209,9 @@ goog.require("ol.xml");
       'server': 'Server',
       'datastoretype': 'Datastore Type',
       'branch': 'Branch',
-      'layerinfo': 'Layer Info'
+      'layerinfo': 'Layer Info',
+      'author_fetch_failed': 'An unknown error occured while determining the authors of the feature.',
+      'show_authors': 'Show Authors'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -64336,6 +64410,7 @@ goog.require("ol.xml");
       'newer_feature_version': 'Este elemento se ha modificado desde la presente notificaci\xf3n fue publicada. ' + '\xbfQuieres comparar con la versi\xf3n m\xe1s reciente?',
       'undo_successful': 'Deshacer Exitosa',
       'undo_no_changes': 'El deshacer result\xf3 en ning\xfan cambio.',
+      'sure_undo_changes': '\xbfEst\xe1 seguro que desea deshacer los cambios introducidos en este cometido? ' + '(Nota: El cambio seguir\xe1 siendo una parte de la historia del elemento.)',
       'fixed_feature': 'Elemento Fijo',
       'undo_conflicts': 'Deshacer Conflictos',
       'changes_undone': 'Los cambios en el elemento se ha deshecho con \xe9xito.',
@@ -64364,7 +64439,9 @@ goog.require("ol.xml");
       'server': 'Servidor',
       'datastoretype': 'Tipo de almacen de datos',
       'branch': 'Rama',
-      'layerinfo': 'Informacion de las Capas'
+      'layerinfo': 'Informacion de las Capas',
+      'author_fetch_failed': 'Un error desconocido ocurri\xf3 mientras que la determinaci\xf3n de los autores del elemento.',
+      'show_authors': 'Mostrar los Autores'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -64535,14 +64612,14 @@ goog.require("ol.xml");
             container: 'body',
             title: scope.layer.title
           });
-          scope.showPopover = function () {
+          element.mouseenter(function () {
             if (element.closest('.collapsing').length === 0) {
               element.popover('show');
             }
-          };
-          scope.hidePopover = function () {
+          });
+          element.mouseleave(function () {
             element.popover('hide');
-          };
+          });
         }
       };
     }
@@ -65080,7 +65157,8 @@ var DiffColorMap = {
     'loom_feature_diff_service',
     'loom_feature_diff_controller',
     'loom_feature_panel_directive',
-    'loom_panel_separator_directive'
+    'loom_panel_separator_directive',
+    'loom_feature_blame_service'
   ]);
 }());
 (function () {
@@ -65381,6 +65459,39 @@ var DiffColorMap = {
   }
 }());
 (function () {
+  var module = angular.module('loom_feature_blame_service', []);
+  var rootScope_ = null;
+  var geogitService_ = null;
+  var q_ = null;
+  module.provider('featureBlameService', function () {
+    this.$get = [
+      '$rootScope',
+      '$q',
+      'geogitService',
+      function ($rootScope, $q, geogitService) {
+        rootScope_ = $rootScope;
+        geogitService_ = geogitService;
+        q_ = $q;
+        return this;
+      }
+    ];
+    this.performBlame = function (repoId, options) {
+      var deferredResponse = q_.defer();
+      geogitService_.command(repoId, 'blame', options).then(function (response) {
+        if (goog.isDefAndNotNull(response.Blame) && goog.isDefAndNotNull(response.Blame.Attribute)) {
+          rootScope_.$broadcast('blame-performed');
+          deferredResponse.resolve(response.Blame.Attribute);
+        } else {
+          deferredResponse.reject();
+        }
+      }, function (reject) {
+        deferredResponse.reject(reject);
+      });
+      return deferredResponse.promise;
+    };
+  });
+}());
+(function () {
   var module = angular.module('loom_feature_diff_controller', []);
   module.controller('LoomFeatureDiffController', [
     '$scope',
@@ -65408,21 +65519,26 @@ var DiffColorMap = {
 (function () {
   var module = angular.module('loom_feature_diff_directive', []);
   module.directive('loomFeatureDiff', [
+    '$rootScope',
     '$translate',
     'featureDiffService',
     'conflictService',
     'configService',
     'historyService',
     'notificationService',
+    'featureBlameService',
     'mapService',
     'dialogService',
     'geogitService',
-    function ($translate, featureDiffService, conflictService, configService, historyService, notificationService, mapService, dialogService, geogitService) {
+    function ($rootScope, $translate, featureDiffService, conflictService, configService, historyService, notificationService, featureBlameService, mapService, dialogService, geogitService) {
       return {
         restrict: 'C',
         templateUrl: 'diff/partial/featurediff.tpl.html',
         link: function (scope, element) {
           function updateVariables() {
+            scope.authorsLoaded = false;
+            scope.authorsShown = false;
+            scope.authorsDisabled = false;
             scope.undoEnabled = true;
             scope.featureDiffService = featureDiffService;
             scope.editable = false;
@@ -65450,7 +65566,7 @@ var DiffColorMap = {
               break;
             }
             var width = 80 + getScrollbarWidth();
-            var numPanels = 0;
+            scope.numPanels = 0;
             scope.leftPanel = false;
             scope.mergePanel = false;
             scope.rightPanel = false;
@@ -65458,26 +65574,26 @@ var DiffColorMap = {
             scope.rightSeparator = false;
             if (featureDiffService.left.active) {
               width += 230;
-              numPanels += 1;
+              scope.numPanels += 1;
               scope.leftPanel = true;
             }
             if (featureDiffService.merged.active) {
               width += 230;
-              numPanels += 1;
+              scope.numPanels += 1;
               scope.mergePanel = true;
             }
             if (featureDiffService.right.active) {
               width += 230;
-              numPanels += 1;
+              scope.numPanels += 1;
               scope.rightPanel = true;
             }
-            if (numPanels > 1) {
+            if (scope.numPanels > 1) {
               scope.leftSeparator = true;
-              if (numPanels > 2) {
+              if (scope.numPanels > 2) {
                 scope.rightSeparator = true;
               }
             }
-            width += (numPanels - 1) * 36;
+            width += (scope.numPanels - 1) * 36;
             element.closest('.modal-dialog').css('width', width);
           }
           scope.cancel = function () {
@@ -65488,6 +65604,9 @@ var DiffColorMap = {
             scope.leftSeparator = false;
             scope.rightSeparator = false;
             scope.undoEnabled = true;
+            scope.authorsLoaded = false;
+            scope.authorsShown = false;
+            scope.authorsDisabled = false;
             element.closest('.modal').modal('hide');
           };
           scope.save = function () {
@@ -65505,7 +65624,100 @@ var DiffColorMap = {
             scope.rightSeparator = false;
             element.closest('.modal').modal('hide');
           };
-          scope.undoChanges = function () {
+          scope.performBlame = function () {
+            if (scope.authorsLoaded) {
+              if (scope.authorsShown) {
+                $rootScope.$broadcast('hide-authors');
+              } else {
+                $rootScope.$broadcast('show-authors');
+              }
+              return;
+            }
+            scope.authorsDisabled = true;
+            if (featureDiffService.change === 'ADDED' || featureDiffService.change === 'REMOVED') {
+              var id = featureDiffService.getTheirsId();
+              var options = new GeoGitLogOptions();
+              options.until = id;
+              options.show = 1;
+              var panel = featureDiffService.right;
+              geogitService.command(featureDiffService.getRepoId(), 'log', options).then(function (response) {
+                if (goog.isDefAndNotNull(response.commit)) {
+                  forEachArrayish(panel.attributes, function (attribute) {
+                    attribute.commit = response.commit;
+                  });
+                  panel.geometry.commit = response.commit;
+                  scope.authorsDisabled = false;
+                  scope.authorsLoaded = true;
+                  $rootScope.$broadcast('show-authors');
+                } else {
+                  dialogService.error($translate('error'), $translate('author_fetch_failed'));
+                  scope.authorsDisabled = false;
+                }
+              }, function (reject) {
+                console.log('ERROR: Log Failure: ', options, reject);
+                dialogService.error($translate('error'), $translate('author_fetch_failed'));
+                scope.authorsDisabled = false;
+              });
+              return;
+            }
+            var numPanels = scope.numPanels;
+            var numFailed = 0;
+            if (scope.mergePanel && featureDiffService.change !== 'MERGED') {
+              numPanels--;
+            }
+            var blameFunc = function (panel, id) {
+              var options = new GeoGitBlameOptions();
+              options.path = featureDiffService.feature.id;
+              options.commit = id;
+              featureBlameService.performBlame(featureDiffService.getRepoId(), options).then(function (result) {
+                forEachArrayish(result, function (attribute) {
+                  if (panel.geometry.attributename === attribute.name) {
+                    panel.geometry.commit = attribute.commit;
+                  } else {
+                    forEachArrayish(panel.attributes, function (panelAttribute) {
+                      if (panelAttribute.attributename === attribute.name) {
+                        panelAttribute.commit = attribute.commit;
+                      }
+                    });
+                  }
+                });
+                numPanels--;
+                if (numPanels === 0) {
+                  scope.authorsDisabled = false;
+                  if (numFailed > 0) {
+                    dialogService.error($translate('error'), $translate('author_fetch_failed'));
+                  } else {
+                    scope.authorsLoaded = true;
+                    $rootScope.$broadcast('show-authors');
+                  }
+                }
+              }, function (reject) {
+                numPanels--;
+                numFailed++;
+                console.log('ERROR: Blame Failure: ', options, reject);
+                if (numPanels === 0) {
+                  dialogService.error($translate('error'), $translate('author_fetch_failed'));
+                  scope.authorsDisabled = false;
+                }
+              });
+            };
+            if (scope.leftPanel) {
+              blameFunc(featureDiffService.left, featureDiffService.getOursId());
+            }
+            if (scope.rightPanel) {
+              blameFunc(featureDiffService.right, featureDiffService.getTheirsId());
+            }
+            if (scope.mergePanel && featureDiffService.change === 'MERGED') {
+              blameFunc(featureDiffService.merged, featureDiffService.getMergedId());
+            }
+          };
+          scope.$on('show-authors', function () {
+            scope.authorsShown = true;
+          });
+          scope.$on('hide-authors', function () {
+            scope.authorsShown = false;
+          });
+          var undo = function () {
             var branch = featureDiffService.layer.get('metadata').branchName;
             var layerName = featureDiffService.layer.get('metadata').uniqueID;
             var options = new GeoGitRevertFeatureOptions();
@@ -65555,6 +65767,16 @@ var DiffColorMap = {
               scope.cancel();
             });
           };
+          scope.undoChanges = function () {
+            dialogService.warn($translate('warning'), $translate('sure_undo_changes'), [
+              $translate('yes_btn'),
+              $translate('no_btn')
+            ], false).then(function (button) {
+              if (button === 0) {
+                undo();
+              }
+            });
+          };
           function onResize() {
             var height = $(window).height();
             element.children('.modal-body').css('max-height', (height - 200).toString() + 'px');
@@ -65563,6 +65785,15 @@ var DiffColorMap = {
           $(window).resize(onResize);
           scope.$on('feature-diff-feature-set', updateVariables);
         }
+      };
+    }
+  ]);
+  module.controller('authors-tooltip-controller', [
+    '$scope',
+    function ($scope) {
+      $scope.onClick = function () {
+        $scope.tt_isOpen = false;
+        $scope.performBlame();
       };
     }
   ]);
@@ -65645,6 +65876,50 @@ var DiffColorMap = {
       this.map.addLayer(this.featureLayer);
     };
   };
+  function makeFeatureLayer() {
+    var featureStyle = function () {
+        return function (feature) {
+          var styles = {};
+          var change = $.extend(true, [], feature.get('MapLoomChange'));
+          change.fill.push(1);
+          change.stroke.push(1);
+          styles['Polygon'] = [
+            new ol.style.Style({ fill: new ol.style.Fill({ color: change.fill }) }),
+            new ol.style.Style({ stroke: new ol.style.Stroke({ color: change.stroke }) })
+          ];
+          styles['MultiPolygon'] = styles['Polygon'];
+          styles['LineString'] = [
+            new ol.style.Style({
+              stroke: new ol.style.Stroke({
+                color: change.stroke,
+                width: 7
+              })
+            }),
+            new ol.style.Style({
+              stroke: new ol.style.Stroke({
+                color: change.fill,
+                width: 5
+              })
+            })
+          ];
+          styles['MultiLineString'] = styles['LineString'];
+          styles['Point'] = [new ol.style.Style({
+              image: new ol.style.Circle({
+                radius: 12,
+                fill: new ol.style.Fill({ color: change.fill }),
+                stroke: new ol.style.Stroke({ color: change.stroke })
+              })
+            })];
+          styles['MultiPoint'] = styles['Point'];
+          styles['GeometryCollection'] = styles['Polygon'].concat(styles['Point']);
+          return styles[feature.getGeometry().getType()];
+        };
+      }();
+    return new ol.layer.Vector({
+      source: new ol.source.Vector({ parser: null }),
+      styleFunction: featureStyle
+    });
+  }
   module.provider('featureDiffService', function () {
     this.title = 'Diffs';
     this.feature = null;
@@ -65988,50 +66263,6 @@ var DiffColorMap = {
       });
     };
   });
-  function makeFeatureLayer() {
-    var featureStyle = function () {
-        return function (feature, resolution) {
-          var styles = {};
-          var change = $.extend(true, [], feature.get('MapLoomChange'));
-          change.fill.push(1);
-          change.stroke.push(1);
-          styles['Polygon'] = [
-            new ol.style.Style({ fill: new ol.style.Fill({ color: change.fill }) }),
-            new ol.style.Style({ stroke: new ol.style.Stroke({ color: change.stroke }) })
-          ];
-          styles['MultiPolygon'] = styles['Polygon'];
-          styles['LineString'] = [
-            new ol.style.Style({
-              stroke: new ol.style.Stroke({
-                color: change.stroke,
-                width: 7
-              })
-            }),
-            new ol.style.Style({
-              stroke: new ol.style.Stroke({
-                color: change.fill,
-                width: 5
-              })
-            })
-          ];
-          styles['MultiLineString'] = styles['LineString'];
-          styles['Point'] = [new ol.style.Style({
-              image: new ol.style.Circle({
-                radius: 12,
-                fill: new ol.style.Fill({ color: change.fill }),
-                stroke: new ol.style.Stroke({ color: change.stroke })
-              })
-            })];
-          styles['MultiPoint'] = styles['Point'];
-          styles['GeometryCollection'] = styles['Polygon'].concat(styles['Point']);
-          return styles[feature.getGeometry().getType()];
-        };
-      }();
-    return new ol.layer.Vector({
-      source: new ol.source.Vector({ parser: null }),
-      styleFunction: featureStyle
-    });
-  }
   function assignAttributeTypes(properties, editable) {
     if (goog.isDefAndNotNull(service_.schema)) {
       for (var propertyIndex = 0; propertyIndex < properties.length; propertyIndex++) {
@@ -66052,7 +66283,8 @@ var DiffColorMap = {
     'mapService',
     '$timeout',
     'featureDiffService',
-    function ($rootScope, mapService, $timeout, featureDiffService) {
+    'featureBlameService',
+    function ($rootScope, mapService, $timeout, featureDiffService, featureBlameService) {
       return {
         restrict: 'C',
         scope: {
@@ -66062,9 +66294,21 @@ var DiffColorMap = {
         templateUrl: 'diff/partial/featurepanel.tpl.html',
         link: function (scope, element, attrs) {
           scope.mapid = attrs.mapid;
+          scope.authorsShown = false;
           var target = 'preview-map-' + scope.mapid;
           var loadingtarget = '#loading-' + scope.mapid;
-          function updateVariables(event, panel) {
+          function updateVariables() {
+            scope.authorsShown = false;
+            scope.isMergePanel = scope.panel === featureDiffService.merged;
+            scope.isConflictPanel = scope.isMergePanel && featureDiffService.change !== 'MERGED';
+            if (scope.isMergePanel) {
+              scope.$watch('panel.attributes', function () {
+                for (var i = 0; i < scope.panel.attributes.length; i++) {
+                  featureDiffService.updateChangeType(scope.panel.attributes[i]);
+                }
+                $rootScope.$broadcast('merge-feature-modified');
+              }, true);
+            }
             $timeout(function () {
               scope.panel.map.setTarget(target);
               mapService.zoomToExtent(scope.panel.bounds, false, scope.panel.map);
@@ -66073,21 +66317,31 @@ var DiffColorMap = {
               }, 500);
             }, 500);
           }
-          scope.isMergePanel = scope.panel === featureDiffService.merged;
-          if (scope.isMergePanel) {
-            scope.$watch('panel.attributes', function () {
-              for (var i = 0; i < scope.panel.attributes.length; i++) {
-                featureDiffService.updateChangeType(scope.panel.attributes[i]);
-              }
-              $rootScope.$broadcast('merge-feature-modified');
-            }, true);
-          }
+          scope.computeAuthorString = function (attribute) {
+            if (scope.isConflictPanel) {
+              return '---------------------';
+            }
+            if (goog.isDefAndNotNull(attribute) && goog.isDefAndNotNull(attribute.commit)) {
+              var returnString = '';
+              returnString += attribute.commit.author.name + ' - ';
+              var date = new Date(attribute.commit.author.timestamp);
+              returnString += date.toLocaleDateString() + ' @ ' + date.toLocaleTimeString();
+              return returnString;
+            }
+            return '';
+          };
           scope.selectValue = function (property, index) {
             property.newvalue = property.enum[index]._value;
           };
           scope.validateInteger = validateInteger;
           scope.validateDouble = validateDouble;
           scope.$on('feature-diff-performed', updateVariables);
+          scope.$on('show-authors', function () {
+            scope.authorsShown = true;
+          });
+          scope.$on('hide-authors', function () {
+            scope.authorsShown = false;
+          });
         }
       };
     }
@@ -66109,6 +66363,7 @@ var DiffColorMap = {
         },
         link: function (scope, element) {
           scope.featureDiffService = featureDiffService;
+          scope.authorsShown = false;
           function updateVariables(event, panel) {
             if (scope.hover) {
               element.closest('.loom-panel-separator').addClass('hoverable');
@@ -66148,9 +66403,19 @@ var DiffColorMap = {
               featureDiffService.chooseAttribute(index, scope.panel);
             }
           };
+          var initialize = function () {
+            updateVariables();
+            scope.authorsShown = false;
+          };
           scope.$on('merge-feature-modified', updateVariables);
-          scope.$on('feature-diff-performed', updateVariables);
+          scope.$on('feature-diff-performed', initialize);
           scope.$on('update-merge-feature', updateVariables);
+          scope.$on('show-authors', function () {
+            scope.authorsShown = true;
+          });
+          scope.$on('hide-authors', function () {
+            scope.authorsShown = false;
+          });
         }
       };
     }
@@ -67102,36 +67367,13 @@ var DiffColorMap = {
     });
   }
   function getNewPositionFromGeometry(geometry, clickPos) {
-    var newPos;
-    var geometryType = geometry.getType().toLowerCase();
     if (!goog.isDefAndNotNull(clickPos)) {
       clickPos = ol.extent.getCenter(geometry.getExtent());
     }
-    if (geometryType == 'point') {
-      newPos = geometry.getClosestPoint(clickPos);
-    } else if (geometryType == 'multipoint') {
-      newPos = geometry.getClosestPoint(clickPos);
-    } else if (geometryType == 'linestring') {
-      newPos = geometry.getClosestPoint(clickPos);
-    } else if (geometryType == 'multilinestring') {
-      newPos = geometry.getClosestPoint(clickPos);
-    } else if (geometryType == 'polygon') {
-      if (geometry.containsCoordinate(clickPos)) {
-        return clickPos;
-      }
-      newPos = geometry.getClosestPoint(clickPos);
-    } else if (geometryType == 'multipolygon') {
-      if (geometry.containsCoordinate(clickPos)) {
-        return clickPos;
-      }
-      newPos = geometry.getClosestPoint(clickPos);
-    } else if (geometryType == 'geometrycollection') {
-      if (geometry.containsCoordinate(clickPos)) {
-        return clickPos;
-      }
-      newPos = geometry.getClosestPoint(clickPos);
+    if (geometry.containsCoordinate(clickPos)) {
+      return clickPos;
     }
-    return newPos;
+    return geometry.getClosestPoint(clickPos);
   }
   function getGeometryGMLFromFeature(feature) {
     var featureGML = '';
@@ -67280,6 +67522,10 @@ var GeoGitFeatureDiffOptions = function () {
   this.oldTreeish = null;
   this.newTreeish = null;
   this.all = null;
+};
+var GeoGitBlameOptions = function () {
+  this.path = null;
+  this.commit = null;
 };
 var GeoGitGetCommitGraphOptions = function () {
   this.depth = null;
@@ -67961,7 +68207,14 @@ var GeoGitRevertFeatureOptions = function () {
       return {
         restrict: 'C',
         replace: false,
-        link: function (scope, element) {
+        link: function (scope, element, attrs) {
+          if (!goog.isDefAndNotNull(scope.commit)) {
+            scope.commit = scope.$eval(attrs.commit);
+          }
+          if (!goog.isDefAndNotNull(scope.commit)) {
+            element.popover('destroy');
+            return;
+          }
           var safeName = function (name) {
             if (goog.isDefAndNotNull(name) && name.length > 0) {
               return name;
@@ -67987,16 +68240,17 @@ var GeoGitRevertFeatureOptions = function () {
             animation: false,
             html: true,
             content: content,
+            container: 'body',
             title: $translate('id') + ': ' + scope.commit.id
           });
-          scope.showPopover = function () {
+          element.mouseenter(function () {
             if (element.closest('.collapsing').length === 0) {
               element.popover('show');
             }
-          };
-          scope.hidePopover = function () {
+          });
+          element.mouseleave(function () {
             element.popover('hide');
-          };
+          });
         }
       };
     }
@@ -68198,7 +68452,7 @@ var GeoGitRevertFeatureOptions = function () {
     function ($translate, serverService) {
       return {
         templateUrl: 'layers/partials/layerinfo.tpl.html',
-        link: function (scope) {
+        link: function (scope, element) {
           var resetVariables = function () {
             scope.layer = null;
             scope.name = null;
@@ -72322,7 +72576,7 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "    <div class=\"form-group layer-container\">\n" +
     "      <ul id=\"layer-list\" class=\"list-group\">\n" +
     "        <li ng-repeat=\"layer in layersConfig = serverService.getLayersConfig(currentServerIndex) | filter:filterLayers | filter:filterAddedLayers\"\n" +
-    "            class=\"list-group-item loom-layerinfo-popover\" data-placement=\"left\" ng-mouseenter=\"showPopover()\" ng-mouseleave=\"hidePopover()\">\n" +
+    "            class=\"list-group-item loom-layerinfo-popover\" data-placement=\"left\">\n" +
     "          <div class=\"row\">\n" +
     "            <div class=\"col-xs-2\">\n" +
     "              <div class=\"loom-check-button btn btn-xs\" ng-model=\"layer.add\" btn-checkbox btn-checkbox-true=\"true\"\n" +
@@ -72469,11 +72723,34 @@ angular.module("diff/partial/featurediff.tpl.html", []).run(["$templateCache", f
     "  </div>\n" +
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
-    "  <button type=\"button\" class=\"btn btn-default\" ng-click=\"cancel()\">{{'cancel_btn' | translate}}</button>\n" +
-    "  <button ng-if=\"editable\" type=\"button\" class=\"btn btn-primary\" ng-click=\"save()\">{{'save_btn' | translate}}</button>\n" +
-    "  <button ng-if=\"featureDiffService.undoable\" ng-disabled=\"!undoEnabled\" type=\"button\" class=\"btn btn-danger pull-left\" ng-click=\"undoChanges()\"><i\n" +
-    "      class=\"glyphicon glyphicon-remove\"></i> {{'undo_changes' | translate}}\n" +
-    "  </button>\n" +
+    "  <button type=\"button\" class=\"btn btn-default pull-right\" ng-click=\"cancel()\">{{'cancel_btn' | translate}}</button>\n" +
+    "  <button ng-if=\"editable\" type=\"button\" class=\"btn btn-primary pull-right\" ng-click=\"save()\">{{'save_btn' | translate}}</button>\n" +
+    "  <div class=\"btn-group-wrap pull-left\">\n" +
+    "    <div class=\"btn-group feature-diff-btn-group\">\n" +
+    "      <button ng-if=\"featureDiffService.undoable\" ng-disabled=\"!undoEnabled\" type=\"button\"\n" +
+    "              class=\"btn btn-default pull-left\" ng-click=\"undoChanges()\"\n" +
+    "              tooltip-placement=\"top\" tooltip=\"{{'undo_changes' | translate}}\" tooltip-append-to-body=\"true\">\n" +
+    "        <i class=\"glyphicon glyphicon-share-alt undo-button\"></i>\n" +
+    "      </button>\n" +
+    "      <button type=\"button\" class=\"btn btn-default pull-left authors-button\" ng-disabled=\"authorsDisabled\"\n" +
+    "              ng-class=\"{'authors-shown':authorsShown}\" ng-click=\"onClick()\" ng-controller=\"authors-tooltip-controller\"\n" +
+    "              tooltip-placement=\"top\" tooltip=\"{{'show_authors' | translate}}\" tooltip-append-to-body=\"true\">\n" +
+    "        <div ng-show=\"authorsDisabled\" id=\"authors-loading\">\n" +
+    "          <div class=\"loading\">\n" +
+    "            <!-- We make this div spin -->\n" +
+    "            <div class=\"spinner\">\n" +
+    "              <!-- Mask of the quarter of circle -->\n" +
+    "              <div class=\"mask\">\n" +
+    "                <!-- Inner masked circle -->\n" +
+    "                <div class=\"maskedCircle\"></div>\n" +
+    "              </div>\n" +
+    "            </div>\n" +
+    "          </div>\n" +
+    "        </div>\n" +
+    "        <i ng-if=\"!authorsDisabled\" class=\"glyphicon glyphicon-user\"></i>\n" +
+    "      </button>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
     "\n" +
     "</div>\n" +
     "");
@@ -72481,7 +72758,7 @@ angular.module("diff/partial/featurediff.tpl.html", []).run(["$templateCache", f
 
 angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("diff/partial/featurepanel.tpl.html",
-    "<div class=\"feature-panel\">\n" +
+    "<div class=\"feature-panel\" ng-class=\"{'authors-visible':authorsShown}\">\n" +
     "  {{title}}\n" +
     "  <div id=\"loading-{{mapid}}\" class=\"map-loading\">\n" +
     "    <div class=\"loading\">\n" +
@@ -72496,20 +72773,44 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "    </div>\n" +
     "  </div>\n" +
     "  <div id=\"preview-map-{{mapid}}\" class=\"preview-map map\"></div>\n" +
+    "  <div ng-if=\"authorsShown\">\n" +
+    "    <input ng-if=\"!isConflictPanel\" value=\"{{computeAuthorString(panel.geometry)}}\" type=\"text\" readOnly=\"readOnly\"\n" +
+    "           class=\"geom-author form-control attr-none loom-history-popover\" placeholder=\"\" commit=\"panel.geometry.commit\">\n" +
+    "    <input ng-if=\"isConflictPanel\" value=\"--------------------------------------\" type=\"text\" readOnly=\"readOnly\"\n" +
+    "           class=\"geom-author form-control attr-none\" placeholder=\"\">\n" +
+    "  </div>\n" +
     "  <span ng-repeat=\"attribute in panel.attributes\" class=\"\">\n" +
     "    <span class=\"info-box-attribute\">{{attribute.attributename}}</span>\n" +
-    "            <div ng-switch on=\"attribute.type\">\n" +
+    "            <div ng-switch on=\"attribute.type\" class=\"attribute-value-section\">\n" +
     "              <div ng-switch-when=\"xsd:dateTime\" ng-class=\"{\n" +
     "                        'attr-added': attribute.changetype == 'ADDED',\n" +
     "                        'attr-modified': attribute.changetype == 'MODIFIED',\n" +
     "                        'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
     "                      }\">\n" +
-    "                <datetimepicker ng-disabled=\"!isMergePanel\" class=\"merge-datetime attr-none\" editable=\"{{attribute.editable}}\"\n" +
+    "                <datetimepicker ng-disabled=\"!isConflictPanel\" class=\"merge-datetime attr-none\" editable=\"{{attribute.editable}}\"\n" +
     "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\"></datetimepicker>\n" +
+    "              </div>\n" +
+    "              <div ng-switch-when=\"xsd:date\" ng-class=\"{\n" +
+    "                        'attr-added': attribute.changetype == 'ADDED',\n" +
+    "                        'attr-modified': attribute.changetype == 'MODIFIED',\n" +
+    "                        'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
+    "                      }\">\n" +
+    "                <datetimepicker ng-disabled=\"!isConflictPanel\" class=\"merge-datetime attr-none\"\n" +
+    "                                editable=\"{{attribute.editable}}\"\n" +
+    "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\" time=\"false\"></datetimepicker>\n" +
+    "              </div>\n" +
+    "              <div ng-switch-when=\"xsd:time\" ng-class=\"{\n" +
+    "                        'attr-added': attribute.changetype == 'ADDED',\n" +
+    "                        'attr-modified': attribute.changetype == 'MODIFIED',\n" +
+    "                        'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
+    "                      }\">\n" +
+    "                <datetimepicker ng-disabled=\"!isConflictPanel\" class=\"merge-datetime attr-none\"\n" +
+    "                                editable=\"{{attribute.editable}}\"\n" +
+    "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\" date=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
     "              <div ng-switch-when=\"simpleType\" class=\"merge-select\" ng-class=\"{'input-group': attribute.editable}\">\n" +
     "                <div ng-if=\"attribute.editable\" class=\"input-group-btn\">\n" +
-    "                  <button ng-disabled=\"!isMergePanel\" type=\"button\" class=\"btn btn-default dropdown-toggle attr-none\"\n" +
+    "                  <button ng-disabled=\"!isConflictPanel\" type=\"button\" class=\"btn btn-default dropdown-toggle attr-none\"\n" +
     "                          data-toggle=\"dropdown\">\n" +
     "                    <span class=\"caret\"></span>\n" +
     "                  </button>\n" +
@@ -72527,7 +72828,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                    }\"/>\n" +
     "              </div>\n" +
     "              <div ng-switch-when=\"xsd:int\" ng-class=\"{'has-error': !attribute.valid}\">\n" +
-    "                <input ng-disabled=\"!isMergePanel\" ng-model=\"attribute.newvalue\" type=\"text\"\n" +
+    "                <input ng-disabled=\"!isConflictPanel\" ng-model=\"attribute.newvalue\" type=\"text\"\n" +
     "                       class=\"form-control attr-none\"\n" +
     "                       ng-change=\"validateInteger(attribute, 'newvalue')\" ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
@@ -72536,7 +72837,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                    }\"/>\n" +
     "              </div>\n" +
     "              <div ng-switch-when=\"xsd:double\" ng-class=\"{'has-error': !attribute.valid}\">\n" +
-    "                <input ng-disabled=\"!isMergePanel\" ng-model=\"attribute.newvalue\" type=\"text\"\n" +
+    "                <input ng-disabled=\"!isConflictPanel\" ng-model=\"attribute.newvalue\" type=\"text\"\n" +
     "                       class=\"form-control attr-none\"\n" +
     "                       ng-change=\"validateDouble(attribute, 'newvalue')\" ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
@@ -72545,12 +72846,18 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                    }\"/>\n" +
     "              </div>\n" +
     "              <input ng-switch-default ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\"\n" +
-    "                     ng-disabled=\"!isMergePanel\" placeholder=\"\"\n" +
+    "                     ng-disabled=\"!isConflictPanel\" placeholder=\"\"\n" +
     "                     ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
     "                      'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
     "                    }\">\n" +
+    "            </div>\n" +
+    "            <div ng-if=\"authorsShown\">\n" +
+    "              <input ng-if=\"!isConflictPanel\" value=\"{{computeAuthorString(attribute)}}\" type=\"text\" readOnly=\"readOnly\"\n" +
+    "                       class=\"info-box-author form-control attr-none loom-history-popover\" placeholder=\"\" commit=\"attribute.commit\">\n" +
+    "              <input ng-if=\"isConflictPanel\" value=\"--------------------------------------\" type=\"text\" readOnly=\"readOnly\"\n" +
+    "                     class=\"info-box-author form-control attr-none\" placeholder=\"\">\n" +
     "            </div>\n" +
     "  </span>\n" +
     "</div>");
@@ -72560,13 +72867,13 @@ angular.module("diff/partial/panelseparator.tpl.html", []).run(["$templateCache"
   $templateCache.put("diff/partial/panelseparator.tpl.html",
     "<div>\n" +
     "  &nbsp;\n" +
-    "  <div class=\"map-arrow attribute-arrow\">\n" +
+    "  <div class=\"map-arrow attribute-arrow\" ng-class=\"{'authors-shown':authorsShown}\">\n" +
     "    <span class=\"map-arrow-inner attribute-arrow-inner glyphicon {{icon}}\" ng-click=\"geometryArrowClick()\"\n" +
     "          ng-class=\"{'arrow-inactive':!geometryChanged}\"></span>\n" +
     "  </div>\n" +
     "  <div id=\"preview-map-{{mapid}}\" class=\"preview-map map\"></div>\n" +
     "  <span ng-repeat=\"attribute in arrows\" class=\"\">\n" +
-    "    <div class=\"attribute-arrow\">\n" +
+    "    <div class=\"attribute-arrow\" ng-class=\"{'authors-shown':authorsShown}\">\n" +
     "      <span class=\"attribute-arrow-inner glyphicon {{icon}}\" ng-class=\"{'arrow-inactive':!attribute.active}\"\n" +
     "            ng-click=\"arrowClick($index)\"></span>\n" +
     "    </div>\n" +
@@ -72767,8 +73074,7 @@ angular.module("history/partial/historypanel.tpl.html", []).run(["$templateCache
     "<div>\n" +
     "  <div class=\"history-scroll-pane\">\n" +
     "    <ul class=\"list-group\">\n" +
-    "      <li class=\"list-group-item loom-history-popover\" ng-repeat=\"commit in log\" ng-click=\"historyClicked(commit)\"\n" +
-    "          ng-mouseenter=\"showPopover()\" ng-mouseleave=\"hidePopover()\">\n" +
+    "      <li class=\"list-group-item loom-history-popover\" ng-repeat=\"commit in log\" ng-click=\"historyClicked(commit)\">\n" +
     "        <div class=\"commit-summary progress\">\n" +
     "          <div class=\"progress-bar progress-bar-add\" ng-style=\"commit.summary.added\">\n" +
     "            <span class=\"sr-only\"></span>\n" +
