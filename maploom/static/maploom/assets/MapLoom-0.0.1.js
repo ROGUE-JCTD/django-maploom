@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-11
+ * MapLoom - v0.0.1 - 2014-03-12
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -69189,7 +69189,7 @@ var GeoGitRevertFeatureOptions = function () {
         console.log('saving server: ', server);
         cfg.sources.push(server.config);
       });
-      goog.array.forEach(service_.map.getLayers().getArray(), function (layer, key, obj) {
+      goog.array.forEach(service_.getLayers(true, true), function (layer, key, obj) {
         console.log('saving layer: ', layer);
         console.log('metadata: ', layer.get('metadata'));
         console.log('config: ', layer.get('metadata').config);
