@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-12
+ * MapLoom - v0.0.1 - 2014-03-13
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -64070,6 +64070,7 @@ goog.require("ol.xml");
       'location_lon_lat': 'Location ( lon, lat )',
       'show_history': 'Show History',
       'show_table': 'Show Table',
+      'show_table_failed': 'An unknown error occurred when retrieving the features. Please try again.',
       'show_pics': 'Show Photos',
       'edit_geometry': 'Edit Geometry',
       'edit_attributes': 'Edit Attributes',
@@ -64300,6 +64301,7 @@ goog.require("ol.xml");
       'location_lon_lat': 'Ubicacion ( lon, lat )',
       'show_history': 'Mostrar Historial',
       'show_table': 'Mostrar Tabla',
+      'show_table_failed': 'Se ha producido un error desconocido al recuperar los elementos. ' + 'Por favor, int\xe9ntelo de nuevo.',
       'show_pics': 'Mostrar Imagenes',
       'edit_geometry': 'Editar Geometria',
       'edit_attributes': 'Editar Atributos',
@@ -64467,6 +64469,7 @@ goog.require("ol.xml");
           angular.element('#layer-filter')[0].attributes.placeholder.value = $translate('filter_layers');
           scope.setCurrentServerIndex = function (serverIndex) {
             scope.currentServerIndex = serverIndex;
+            scope.currentServer = serverService.getServerById(serverIndex);
             serverService.populateLayersConfig(serverIndex);
           };
           scope.setCurrentServerIndex(serverService.getServerLocalGeoserver().id);
@@ -64756,7 +64759,8 @@ var SERVER_SERVICE_USE_PROXY = true;
       var server = {
           id: servers.length,
           ptype: 'gxp_olsource',
-          config: serverInfo
+          config: serverInfo,
+          populatingLayersConfig: false
         };
       goog.object.extend(server, serverInfo, {});
       console.log('---- adding server: ', server);
@@ -64862,6 +64866,7 @@ var SERVER_SERVICE_USE_PROXY = true;
           }
           var parser = new ol.parser.ogc.WMSCapabilities();
           var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
+          server.populatingLayersConfig = true;
           http_.get(url).then(function (xhr) {
             if (xhr.status == 200) {
               var response = parser.read(xhr.data);
@@ -64870,11 +64875,14 @@ var SERVER_SERVICE_USE_PROXY = true;
                 console.log('---- populateLayersConfig. server', server);
                 rootScope_.$broadcast('layers-loaded', index);
               }
+              server.populatingLayersConfig = false;
             } else {
               dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
+              server.populatingLayersConfig = false;
             }
           }, function (xhr) {
             dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
+            server.populatingLayersConfig = false;
           });
         }
       }
@@ -65538,7 +65546,7 @@ var DiffColorMap = {
           function updateVariables() {
             scope.authorsLoaded = false;
             scope.authorsShown = false;
-            scope.authorsDisabled = false;
+            scope.isLoading = false;
             scope.undoEnabled = true;
             scope.featureDiffService = featureDiffService;
             scope.editable = false;
@@ -65606,7 +65614,7 @@ var DiffColorMap = {
             scope.undoEnabled = true;
             scope.authorsLoaded = false;
             scope.authorsShown = false;
-            scope.authorsDisabled = false;
+            scope.isLoading = false;
             element.closest('.modal').modal('hide');
           };
           scope.save = function () {
@@ -65633,7 +65641,7 @@ var DiffColorMap = {
               }
               return;
             }
-            scope.authorsDisabled = true;
+            scope.isLoading = true;
             if (featureDiffService.change === 'ADDED' || featureDiffService.change === 'REMOVED') {
               var id = featureDiffService.getTheirsId();
               var options = new GeoGitLogOptions();
@@ -65646,17 +65654,17 @@ var DiffColorMap = {
                     attribute.commit = response.commit;
                   });
                   panel.geometry.commit = response.commit;
-                  scope.authorsDisabled = false;
+                  scope.isLoading = false;
                   scope.authorsLoaded = true;
                   $rootScope.$broadcast('show-authors');
                 } else {
                   dialogService.error($translate('error'), $translate('author_fetch_failed'));
-                  scope.authorsDisabled = false;
+                  scope.isLoading = false;
                 }
               }, function (reject) {
                 console.log('ERROR: Log Failure: ', options, reject);
                 dialogService.error($translate('error'), $translate('author_fetch_failed'));
-                scope.authorsDisabled = false;
+                scope.isLoading = false;
               });
               return;
             }
@@ -65683,7 +65691,7 @@ var DiffColorMap = {
                 });
                 numPanels--;
                 if (numPanels === 0) {
-                  scope.authorsDisabled = false;
+                  scope.isLoading = false;
                   if (numFailed > 0) {
                     dialogService.error($translate('error'), $translate('author_fetch_failed'));
                   } else {
@@ -65697,7 +65705,7 @@ var DiffColorMap = {
                 console.log('ERROR: Blame Failure: ', options, reject);
                 if (numPanels === 0) {
                   dialogService.error($translate('error'), $translate('author_fetch_failed'));
-                  scope.authorsDisabled = false;
+                  scope.isLoading = false;
                 }
               });
             };
@@ -66270,6 +66278,14 @@ var DiffColorMap = {
         if (properties[propertyIndex].type === 'simpleType') {
           properties[propertyIndex].enum = service_.schema[properties[propertyIndex].attributename].simpleType.restriction.enumeration;
         }
+        if (properties[propertyIndex].type === 'xsd:dateTime') {
+          if (goog.isDefAndNotNull(properties[propertyIndex].oldvalue)) {
+            properties[propertyIndex].oldvalue = new Date(properties[propertyIndex].oldvalue).toISOString();
+          }
+          if (goog.isDefAndNotNull(properties[propertyIndex].newvalue)) {
+            properties[propertyIndex].newvalue = new Date(properties[propertyIndex].newvalue).toISOString();
+          }
+        }
         properties[propertyIndex].valid = true;
         properties[propertyIndex].editable = editable;
       }
@@ -66660,6 +66676,7 @@ var DiffColorMap = {
         link: function (scope) {
           scope.featureManagerService = featureManagerService;
           scope.mapService = mapService;
+          scope.loadingHistory = false;
           scope.$on('feature-info-click', function () {
             scope.$apply(function () {
               scope.featureManagerService = featureManagerService;
@@ -66674,8 +66691,18 @@ var DiffColorMap = {
                   var nativeLayer = metadata.nativeName;
                   var featureId = featureManagerService.getSelectedItem().id;
                   var fid = nativeLayer + '/' + featureId;
+                  scope.loadingHistory = true;
                   historyService.setTitle($translate('history_for', { value: featureId }));
-                  historyService.getHistory(layer, fid);
+                  var promise = historyService.getHistory(layer, fid);
+                  if (goog.isDefAndNotNull(promise)) {
+                    promise.then(function () {
+                      scope.loadingHistory = false;
+                    }, function () {
+                      scope.loadingHistory = false;
+                    });
+                  } else {
+                    scope.loadingHistory = false;
+                  }
                 }
               }
             }
@@ -68009,6 +68036,7 @@ var GeoGitRevertFeatureOptions = function () {
           scope.endDate = [new Date().toISOString()];
           scope.active = true;
           scope.contentHidden = true;
+          scope.isLoading = false;
           element.closest('.modal').on('hidden.bs.modal', function (e) {
             if (!scope.$$phase && !$rootScope.$$phase) {
               scope.$apply(function () {
@@ -68029,10 +68057,10 @@ var GeoGitRevertFeatureOptions = function () {
           });
           scope.cancel = function () {
             element.closest('.modal').modal('hide');
-            $('#history-loading').addClass('hidden');
+            scope.isLoading = false;
           };
           scope.onDiff = function () {
-            $('#history-loading').toggleClass('hidden');
+            scope.isLoading = true;
             var startTime = new Date(scope.startDate[0]).getTime();
             var endTime = new Date(scope.endDate[0]).getTime();
             var logOptions = new GeoGitLogOptions();
@@ -68064,6 +68092,7 @@ var GeoGitRevertFeatureOptions = function () {
                   if (goog.isDefAndNotNull(response.Feature)) {
                     if (goog.isDefAndNotNull(response.nextPage) && response.nextPage == 'true') {
                       dialogService.warn($translate('warning'), $translate('too_many_changes'), [$translate('btn_ok')]);
+                      scope.isLoading = false;
                     } else {
                       diffService.setTitle($translate('summary_of_changes'));
                       pulldownService.showDiffPanel();
@@ -68071,21 +68100,21 @@ var GeoGitRevertFeatureOptions = function () {
                     }
                   } else {
                     dialogService.open($translate('history'), $translate('no_changes_in_time_range'), [$translate('btn_ok')]);
-                    $('#history-loading').addClass('hidden');
+                    scope.isLoading = false;
                   }
                 }, function (reject) {
                   console.log('Failed to get diff: ', reject);
                   dialogService.error($translate('error'), $translate('diff_unknown_error'), [$translate('btn_ok')]);
-                  $('#history-loading').addClass('hidden');
+                  scope.isLoading = false;
                 });
               } else {
                 dialogService.open($translate('history'), $translate('no_changes_in_time_range'), [$translate('btn_ok')]);
-                $('#history-loading').addClass('hidden');
+                scope.isLoading = false;
               }
             }, function (reject) {
               console.log('Failed to get log: ', reject);
               dialogService.error($translate('error'), $translate('diff_unknown_error'), [$translate('btn_ok')]);
-              $('#history-loading').addClass('hidden');
+              scope.isLoading = false;
             });
           };
           scope.exportCSV = function () {
@@ -68127,6 +68156,7 @@ var GeoGitRevertFeatureOptions = function () {
         replace: true,
         templateUrl: 'history/partial/historypanel.tpl.html',
         link: function (scope, element, attrs) {
+          scope.loadingDiff = false;
           var scrollPane = element.find('.history-scroll-pane');
           var raw = scrollPane[0];
           scrollPane.bind('scroll', function () {
@@ -68142,6 +68172,9 @@ var GeoGitRevertFeatureOptions = function () {
               raw.scrollTop = raw.scrollTop + height * numInserted;
             }
           });
+          scope.isLoading = function (commit) {
+            return goog.isDefAndNotNull(commit.loading) && commit.loading === true;
+          };
           function updateVariables(newLog, oldLog) {
             if (goog.isDefAndNotNull(oldLog) && oldLog.length === 0) {
               $timeout(function () {
@@ -68160,6 +68193,11 @@ var GeoGitRevertFeatureOptions = function () {
             return date.format('L') + ' @ ' + date.format('LT');
           };
           scope.historyClicked = function (commit) {
+            if (scope.loadingDiff !== false) {
+              return;
+            }
+            commit.loading = true;
+            scope.loadingDiff = true;
             $('.loom-history-popover').popover('hide');
             var lastCommitId = '0000000000000000000000000000000000000000';
             if (goog.isDefAndNotNull(commit.parents) && goog.isObject(commit.parents)) {
@@ -68188,8 +68226,12 @@ var GeoGitRevertFeatureOptions = function () {
               } else {
                 dialogService.open($translate('history'), $translate('no_changes_in_commit'), [$translate('btn_ok')]);
               }
+              commit.loading = false;
+              scope.loadingDiff = false;
             }, function (reject) {
               dialogService.error($translate('error'), $translate('diff_unknown_error'), [$translate('btn_ok')]);
+              scope.loadingDiff = false;
+              commit.loading = false;
             });
           };
           updateVariables();
@@ -68264,6 +68306,7 @@ var GeoGitRevertFeatureOptions = function () {
   var pulldownService_ = null;
   var dialogService_ = null;
   var translate_ = null;
+  var q_ = null;
   module.provider('historyService', function () {
     this.log = [];
     this.title = 'History';
@@ -68275,18 +68318,20 @@ var GeoGitRevertFeatureOptions = function () {
     this.fetchingHistory = false;
     this.historyTransaction = 0;
     this.$get = [
+      '$q',
       '$rootScope',
       '$translate',
       'geogitService',
       'pulldownService',
       'dialogService',
-      function ($rootScope, $translate, geogitService, pulldownService, dialogService) {
+      function ($q, $rootScope, $translate, geogitService, pulldownService, dialogService) {
         rootScope_ = $rootScope;
         service_ = this;
         geogitService_ = geogitService;
         pulldownService_ = pulldownService;
         dialogService_ = dialogService;
         translate_ = $translate;
+        q_ = $q;
         return this;
       }
     ];
@@ -68299,8 +68344,9 @@ var GeoGitRevertFeatureOptions = function () {
         if (goog.isDefAndNotNull(layer)) {
           service_.layer = layer;
         }
-        getHistoryInternal();
+        return getHistoryInternal();
       }
+      return null;
     };
     this.getMoreHistory = function () {
       if (service_.fetchingHistory === false) {
@@ -68331,6 +68377,7 @@ var GeoGitRevertFeatureOptions = function () {
     };
   });
   function getHistoryInternal(_refresh) {
+    var deferredResponse = q_.defer();
     var refresh = _refresh;
     if (!goog.isDefAndNotNull(refresh)) {
       refresh = false;
@@ -68364,6 +68411,7 @@ var GeoGitRevertFeatureOptions = function () {
           logOptions.path = service_.pathFilter;
           geogitService_.command(metadata.repoId, 'log', logOptions).then(function (response) {
             if (service_.fetchingHistory === false || thisTransaction != service_.historyTransaction) {
+              deferredResponse.reject();
               return;
             }
             if (goog.isDefAndNotNull(response.commit)) {
@@ -68421,17 +68469,27 @@ var GeoGitRevertFeatureOptions = function () {
               }
             }
             service_.fetchingHistory = false;
+            deferredResponse.resolve(0);
           }, function (reject) {
             if (service_.fetchingHistory === false || thisTransaction != service_.historyTransaction) {
+              deferredResponse.reject();
               return;
             }
             service_.fetchingHistory = false;
             console.log('History failed: ', reject);
             dialogService_.error(translate_('error'), translate_('history_failed'));
+            deferredResponse.reject();
           });
+        } else {
+          deferredResponse.reject();
         }
+      } else {
+        deferredResponse.reject();
       }
+    } else {
+      deferredResponse.reject();
     }
+    return deferredResponse.promise;
   }
   function getFirstParent(commit) {
     if (goog.isDefAndNotNull(commit.parents) && goog.isDefAndNotNull(commit.parents.id)) {
@@ -68568,9 +68626,37 @@ var GeoGitRevertFeatureOptions = function () {
             }
             return false;
           };
+          scope.isLoadingTable = function (layer) {
+            var loadingTable = layer.get('metadata').loadingTable;
+            return goog.isDefAndNotNull(loadingTable) && loadingTable === true;
+          };
+          scope.showTable = function (layer) {
+            layer.get('metadata').loadingTable = true;
+            tableViewService.showTable(layer).then(function () {
+              layer.get('metadata').loadingTable = false;
+              $('#table-view-window').modal('show');
+            }, function () {
+              layer.get('metadata').loadingTable = false;
+              dialogService.error($translate('show_table'), $translate('show_table_failed'));
+            });
+          };
+          scope.isLoadingHistory = function (layer) {
+            var loadingHistory = layer.get('metadata').loadingHistory;
+            return goog.isDefAndNotNull(loadingHistory) && loadingHistory === true;
+          };
           scope.showHistory = function (layer) {
             historyService.setTitle($translate('history_for', { value: layer.get('metadata').title }));
-            historyService.getHistory(layer);
+            layer.get('metadata').loadingHistory = true;
+            var promise = historyService.getHistory(layer);
+            if (goog.isDefAndNotNull(promise)) {
+              promise.then(function () {
+                layer.get('metadata').loadingHistory = false;
+              }, function () {
+                layer.get('metadata').loadingHistory = false;
+              });
+            } else {
+              layer.get('metadata').loadingHistory = false;
+            }
           };
           scope.attrList = [];
           scope.fillAttrList = function (layer) {
@@ -71472,21 +71558,25 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
   var module = angular.module('loom_table_view_service', []);
   var http_ = null;
   var service_ = null;
+  var q_ = null;
   module.provider('tableViewService', function () {
     this.$get = [
+      '$q',
       '$http',
-      function ($http) {
+      function ($q, $http) {
         http_ = $http;
         service_ = this;
+        q_ = $q;
         return this;
       }
     ];
     this.featureList = [];
     this.attributeNameList = [];
     this.showTable = function (layer) {
+      var deferredResponse = q_.defer();
       service_.featureList = [];
       service_.attributeNameList = [];
-      var url = layer.get('metadata').url + '/wfs?version=' + settings.WFSVersion + '&request=GetFeature&typeNames=' + layer.get('metadata').name;
+      var url = layer.get('metadata').url + '/wfs?version=' + '2.0.0' + '&request=GetFeature&typeNames=' + layer.get('metadata').name;
       http_.get(url).then(function (response) {
         var x2js = new X2JS();
         var json = x2js.xml_str2json(response.data);
@@ -71512,8 +71602,11 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           }
           service_.featureList[feat] = feature;
         }
-        $('#table-view-window').modal('show');
+        deferredResponse.resolve();
+      }, function (reject) {
+        deferredResponse.reject(reject);
       });
+      return deferredResponse.promise;
     };
   });
 }());
@@ -72074,7 +72167,42 @@ var sha1 = function (msg) {
   return localtemp.toLowerCase();
 };
 (function () {
-  var module = angular.module('loom_utils', []);
+  var module = angular.module('loom_loading_directive', []);
+  module.directive('loomLoading', function () {
+    return {
+      restrict: 'C',
+      templateUrl: 'utils/partial/loading.tpl.html',
+      scope: { spinnerHidden: '=' },
+      link: function (scope, element, attrs) {
+        scope.spinnerWidth = 3;
+        scope.spinnerRadius = 28;
+        if (goog.isDefAndNotNull(attrs.spinnerWidth)) {
+          scope.spinnerWidth = parseInt(attrs.spinnerWidth, 10);
+        }
+        if (goog.isDefAndNotNull(attrs.spinnerRadius)) {
+          scope.spinnerRadius = parseInt(attrs.spinnerRadius, 10);
+        }
+        var loading = element.find('.loading');
+        loading.css('width', scope.spinnerRadius + 'px');
+        loading.css('height', scope.spinnerRadius + 'px');
+        loading.css('margin', '-' + scope.spinnerRadius / 2 + 'px 0 0 -' + scope.spinnerRadius / 2 + 'px');
+        var loadingSpinner = element.find('.loading-spinner');
+        loadingSpinner.css('width', scope.spinnerRadius - scope.spinnerWidth + 'px');
+        loadingSpinner.css('height', scope.spinnerRadius - scope.spinnerWidth + 'px');
+        loadingSpinner.css('border', scope.spinnerWidth + 'px solid');
+        loadingSpinner.css('border-radius', scope.spinnerRadius / 2 + 'px');
+        var mask = element.find('.mask');
+        mask.css('width', scope.spinnerRadius / 2 + 'px');
+        mask.css('height', scope.spinnerRadius / 2 + 'px');
+        var spinner = element.find('.spinner');
+        spinner.css('width', scope.spinnerRadius + 'px');
+        spinner.css('height', scope.spinnerRadius + 'px');
+      }
+    };
+  });
+}());
+(function () {
+  var module = angular.module('loom_utils', ['loom_loading_directive']);
   module.directive('stopEvent', function () {
     return {
       link: function (scope, element, attr) {
@@ -72178,6 +72306,7 @@ var sha1 = function (msg) {
             if (goog.isDefAndNotNull(date)) {
               date = date.getDate();
               newDate.setFullYear(date.year(), date.month(), date.date());
+              newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
             }
             var time = element.find('.timepicker').data('DateTimePicker');
             if (goog.isDefAndNotNull(time)) {
@@ -72186,31 +72315,31 @@ var sha1 = function (msg) {
             }
             if (!scope.$$phase && !$rootScope.$$phase) {
               scope.$apply(function () {
-                if (time && date) {
+                var momentDate = moment(new Date(dateOptions.defaultDate));
+                momentDate.lang($translate.uses());
+                if (scope.time === 'true' && scope.date === 'true') {
                   scope.dateObject[scope.dateKey] = newDate.toISOString();
-                  scope.disabledText = newDate.toISOString();
-                } else if (time) {
-                  var timeString = newDate.toISOString().split('T')[1];
-                  scope.dateObject[scope.dateKey] = timeString;
-                  scope.disabledText = timeString;
-                } else if (date) {
-                  var dateString = newDate.toISOString().split('T')[0];
-                  scope.dateObject[scope.dateKey] = dateString;
-                  scope.disabledText = dateString;
+                  scope.disabledText = momentDate.format('L') + ' ' + momentDate.format('LT');
+                } else if (scope.time === 'true') {
+                  scope.dateObject[scope.dateKey] = newDate.toISOString().split('T')[1];
+                  scope.disabledText = momentDate.format('LT');
+                } else if (scope.date === 'true') {
+                  scope.dateObject[scope.dateKey] = newDate.toISOString().split('T')[0];
+                  scope.disabledText = momentDate.format('L');
                 }
               });
             } else {
-              if (time && date) {
+              var momentDate = moment(new Date(dateOptions.defaultDate));
+              momentDate.lang($translate.uses());
+              if (scope.time === 'true' && scope.date === 'true') {
                 scope.dateObject[scope.dateKey] = newDate.toISOString();
-                scope.disabledText = newDate.toISOString();
-              } else if (time) {
-                var timeString = newDate.toISOString().split('T')[1];
-                scope.dateObject[scope.dateKey] = timeString;
-                scope.disabledText = timeString;
-              } else if (date) {
-                var dateString = newDate.toISOString().split('T')[0];
-                scope.dateObject[scope.dateKey] = dateString;
-                scope.disabledText = dateString;
+                scope.disabledText = momentDate.format('L') + ' ' + momentDate.format('LT');
+              } else if (scope.time === 'true') {
+                scope.dateObject[scope.dateKey] = newDate.toISOString().split('T')[1];
+                scope.disabledText = momentDate.format('LT');
+              } else if (scope.date === 'true') {
+                scope.dateObject[scope.dateKey] = newDate.toISOString().split('T')[0];
+                scope.disabledText = momentDate.format('L');
               }
             }
           };
@@ -72227,29 +72356,71 @@ var sha1 = function (msg) {
             dateOptions.defaultDate = defaultDate;
             timeOptions.defaultDate = defaultDate;
           }
-          if (goog.isDefAndNotNull(scope.dateObject[scope.dateKey])) {
-            dateOptions.defaultDate = scope.dateObject[scope.dateKey];
-            timeOptions.defaultDate = scope.dateObject[scope.dateKey];
-          }
+          var updateDate = function () {
+            if (goog.isDefAndNotNull(scope.dateObject[scope.dateKey])) {
+              if (scope.date === 'false') {
+                var testDate = new Date(scope.dateObject[scope.dateKey]);
+                if ('Invalid Date' == testDate) {
+                  timeOptions.defaultDate = '2014-03-10T' + scope.dateObject[scope.dateKey];
+                } else {
+                  timeOptions.defaultDate = scope.dateObject[scope.dateKey];
+                }
+                if (scope.seperateTime === 'false') {
+                  dateOptions.defaultDate = timeOptions.defaultDate;
+                }
+              } else if (scope.time === 'false') {
+                dateOptions.defaultDate = scope.dateObject[scope.dateKey].replace('Z', '');
+              } else {
+                if (scope.dateObject[scope.dateKey].search('Z') === -1) {
+                  scope.dateObject[scope.dateKey] += 'Z';
+                }
+                dateOptions.defaultDate = scope.dateObject[scope.dateKey];
+                timeOptions.defaultDate = scope.dateObject[scope.dateKey];
+              }
+            }
+          };
+          updateDate();
           var setUpPickers = function () {
             if (scope.date === 'true') {
               element.find('.datepicker').datetimepicker(dateOptions);
               element.find('.datepicker').on('change.dp', updateDateTime);
             }
-            if (scope.time === 'true' && scope.seperateTime === 'true') {
+            if (scope.time === 'true' && (scope.seperateTime === 'true' || scope.date === 'false')) {
               element.find('.timepicker').datetimepicker(timeOptions);
               element.find('.timepicker').on('change.dp', updateDateTime);
             }
-            if (goog.isDefAndNotNull(dateOptions.defaultDate)) {
+            if (goog.isDefAndNotNull(dateOptions.defaultDate) || goog.isDefAndNotNull(timeOptions.defaultDate)) {
               updateDateTime();
-              var date = moment(new Date(dateOptions.defaultDate));
-              date.lang($translate.uses());
-              scope.disabledText = date.format('L') + ' ' + date.format('LT');
+              var date;
+              if (scope.date === 'true' && scope.time === 'true') {
+                date = moment(dateOptions.defaultDate);
+                date.lang($translate.uses());
+                scope.disabledText = date.format('L') + ' ' + date.format('LT');
+              } else if (scope.time === 'true') {
+                date = moment(new Date(timeOptions.defaultDate));
+                date.lang($translate.uses());
+                scope.disabledText = date.format('LT');
+              } else if (scope.date === 'true') {
+                date = moment.utc(dateOptions.defaultDate);
+                date.lang($translate.uses());
+                scope.disabledText = date.format('L');
+              }
             } else {
               scope.disabledText = '';
             }
           };
           setUpPickers();
+          var dateObjectChanged = function () {
+            updateDate();
+            if (scope.date === 'true') {
+              element.find('.datepicker').data('DateTimePicker').setDate(dateOptions.defaultDate);
+            }
+            if (scope.time === 'true' && (scope.seperateTime === 'true' || scope.date === 'false')) {
+              element.find('.timepicker').data('DateTimePicker').setDate(dateOptions.defaultDate);
+            }
+            updateDateTime();
+          };
+          scope.$watch('dateObject', dateObjectChanged);
           scope.$on('translation_change', function (event, lang) {
             dateOptions.language = lang;
             timeOptions.language = lang;
@@ -72543,7 +72714,7 @@ var WKT = {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -72573,6 +72744,7 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "      <input id=\"layer-filter\" ng-model=\"filterLayers\" type=\"text\" class=\"form-control\" placeholder=\"{{'filter_layers' | translate}}\">\n" +
     "    </div>\n" +
     "    <hr>\n" +
+    "    <div class=\"add-layers-loading loom-loading\" spinner-hidden=\"!currentServer.populatingLayersConfig\"></div>\n" +
     "    <div class=\"form-group layer-container\">\n" +
     "      <ul id=\"layer-list\" class=\"list-group\">\n" +
     "        <li ng-repeat=\"layer in layersConfig = serverService.getLayersConfig(currentServerIndex) | filter:filterLayers | filter:filterAddedLayers\"\n" +
@@ -72722,6 +72894,7 @@ angular.module("diff/partial/featurediff.tpl.html", []).run(["$templateCache", f
     "    </div>\n" +
     "  </div>\n" +
     "</div>\n" +
+    "\n" +
     "<div class=\"modal-footer\">\n" +
     "  <button type=\"button\" class=\"btn btn-default pull-right\" ng-click=\"cancel()\">{{'cancel_btn' | translate}}</button>\n" +
     "  <button ng-if=\"editable\" type=\"button\" class=\"btn btn-primary pull-right\" ng-click=\"save()\">{{'save_btn' | translate}}</button>\n" +
@@ -72732,22 +72905,11 @@ angular.module("diff/partial/featurediff.tpl.html", []).run(["$templateCache", f
     "              tooltip-placement=\"top\" tooltip=\"{{'undo_changes' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "        <i class=\"glyphicon glyphicon-share-alt undo-button\"></i>\n" +
     "      </button>\n" +
-    "      <button type=\"button\" class=\"btn btn-default pull-left authors-button\" ng-disabled=\"authorsDisabled\"\n" +
+    "      <button type=\"button\" class=\"btn btn-default pull-left authors-button\" ng-disabled=\"isLoading\"\n" +
     "              ng-class=\"{'authors-shown':authorsShown}\" ng-click=\"onClick()\" ng-controller=\"authors-tooltip-controller\"\n" +
     "              tooltip-placement=\"top\" tooltip=\"{{'show_authors' | translate}}\" tooltip-append-to-body=\"true\">\n" +
-    "        <div ng-show=\"authorsDisabled\" id=\"authors-loading\">\n" +
-    "          <div class=\"loading\">\n" +
-    "            <!-- We make this div spin -->\n" +
-    "            <div class=\"spinner\">\n" +
-    "              <!-- Mask of the quarter of circle -->\n" +
-    "              <div class=\"mask\">\n" +
-    "                <!-- Inner masked circle -->\n" +
-    "                <div class=\"maskedCircle\"></div>\n" +
-    "              </div>\n" +
-    "            </div>\n" +
-    "          </div>\n" +
-    "        </div>\n" +
-    "        <i ng-if=\"!authorsDisabled\" class=\"glyphicon glyphicon-user\"></i>\n" +
+    "        <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!isLoading\"></div>\n" +
+    "        <i ng-if=\"!isLoading\" class=\"glyphicon glyphicon-user\"></i>\n" +
     "      </button>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -72790,6 +72952,9 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                <datetimepicker ng-disabled=\"!isConflictPanel\" class=\"merge-datetime attr-none\" editable=\"{{attribute.editable}}\"\n" +
     "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\"></datetimepicker>\n" +
     "              </div>\n" +
+    "              <!--\n" +
+    "              There are a lot of problems with the handling of date and time fields, commenting out until we have the time\n" +
+    "              to refactor it.\n" +
     "              <div ng-switch-when=\"xsd:date\" ng-class=\"{\n" +
     "                        'attr-added': attribute.changetype == 'ADDED',\n" +
     "                        'attr-modified': attribute.changetype == 'MODIFIED',\n" +
@@ -72808,6 +72973,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                                editable=\"{{attribute.editable}}\"\n" +
     "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\" date=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
+    "              -->\n" +
     "              <div ng-switch-when=\"simpleType\" class=\"merge-select\" ng-class=\"{'input-group': attribute.editable}\">\n" +
     "                <div ng-if=\"attribute.editable\" class=\"input-group-btn\">\n" +
     "                  <button ng-disabled=\"!isConflictPanel\" type=\"button\" class=\"btn btn-default dropdown-toggle attr-none\"\n" +
@@ -73015,7 +73181,9 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "      <div id=\"feature-info-box-button-group\" class=\"btn-group pull-right\">\n" +
     "        <button type=\"button\" ng-click=\"showFeatureHistory()\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\"\n" +
     "                tooltip=\"{{'show_history' | translate}}\"\n" +
-    "                class=\"btn btn-sm btn-default glyphicon glyphicon-time\"></button>\n" +
+    "                class=\"btn btn-sm btn-default glyphicon glyphicon-time\">\n" +
+    "          <div class=\"loom-loading\" spinner-radius=\"10\" spinner-width=\"2\" spinner-hidden=\"!loadingHistory\"></div>\n" +
+    "                </button>\n" +
     "        <!--<button type=\"button\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'show_pics' | translate}}\"\n" +
     "                class=\"btn btn-sm btn-default glyphicon glyphicon-camera\"></button>-->\n" +
     "        <button type=\"button\" ng-click=\"featureManagerService.startAttributeEditing()\"\n" +
@@ -73036,18 +73204,7 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
 angular.module("history/partial/historydiff.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("history/partial/historydiff.tpl.html",
     "<div class=\"modal-body\">\n" +
-    "  <div id=\"history-loading\" class=\"hidden\">\n" +
-    "    <div class=\"loading\">\n" +
-    "      <!-- We make this div spin -->\n" +
-    "      <div class=\"spinner\">\n" +
-    "        <!-- Mask of the quarter of circle -->\n" +
-    "        <div class=\"mask\">\n" +
-    "          <!-- Inner masked circle -->\n" +
-    "          <div class=\"maskedCircle\"></div>\n" +
-    "        </div>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
+    "  <div class=\"history-loading loom-loading\" spinner-width=\"4\" spinner-radius=\"48\" spinner-hidden=\"!isLoading\"></div>\n" +
     "  <form ng-if=\"!contentHidden\" class=\"form\">\n" +
     "    <div ng-if=\"active\">\n" +
     "      <div class=\"form-group\">\n" +
@@ -73075,6 +73232,7 @@ angular.module("history/partial/historypanel.tpl.html", []).run(["$templateCache
     "  <div class=\"history-scroll-pane\">\n" +
     "    <ul class=\"list-group\">\n" +
     "      <li class=\"list-group-item loom-history-popover\" ng-repeat=\"commit in log\" ng-click=\"historyClicked(commit)\">\n" +
+    "        <div ng-if=\"isLoading(commit)\" class=\"diff-loading loom-loading\" spinner-hidden=\"false\"></div>\n" +
     "        <div class=\"commit-summary progress\">\n" +
     "          <div class=\"progress-bar progress-bar-add\" ng-style=\"commit.summary.added\">\n" +
     "            <span class=\"sr-only\"></span>\n" +
@@ -73091,20 +73249,10 @@ angular.module("history/partial/historypanel.tpl.html", []).run(["$templateCache
     "        </div>\n" +
     "        <div class=\"author-name\">{{getCommitAuthor(commit)}}</div>\n" +
     "        <div class=\"commit-time\">{{getCommitTime(commit)}}</div>\n" +
+    "\n" +
     "      </li>\n" +
     "      <li ng-if=\"historyService.nextPage\" class=\"list-group-item\">\n" +
-    "        <div class=\"history-loading\">\n" +
-    "          <div class=\"loading\">\n" +
-    "            <!-- We make this div spin -->\n" +
-    "            <div class=\"spinner\">\n" +
-    "              <!-- Mask of the quarter of circle -->\n" +
-    "              <div class=\"mask\">\n" +
-    "                <!-- Inner masked circle -->\n" +
-    "                <div class=\"maskedCircle\"></div>\n" +
-    "              </div>\n" +
-    "            </div>\n" +
-    "          </div>\n" +
-    "        </div>\n" +
+    "        <div class=\"history-loading loom-loading\" spinner-hidden=\"false\"></div>\n" +
     "      </li>\n" +
     "      <li class=\"history-last-list-item\">\n" +
     "      </li>\n" +
@@ -73204,14 +73352,16 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "               class=\"btn btn-sm btn-default\">\n" +
     "              <i class=\"glyphicon glyphicon-resize-small\"></i>\n" +
     "            </a>\n" +
-    "            <a type=\"button\" ng-click=\"tableViewService.showTable(layer)\" ng-show=\"layer.get('metadata').editable\"\n" +
+    "            <a type=\"button\" ng-click=\"showTable(layer)\" ng-show=\"layer.get('metadata').editable\"\n" +
     "               class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\"\n" +
     "               tooltip-placement=\"top\" tooltip=\"{{'show_table' | translate}}\">\n" +
+    "              <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!isLoadingTable(layer)\"></div>\n" +
     "              <i class=\"glyphicon glyphicon-list\"></i>\n" +
     "            </a>\n" +
     "            <a type=\"button\" ng-show=\"isGeogit(layer)\" ng-click=\"showHistory(layer)\"\n" +
     "               class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\"\n" +
     "               tooltip-placement=\"top\" tooltip=\"{{'show_history' | translate}}\">\n" +
+    "              <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!isLoadingHistory(layer)\"></div>\n" +
     "              <i class=\"glyphicon glyphicon-time\"></i>\n" +
     "            </a>\n" +
     "            <a type=\"button\" tooltip-append-to-body=\"true\" ng-click=\"getLayerInfo(layer)\"\n" +
@@ -73420,17 +73570,7 @@ angular.module("search/partial/search.tpl.html", []).run(["$templateCache", func
     "          <input type=\"text\" ng-change=\"clearResults()\" ng-model=\"searchQuery\" class=\"search-box form-control\" placeholder=\"{{'search' | translate}}\">\n" +
     "                <span class=\"input-group-btn\">\n" +
     "                  <a class=\"btn btn-default\" ng-click=\"performSearch()\" type=\"button\">\n" +
-    "                    <div id=\"search-loading\" ng-show=\"searchInProgress\">\n" +
-    "                      <div class=\"loading\">\n" +
-    "                        <!-- We make this div spin -->\n" +
-    "                        <div class=\"spinner\">\n" +
-    "                          <!-- Mask of the quarter of circle -->\n" +
-    "                          <div class=\"mask\">\n" +
-    "                            <!-- Inner masked circle -->\n" +
-    "                            <div class=\"maskedCircle\"></div>\n" +
-    "                          </div>\n" +
-    "                        </div>\n" +
-    "                      </div>\n" +
+    "                    <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!searchInProgress\">\n" +
     "                    </div>\n" +
     "                    <i ng-if=\"!displayingResults()\" class=\"glyphicon glyphicon-search\"></i>\n" +
     "                    <i ng-if=\"displayingResults()\" class=\"glyphicon glyphicon-remove\"></i>\n" +
@@ -73721,6 +73861,22 @@ angular.module("updatenotification/partial/updatenotification.tpl.html", []).run
     "  </div>\n" +
     "  <div ng-if=\"!noFeatures\" class=\"loom-diff-list\" add-list=\"adds\" modify-list=\"modifies\" delete-list=\"deletes\"\n" +
     "       merge-list=\"merges\" conflict-list=\"conflicts\" click-callback=\"notification.callback\"></div>\n" +
+    "</div>");
+}]);
+
+angular.module("utils/partial/loading.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("utils/partial/loading.tpl.html",
+    "<div class=\"loading-container\" ng-class=\"{'hidden':spinnerHidden}\">\n" +
+    "  <div class=\"loading\">\n" +
+    "    <!-- We make this div spin -->\n" +
+    "    <div class=\"spinner\">\n" +
+    "      <!-- Mask of the quarter of circle -->\n" +
+    "      <div class=\"mask\">\n" +
+    "        <!-- Inner masked circle -->\n" +
+    "        <div class=\"loading-spinner\"></div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
     "</div>");
 }]);
 
