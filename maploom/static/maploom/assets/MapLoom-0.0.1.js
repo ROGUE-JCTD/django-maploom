@@ -67993,6 +67993,7 @@ var GeoGitRevertFeatureOptions = function () {
                     metadata.isGeoGit = false;
                   }
                   metadata.projection = featureType.srs;
+                  ol.proj.getTransform(metadata.projection, 'EPSG:4326');
                   metadata.workspace = featureType.workspace;
                   metadata.nativeName = featureType.nativeName;
                   metadata.abstract = featureType.abstract;
