@@ -66477,6 +66477,8 @@ goog.require("ol.xml");
       'remove_btn': 'Remove',
       'conflict': 'CONFLICT',
       'synchronization': 'Synchronization',
+      'synchronization_failed': 'An unknown error occurred when synchronizing.  Please try again.',
+      'synchronization_success': 'The repositories have been synchronized.',
       'add_sync': 'Add Sync',
       'merge': 'Merge',
       'config': 'Config',
@@ -66710,6 +66712,8 @@ goog.require("ol.xml");
       'remove_btn': 'Eliminar',
       'conflict': 'CONFLICTO',
       'synchronization': 'Sincronizaci\xf3n',
+      'synchronization_failed': 'Se ha producido un error desconocido al sincronizar. Por favor, int\xe9ntelo de nuevo.',
+      'synchronization_success': 'Los repositorios se han sincronizado.',
       'add_sync': 'A\xf1adir Sinc',
       'merge': 'Fusionar',
       'config': 'Configuraci\xf3n',
@@ -73768,9 +73772,10 @@ var GeoGitRevertFeatureOptions = function () {
 (function () {
   var module = angular.module('loom_synclinks_directive', []);
   module.directive('loomSynclinks', [
+    '$translate',
     'synchronizationService',
-    'geogitService',
-    function (synchronizationService, geogitService) {
+    'dialogService',
+    function ($translate, synchronizationService, dialogService) {
       return {
         restrict: 'C',
         replace: true,
@@ -73799,10 +73804,17 @@ var GeoGitRevertFeatureOptions = function () {
           scope.singleSync = function (link) {
             if (!link.isSyncing && !scope.syncService.getIsSyncing()) {
               link.isSyncing = true;
+              link.singleSync = true;
               scope.syncService.sync(link).then(function (syncedLink) {
                 syncedLink.isSyncing = false;
+                link.singleSync = false;
+                dialogService.open($translate('synchronization'), $translate('synchronization_success'));
               }, function (error) {
                 link.isSyncing = false;
+                link.singleSync = false;
+                if (!(goog.isDefAndNotNull(error) && error === false)) {
+                  dialogService.error($translate('synchronization'), $translate('synchronization_failed'));
+                }
               });
             }
           };
@@ -73817,6 +73829,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
   this.name = _name;
   this.isSyncing = false;
   this.continuous = false;
+  this.singleSync = false;
   this.syncInterval = 30000;
   this.timeStamp = new Date().getTime();
   this.setContinuous = function (continuous) {
@@ -73996,19 +74009,21 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       return syncing;
     };
     this.toggleAutoSync = function (link) {
-      link.isSyncing = !link.isSyncing;
-      if (link.isSyncing) {
-        link.continuous = true;
-        numSyncingLinks++;
-        if (!syncTimeout) {
-          syncTimeout = timeout_(autoSync, syncInterval);
-        }
-      } else {
-        link.continuous = false;
-        numSyncingLinks--;
-        if (numSyncingLinks <= 0) {
-          clearTimeout(syncTimeout);
-          syncTimeout = null;
+      if (!link.singleSync) {
+        link.isSyncing = !link.isSyncing;
+        if (link.isSyncing) {
+          link.continuous = true;
+          numSyncingLinks++;
+          if (!syncTimeout) {
+            syncTimeout = timeout_(autoSync, syncInterval);
+          }
+        } else {
+          link.continuous = false;
+          numSyncingLinks--;
+          if (numSyncingLinks <= 0) {
+            clearTimeout(syncTimeout);
+            syncTimeout = null;
+          }
         }
       }
     };
@@ -76464,6 +76479,7 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
     "        <div class=\"col-md-4\">\n" +
     "          <div class=\"btn-group pull-left\" stop-event=\"click\">\n" +
     "            <button ng-click=\"singleSync(link)\" ng-disabled=\"link.continuous\" data-toggle=\"button\" class=\"btn btn-xs btn-default\">\n" +
+    "              <span class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!link.singleSync\"></span>\n" +
     "              <i class=\"glyphicon glyphicon-sort\"></i>\n" +
     "            </button>\n" +
     "            <div ng-click=\"syncService.toggleAutoSync(link)\" stop-event=\"click mousedown\"\n" +
