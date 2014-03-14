@@ -60858,7 +60858,7 @@ ol.interaction.Modify = function(options) {
   this.vertexFeature_ = null;
   this.vertexSegments_ = null;
   this.modifiable_ = false;
-  this.lastPixel_ = null;
+  this.lastPixel_ = [0, 0];
   this.rBush_ = null;
   this.pixelTolerance_ = goog.isDef(options.pixelTolerance) ? options.pixelTolerance : 20;
   this.dragSegments_ = null;
@@ -66554,7 +66554,7 @@ goog.require("ol.xml");
       'btn_ok': 'OK',
       'summary_of_changes': 'Summary of Changes',
       'too_many_changes': 'There were too many changes to display. If possible, narrow the range.',
-      'too_many_changes_refresh': 'There were too many changes to display.  Only the first ' + '{{value}} changes will be shown',
+      'too_many_changes_refresh': 'Over {{value}} changes were made to the layer.  Check the history for a detailed log.',
       'no_changes_in_time_range': 'No changes were made to the layer in the specified time frame.',
       'no_changes_in_commit': 'No changes were made to the layer in the specified commit.',
       'diff_unknown_error': 'An unknown error occurred while summarizing the differences.  Please try again.',
@@ -66787,7 +66787,7 @@ goog.require("ol.xml");
       'btn_ok': 'Aceptar',
       'summary_of_changes': 'Resumen de Cambios',
       'too_many_changes': 'Se encontraron demasiados cambios para ser mostrados. De ser posible, minimice el rango.',
-      'too_many_changes_refresh': 'Se realizaron demasiados cambios para ser mostrados. ' + 'Solamente los primeros cambios {{value}} seran mostrados.',
+      'too_many_changes_refresh': 'Durante fueron hechas {{value}} cambios a la capa. ' + 'Revise la historia de un registro detallado.',
       'no_changes_in_time_range': 'No se realizaron cambios a la capa dentro del marco de tiempo especificado.',
       'no_changes_in_commit': 'No se realizaron cambios a la capa.',
       'diff_unknown_error': 'Un error desconocido ocurrio al resumir las diferencias. Favor intentar nuevamente.',
@@ -69388,6 +69388,7 @@ var DiffColorMap = {
             mapService_.removeDraw();
             mapService_.addSelect();
             mapService_.addModify();
+            mapService_.selectFeature(event.feature);
           }
         });
         overlay_ = new ol.Overlay({
@@ -69619,6 +69620,7 @@ var DiffColorMap = {
         if (mapService_.editLayer.getSource().getFeatures().length < 1) {
           dialogService_.warn(translate_('adding_feature'), translate_('must_create_feature'), [translate_('btn_ok')], false);
         } else {
+          exclusiveModeService_.endExclusiveMode();
           mapService_.removeDraw();
           mapService_.removeSelect();
           mapService_.removeModify();
@@ -69670,6 +69672,7 @@ var DiffColorMap = {
           service_.startAttributeEditing(true);
         }
       }), exclusiveModeService_.button(translate_('cancel_feature'), function () {
+        exclusiveModeService_.endExclusiveMode();
         mapService_.removeDraw();
         mapService_.removeSelect();
         mapService_.removeModify();
@@ -69692,7 +69695,6 @@ var DiffColorMap = {
       rootScope_.$broadcast('startFeatureInsert');
     };
     this.endFeatureInsert = function (save, properties, coords) {
-      exclusiveModeService_.endExclusiveMode();
       if (save) {
         var propertyXmlPartial = '';
         var featureGML = '';
@@ -69782,6 +69784,7 @@ var DiffColorMap = {
       }), geometryType);
       mapService_.addSelect();
       mapService_.addModify();
+      mapService_.selectFeature();
       enabled_ = false;
     };
     this.endGeometryEditing = function (save) {
@@ -70079,6 +70082,7 @@ var GeoGitRepo = function (_url, _branch, _name) {
   this.name = _name;
   this.branches = [];
   this.remotes = [];
+  this.commitId = null;
   this.isEqual = function (repo) {
     return this.url === repo.url && this.branch === repo.branch && this.name === repo.name;
   };
@@ -70357,7 +70361,9 @@ var GeoGitRevertFeatureOptions = function () {
       newRepo.id = nextRepoId;
       nextRepoId = nextRepoId + 1;
       service_.repos.push(newRepo);
-      service_.loadRemotesAndBranches(newRepo, result);
+      service_.commitChanged(newRepo.id).then(function () {
+        service_.loadRemotesAndBranches(newRepo, result);
+      });
       return result.promise;
     };
     this.loadRemotesAndBranches = function (repo, result) {
@@ -70535,8 +70541,9 @@ var GeoGitRevertFeatureOptions = function () {
       });
       return deferredResponse.promise;
     };
-    this.getCommitId = function (layer) {
-      var url = layer.get('metadata').url + '/geogit/' + layer.get('metadata').workspace + ':' + layer.get('metadata').geogitStore + '/repo/manifest';
+    this.commitChanged = function (repoId) {
+      var repo = service_.getRepoById(repoId);
+      var url = repo.url + '/repo/manifest';
       var deferredResponse = q.defer();
       http.get(url).then(function (response) {
         var branchArray = response.data.split('\n');
@@ -70547,14 +70554,21 @@ var GeoGitRevertFeatureOptions = function () {
           if (branchData.length != 2) {
             continue;
           }
-          var branchNameIndex = branchData[0].indexOf('/' + layer.get('metadata').branchName);
+          var branchNameIndex = branchData[0].indexOf('/' + repo.branch);
           var branchNameSubString = branchData[0].slice(branchNameIndex + 1);
-          if (branchNameIndex !== -1 && branchNameSubString.length === layer.get('metadata').branchName.length) {
+          if (branchNameIndex !== -1 && branchNameSubString.length === repo.branch.length) {
             commitId = branchData[1];
             break;
           }
         }
-        deferredResponse.resolve(commitId);
+        var oldCommit = repo.commitId;
+        repo.commitId = commitId;
+        deferredResponse.resolve({
+          repoid: repo.id,
+          oldId: oldCommit,
+          newId: repo.commitId,
+          changed: oldCommit !== repo.commitId
+        });
       }, function (reject) {
         deferredResponse.reject(reject);
       });
@@ -70600,9 +70614,6 @@ var GeoGitRevertFeatureOptions = function () {
                   metadata.keywords = featureType.keywords;
                   metadata.dataStoreType = dataStore.type;
                   rootScope.$broadcast('layerInfoLoaded', layer);
-                  service_.getCommitId(layer).then(function (response) {
-                    metadata.repoCommitId = response;
-                  });
                 }, function (rejected) {
                   dialogService_.error(translate_('error'), translate_('unable_to_get_feature_type') + ' (' + rejected.status + ')');
                 });
@@ -71771,10 +71782,7 @@ var GeoGitRevertFeatureOptions = function () {
           },
           source: new ol.source.TileWMS({
             url: server.url,
-            params: {
-              'LAYERS': config.name,
-              'BUFFER': 15
-            }
+            params: { 'LAYERS': config.name }
           })
         });
         geogitService_.isGeoGit(layer);
@@ -72034,6 +72042,13 @@ var GeoGitRevertFeatureOptions = function () {
     this.clearEditLayer = function () {
       this.editLayer.getSource().clear();
       this.map.removeLayer(this.editLayer);
+    };
+    this.selectFeature = function (feature) {
+      if (goog.isDefAndNotNull(feature)) {
+        select.getFeatures().push(feature);
+      } else if (this.editLayer.getSource().getFeatures().length > 0) {
+        select.getFeatures().push(this.editLayer.getSource().getFeatures()[0]);
+      }
     };
     this.addSelect = function () {
       select = new ol.interaction.Select({ style: styleFunc });
@@ -72942,119 +72957,161 @@ var GeoGitRevertFeatureOptions = function () {
     this.autoRefresh = false;
     function refresh(mapService) {
       if (service_.autoRefresh) {
+        var refreshed = {};
+        var notRefreshed = {};
         var layers = mapService.getLayers();
-        forEachArrayish(layers, function (layer) {
-          if (goog.isDefAndNotNull(layer.get('metadata').isGeoGit)) {
-            if (layer.get('metadata').isGeoGit === true) {
-              geogitService_.getCommitId(layer).then(function (idResponse) {
-                if (idResponse === layer.get('metadata').repoCommitId) {
-                  return;
+        var refreshTimeout = 60000;
+        if (!goog.isDefAndNotNull(layers)) {
+          setTimeout(function () {
+            refresh(mapService);
+          }, refreshTimeout);
+          return;
+        }
+        if (!goog.isArray(layers)) {
+          layers = [layers];
+        }
+        if (layers.length < 1) {
+          setTimeout(function () {
+            refresh(mapService);
+          }, refreshTimeout);
+          return;
+        }
+        var doDiff = function (repoChange, metadata) {
+          var options = new GeoGitDiffOptions();
+          options.oldRefSpec = repoChange.oldId;
+          options.newRefSpec = repoChange.newId;
+          options.showGeometryChanges = true;
+          options.show = 50;
+          options.pathFilter = metadata.nativeName;
+          geogitService_.command(repoChange.repoid, 'diff', options).then(function (diffResponse) {
+            if (!goog.isDefAndNotNull(diffResponse.Feature)) {
+              return;
+            }
+            var notificationText = '';
+            var featureList = null;
+            if (goog.isDef(diffResponse.nextPage)) {
+              notificationText = metadata.title;
+            } else {
+              var added = 0, modified = 0, removed = 0;
+              featureList = [];
+              forEachArrayish(diffResponse.Feature, function (feature) {
+                featureList.push(feature);
+                switch (feature.change) {
+                case 'ADDED':
+                  added++;
+                  break;
+                case 'MODIFIED':
+                  modified++;
+                  break;
+                case 'REMOVED':
+                  removed++;
+                  break;
                 }
-                var options = new GeoGitDiffOptions();
-                options.oldRefSpec = layer.get('metadata').repoCommitId;
-                options.newRefSpec = idResponse;
-                options.showGeometryChanges = true;
-                options.show = 1000;
-                geogitService_.command(layer.get('metadata').repoId, 'diff', options).then(function (diffResponse) {
-                  var oldCommitId = layer.get('metadata').repoCommitId;
-                  layer.get('metadata').repoCommitId = idResponse;
-                  if (!goog.isDefAndNotNull(diffResponse.Feature)) {
-                    return;
+              });
+              if (featureList.length !== 0) {
+                notificationText = '';
+                if (added > 0) {
+                  notificationText += added + ' ' + translate_('added');
+                  if (modified > 0 || removed > 0) {
+                    notificationText += ', ';
                   }
-                  if (goog.isDef(diffResponse.nextPage)) {
-                    dialogService_.warn(translate_('warning'), translate_('too_many_changes_refresh', { value: 1000 }));
+                }
+                if (modified > 0) {
+                  notificationText += modified + ' ' + translate_('modified');
+                  if (removed > 0) {
+                    notificationText += ', ';
                   }
-                  var added = 0, modified = 0, removed = 0;
-                  var featureList = [];
-                  forEachArrayish(diffResponse.Feature, function (feature) {
-                    if (feature.id.split('/')[0] === layer.get('metadata').nativeName) {
-                      featureList.push(feature);
-                      switch (feature.change) {
-                      case 'ADDED':
-                        added++;
+                }
+                if (removed > 0) {
+                  notificationText += removed + ' ' + translate_('removed');
+                }
+                notificationText += ' ' + translate_('in_lower_case') + ' ' + metadata.title;
+              } else {
+                featureList = null;
+              }
+            }
+            mapService.dumpTileCache(metadata.uniqueID);
+            historyService_.refreshHistory(metadata.uniqueID);
+            notificationService_.addNotification({
+              text: notificationText,
+              read: false,
+              type: 'loom-update-notification',
+              emptyMessage: translate_('too_many_changes_refresh', { value: 50 }),
+              repos: [{
+                  name: metadata.geogitStore,
+                  features: featureList
+                }],
+              callback: function (feature) {
+                var logOptions = new GeoGitLogOptions();
+                logOptions.firstParentOnly = true;
+                logOptions.path = feature.original.id;
+                logOptions.show = 1;
+                logOptions.until = metadata.branchName;
+                logOptions.since = repoChange.newId;
+                var doFeatureDiff = function (commitId) {
+                  featureDiffService_.undoable = true;
+                  featureDiffService_.leftName = 'old';
+                  featureDiffService_.rightName = 'new';
+                  featureDiffService_.setFeature(feature.original, repoChange.oldId, commitId, repoChange.oldId, null, repoChange.repoid);
+                  $('#feature-diff-dialog').modal('show');
+                };
+                geogitService_.command(metadata.repoId, 'log', logOptions).then(function (response) {
+                  if (goog.isDefAndNotNull(response.commit)) {
+                    dialogService_.warn(translate_('warning'), translate_('newer_feature_version'), [
+                      translate_('yes_btn'),
+                      translate_('no_btn')
+                    ], false).then(function (button) {
+                      switch (button) {
+                      case 0:
+                        doFeatureDiff(response.commit.id);
                         break;
-                      case 'MODIFIED':
-                        modified++;
+                      case 1:
+                        doFeatureDiff(repoChange.newId);
                         break;
-                      case 'REMOVED':
-                        removed++;
-                        break;
-                      }
-                    }
-                  });
-                  if (featureList.length !== 0) {
-                    var notificationText = '';
-                    if (added > 0) {
-                      notificationText += added + ' ' + translate_('added');
-                      if (modified > 0 || removed > 0) {
-                        notificationText += ', ';
-                      }
-                    }
-                    if (modified > 0) {
-                      notificationText += modified + ' ' + translate_('modified');
-                      if (removed > 0) {
-                        notificationText += ', ';
-                      }
-                    }
-                    if (removed > 0) {
-                      notificationText += removed + ' ' + translate_('removed');
-                    }
-                    notificationText += ' ' + translate_('in_lower_case') + ' ' + layer.get('metadata').title;
-                    mapService.dumpTileCache(layer.get('metadata').uniqueID);
-                    historyService_.refreshHistory(layer.get('metadata').uniqueID);
-                    notificationService_.addNotification({
-                      text: notificationText,
-                      read: false,
-                      type: 'loom-update-notification',
-                      repos: [{
-                          name: layer.get('metadata').geogitStore,
-                          features: featureList
-                        }],
-                      callback: function (feature) {
-                        var logOptions = new GeoGitLogOptions();
-                        logOptions.firstParentOnly = true;
-                        logOptions.path = feature.original.id;
-                        logOptions.show = 1;
-                        logOptions.until = layer.get('metadata').branchName;
-                        logOptions.since = idResponse;
-                        var doFeatureDiff = function (commitId) {
-                          featureDiffService_.undoable = true;
-                          featureDiffService_.leftName = 'old';
-                          featureDiffService_.rightName = 'new';
-                          featureDiffService_.setFeature(feature.original, oldCommitId, commitId, oldCommitId, null, layer.get('metadata').repoId);
-                          $('#feature-diff-dialog').modal('show');
-                        };
-                        geogitService_.command(layer.get('metadata').repoId, 'log', logOptions).then(function (response) {
-                          if (goog.isDefAndNotNull(response.commit)) {
-                            dialogService_.warn(translate_('warning'), translate_('newer_feature_version'), [
-                              translate_('yes_btn'),
-                              translate_('no_btn')
-                            ], false).then(function (button) {
-                              switch (button) {
-                              case 0:
-                                doFeatureDiff(response.commit.id);
-                                break;
-                              case 1:
-                                doFeatureDiff(idResponse);
-                                break;
-                              }
-                            });
-                          } else {
-                            doFeatureDiff(idResponse);
-                          }
-                        }, function (reject) {
-                        });
                       }
                     });
+                  } else {
+                    doFeatureDiff(repoChange.newId);
                   }
+                }, function (reject) {
                 });
+              }
+            });
+          });
+        };
+        var processLayer = function (layer, nextIndex) {
+          var nextLayer = function (idx) {
+            if (layers.length > idx) {
+              processLayer(layers[idx], idx + 1);
+            } else {
+              setTimeout(function () {
+                refresh(mapService);
+              }, refreshTimeout);
+            }
+          };
+          var metadata = layer.get('metadata');
+          if (goog.isDefAndNotNull(metadata.isGeoGit) && metadata.isGeoGit === true) {
+            if (goog.isDefAndNotNull(refreshed[metadata.repoId])) {
+              doDiff(refreshed[metadata.repoId], metadata);
+              nextLayer(nextIndex);
+            } else if (!goog.isDefAndNotNull(notRefreshed[metadata.repoId])) {
+              geogitService_.commitChanged(metadata.repoId).then(function (response) {
+                if (response.changed === true) {
+                  refreshed[metadata.repoId] = response;
+                  doDiff(response, metadata);
+                } else {
+                  notRefreshed[metadata.repoId] = response;
+                }
+                nextLayer(nextIndex);
+              }, function () {
+                nextLayer(nextIndex);
               });
+            } else {
+              nextLayer(nextIndex);
             }
           }
-        });
-        setTimeout(function () {
-          refresh(mapService);
-        }, 60000);
+        };
+        processLayer(layers[0], 1);
       }
     }
     this.refreshLayers = function () {
