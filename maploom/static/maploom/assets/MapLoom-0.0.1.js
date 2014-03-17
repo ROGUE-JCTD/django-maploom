@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-14
+ * MapLoom - v0.0.1 - 2014-03-17
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -68923,8 +68923,8 @@ var DiffColorMap = {
                     prop.enum = attributeTypes[prop[0]].simpleType.restriction.enumeration;
                   } else if (prop.type === 'xsd:boolean') {
                     prop.enum = [
-                      { _value: 'True' },
-                      { _value: 'False' }
+                      { _value: 'true' },
+                      { _value: 'false' }
                     ];
                   }
                   prop.valid = true;
