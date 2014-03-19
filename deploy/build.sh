@@ -7,8 +7,11 @@ pwd
 
 git checkout master
 
+# path to the maploom build that will be used
+MAPLOOM_PATH=../../maploom/lastSuccessful/archive
+
 # get the new index.html file and use it to make the partial
-sed -n '/body>/,/body>/p' ../../maploom/lastSuccessful/archive/bin/index.html > index_body.html
+sed -n '/body>/,/body>/p' $MAPLOOM_PATH/bin/index.html > index_body.html
 sed '/body>/d' ./index_body.html > index_body_no_tag.html
 echo '{% load staticfiles i18n %}{% verbatim %}' > _maploom_map.html
 cat index_body_no_tag.html >> _maploom_map.html
@@ -22,8 +25,8 @@ rm -r maploom/static/maploom/fonts
 rm maploom/templates/maploom/_maploom_map.html
 
 #copy the new fonts assets
-cp -r ../../maploom/lastSuccessful/archive/bin/assets maploom/static/maploom/
-cp -r ../../maploom/lastSuccessful/archive/bin/fonts maploom/static/maploom/
+cp -r $MAPLOOM_PATH/bin/assets maploom/static/maploom/
+cp -r $MAPLOOM_PATH/bin/fonts maploom/static/maploom/
 mv _maploom_map.html maploom/templates/maploom
 
 # get the commit id of the last commit of the maploom repo and the current date-time to build 
