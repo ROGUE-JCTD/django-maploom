@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-18
+ * MapLoom - v0.0.1 - 2014-03-19
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -66959,10 +66959,15 @@ goog.require("ol.xml");
             for (var index = 0; index < length; index += 1) {
               var config = layersConfig[index];
               if (config.add) {
+                var split = config.Name.split(':');
                 var slimConfig = {
                     source: scope.currentServerIndex,
                     title: config.Title,
                     name: config.Name,
+                    abstract: config.Abstract,
+                    keywords: config.KeywordList,
+                    workspace: split.length > 1 ? split[0] : null,
+                    bbox: config.BoundingBox[0],
                     sourceParams: config.sourceParams
                   };
                 mapService.addLayer(slimConfig);
@@ -67031,7 +67036,28 @@ goog.require("ol.xml");
           scope.addServer = function (info) {
             var id = serverService.addServer(info);
             $rootScope.$broadcast('server-added', id);
+            scope.type = 'WMS';
+            scope.name = null;
+            scope.url = null;
           };
+          scope.getPattern = function () {
+            if (scope.type === 'WMS') {
+              return new RegExp('/wms');
+            } else {
+              return new RegExp('');
+            }
+          };
+          scope.getPlaceholder = function () {
+            if (scope.type === 'WMS') {
+              return 'http://url/wms';
+            } else if (scope.type === 'TMS') {
+              return 'http://url/1.0.0/';
+            }
+          };
+          scope.$watch('type', function () {
+            scope.name = null;
+            scope.url = null;
+          });
         }
       };
     }
@@ -67235,6 +67261,11 @@ var SERVER_SERVICE_USE_PROXY = true;
           populatingLayersConfig: false
         };
       goog.object.extend(server, serverInfo, {});
+      if (server.type === 'TMS') {
+        if (goog.isDefAndNotNull(server.url) && server.url.lastIndexOf('/') !== server.url.length - 1) {
+          server.url += '/';
+        }
+      }
       console.log('---- adding server: ', server);
       servers.push(server);
       return server.id;
@@ -67264,7 +67295,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       var layersConfig = service_.getLayersConfig(serverIndex);
       var layerConfig = null;
       for (var index = 0; index < layersConfig.length; index += 1) {
-        if (layersConfig[index].name === layerName) {
+        if (layersConfig[index].Name === layerName) {
           layerConfig = layersConfig[index];
           break;
         }
@@ -69407,6 +69438,11 @@ var DiffColorMap = {
             mapService_.selectFeature(event.feature);
           }
         });
+        rootScope_.$on('layerRemoved', function (evt, layer) {
+          if (goog.isDefAndNotNull(service_.getSelectedLayer()) && service_.getSelectedLayer().get('metadata').uniqueID === layer.get('metadata').uniqueID) {
+            service_.hide();
+          }
+        });
         overlay_ = new ol.Overlay({
           insertFirst: false,
           element: document.getElementById('info-box')
@@ -69930,6 +69966,9 @@ var DiffColorMap = {
           }
         };
         goog.array.forEach(layers, function (layer, index) {
+          if (!layer.get('metadata').editable) {
+            return;
+          }
           var source = layer.getSource();
           var url = source.getGetFeatureInfoUrl(evt.coordinate, view.getResolution(), view.getProjection(), {
               'INFO_FORMAT': 'application/json',
@@ -70488,6 +70527,8 @@ var GeoGitRevertFeatureOptions = function () {
         var strings = response.data.split('</LayerDescription>');
         if (strings.length <= 2) {
           deferredResponse.resolve(response.data);
+        } else {
+          deferredResponse.reject('Is a Layergroup.');
         }
       }, function (reject) {
         deferredResponse.reject(reject);
@@ -70502,6 +70543,9 @@ var GeoGitRevertFeatureOptions = function () {
       http.get(url).then(function (response) {
         var resourceUrl = response.data.layer.resource.href;
         var datastoreStartIndex = resourceUrl.indexOf(workspaceRoute.workspace + '/datastores');
+        if (datastoreStartIndex === -1) {
+          deferredResponse.reject('No datastore.');
+        }
         datastoreStartIndex = datastoreStartIndex + workspaceRoute.workspace.length + 12;
         var datastoreEnd = resourceUrl.substr(datastoreStartIndex);
         var datastoreEndIndex = datastoreEnd.indexOf('/');
@@ -70513,9 +70557,7 @@ var GeoGitRevertFeatureOptions = function () {
       return deferredResponse.promise;
     };
     this.getDataStore = function (layer, name) {
-      var featureType = layer.get('metadata').name;
-      var workspaceRoute = service_.parseWorkspaceRoute(featureType);
-      var url = layer.get('metadata').url + '/rest/workspaces/' + workspaceRoute.workspace + '/datastores/' + name + '.json';
+      var url = layer.get('metadata').url + '/rest/workspaces/' + layer.get('metadata').workspace + '/datastores/' + name + '.json';
       var deferredResponse = q.defer();
       http.get(url).then(function (response) {
         if (goog.isDefAndNotNull(response.data) && goog.isDefAndNotNull(response.data.dataStore) && goog.isDefAndNotNull(response.data.dataStore.type)) {
@@ -70541,13 +70583,16 @@ var GeoGitRevertFeatureOptions = function () {
           var x2js = new X2JS();
           var json = x2js.xml_str2json(response.data);
           var schema = [];
-          forEachArrayish(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
-            schema[obj._name] = obj;
-            if (goog.isDefAndNotNull(obj.simpleType)) {
-              schema[obj._name]._type = 'simpleType';
-            }
-          });
-          layer.get('metadata').schema = schema;
+          if (goog.isDefAndNotNull(json.schema)) {
+            forEachArrayish(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
+              schema[obj._name] = obj;
+              if (goog.isDefAndNotNull(obj.simpleType)) {
+                schema[obj._name]._type = 'simpleType';
+              }
+            });
+            layer.get('metadata').schema = schema;
+            layer.get('metadata').editable = true;
+          }
           deferredResponse.resolve(featureType);
         }, function (reject) {
           deferredResponse.reject(reject);
@@ -70597,38 +70642,34 @@ var GeoGitRevertFeatureOptions = function () {
           service_.isNotLayerGroup(layer).then(function () {
             service_.getDataStoreName(layer).then(function (dataStoreName) {
               service_.getDataStore(layer, dataStoreName).then(function (dataStore) {
-                service_.getFeatureType(layer, dataStore).then(function (featureType) {
-                  if (dataStore.type === 'GeoGIT') {
-                    var repoName = dataStore.connectionParameters.entry[0].$;
-                    repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
-                    metadata.branchName = dataStore.connectionParameters.entry[1].$;
-                    if (metadata.branchName === 'false') {
-                      metadata.branchName = 'master';
-                    }
-                    var promise = service_.addRepo(new GeoGitRepo(metadata.url + '/geogit/' + featureType.workspace + ':' + dataStore.name, dataStore.connectionParameters.entry[1].$, repoName));
-                    promise.then(function (repo) {
-                      if (goog.isDef(repo.id)) {
-                        rootScope.$broadcast('repoAdded', repo);
-                        metadata.repoId = repo.id;
-                      } else {
-                        metadata.repoId = repo;
-                      }
-                    }, function (reject) {
-                      dialogService_.error(translate_('error'), translate_('unable_to_add_remote') + reject);
-                    });
-                    metadata.isGeoGit = true;
-                    metadata.geogitStore = dataStore.name;
-                    metadata.repoName = repoName;
-                  } else {
-                    metadata.isGeoGit = false;
+                if (dataStore.type === 'GeoGIT') {
+                  var repoName = dataStore.connectionParameters.entry[0].$;
+                  repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
+                  metadata.branchName = dataStore.connectionParameters.entry[1].$;
+                  if (metadata.branchName === 'false') {
+                    metadata.branchName = 'master';
                   }
+                  var promise = service_.addRepo(new GeoGitRepo(metadata.url + '/geogit/' + metadata.workspace + ':' + dataStore.name, dataStore.connectionParameters.entry[1].$, repoName));
+                  promise.then(function (repo) {
+                    if (goog.isDef(repo.id)) {
+                      rootScope.$broadcast('repoAdded', repo);
+                      metadata.repoId = repo.id;
+                    } else {
+                      metadata.repoId = repo;
+                    }
+                  }, function (reject) {
+                    dialogService_.error(translate_('error'), translate_('unable_to_add_remote') + reject);
+                  });
+                  metadata.isGeoGit = true;
+                  metadata.geogitStore = dataStore.name;
+                  metadata.repoName = repoName;
+                } else {
+                  metadata.isGeoGit = false;
+                }
+                service_.getFeatureType(layer, dataStore).then(function (featureType) {
                   metadata.projection = featureType.srs;
                   ol.proj.getTransform(metadata.projection, 'EPSG:4326');
-                  metadata.workspace = featureType.workspace;
                   metadata.nativeName = featureType.nativeName;
-                  metadata.abstract = featureType.abstract;
-                  metadata.keywords = featureType.keywords;
-                  metadata.dataStoreType = dataStore.type;
                   rootScope.$broadcast('layerInfoLoaded', layer);
                 }, function (rejected) {
                   dialogService_.error(translate_('error'), translate_('unable_to_get_feature_type') + ' (' + rejected.status + ')');
@@ -70637,10 +70678,14 @@ var GeoGitRevertFeatureOptions = function () {
                 dialogService_.error(translate_('error'), translate_('unable_to_get_datastore') + ' (' + rejected.status + ')');
               });
             }, function (rejected) {
-              dialogService_.error(translate_('error'), translate_('unable_to_get_datastore_name') + ' (' + rejected.status + ')');
+              if (goog.isDefAndNotNull(rejected.status)) {
+                dialogService_.error(translate_('error'), translate_('unable_to_get_datastore_name') + ' (' + rejected.status + ')');
+              }
             });
           }, function (rejected) {
-            dialogService_.error(translate_('error'), translate_('layer_was_layer_group') + ' (' + rejected.status + ')');
+            if (goog.isDefAndNotNull(rejected.status)) {
+              dialogService_.error(translate_('error'), translate_('layer_was_layer_group') + ' (' + rejected.status + ')');
+            }
           });
         }
       }
@@ -71183,7 +71228,7 @@ var GeoGitRevertFeatureOptions = function () {
               scope.datastoreType = metadata.dataStoreType;
             }
             if (goog.isDefAndNotNull(metadata.keywords)) {
-              scope.keywords = metadata.keywords.string.toString();
+              scope.keywords = metadata.keywords.toString();
             }
             if (metadata.isGeoGit) {
               scope.branchName = metadata.branchName;
@@ -71191,6 +71236,7 @@ var GeoGitRevertFeatureOptions = function () {
             }
             var server = serverService.getServerById(scope.layer.get('metadata').serverId);
             scope.serverName = server.name;
+            scope.serverURL = server.url;
             element.closest('.modal').modal('toggle');
           });
         }
@@ -71656,7 +71702,7 @@ var GeoGitRevertFeatureOptions = function () {
       if (!goog.isDefAndNotNull(layer)) {
         return;
       }
-      if (goog.isDefAndNotNull(layer.get('metadata').editable) && layer.get('metadata').editable) {
+      if (!service_.layerIsImagery(layer)) {
         var layerTypeName = layer.get('metadata').name;
         var url = layer.get('metadata').url + '/wps?version=' + settings.WPSVersion;
         var wpsPostData = '' + '<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="' + settings.WPSVersion + '" service="WPS" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'xmlns="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" ' + 'xmlns:ogc="http://www.opengis.net/ogc" ' + 'xmlns:wcs="http://www.opengis.net/wcs/1.1.1" ' + 'xmlns:xlink="http://www.w3.org/1999/xlink" ' + 'xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 ' + 'http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">' + '<ows:Identifier>gs:Bounds</ows:Identifier>' + '<wps:DataInputs>' + '<wps:Input>' + '<ows:Identifier>features</ows:Identifier>' + '<wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">' + '<wps:Body>' + '<wfs:GetFeature service="WFS" version="' + settings.WFSVersion + '" outputFormat="GML2" ' + 'xmlns:geonode="http://www.geonode.org/">' + '<wfs:Query typeName="' + layerTypeName + '"/>' + '</wfs:GetFeature>' + '</wps:Body>' + '</wps:Reference>' + '</wps:Input>' + '</wps:DataInputs>' + '<wps:ResponseForm>' + '<wps:RawDataOutput>' + '<ows:Identifier>bounds</ows:Identifier>' + '</wps:RawDataOutput>' + '</wps:ResponseForm>' + '</wps:Execute>';
@@ -71683,24 +71729,18 @@ var GeoGitRevertFeatureOptions = function () {
       }
     };
     this.zoomToLayerExtent = function (layer) {
-      var extent900913 = null;
-      if (service_.layerIsImagery(layer)) {
-        extent900913 = layer.getSource().getExtent();
-      } else {
-        var metadata = layer.get('metadata');
-        if (goog.isDefAndNotNull(metadata) && goog.isDefAndNotNull(metadata.serverId) && goog.isDefAndNotNull(metadata.name) && goog.isDefAndNotNull(metadata.projection)) {
-          var serverIndex = serverService_.getServerIndex(metadata.serverId);
-          var layerConfig = serverService_.getLayerConfig(serverIndex, metadata.name);
-          if (goog.isDefAndNotNull(layerConfig)) {
-            var bbox = layerConfig.bbox['EPSG:4326'].bbox;
-            var bounds = [
-                bbox[1],
-                bbox[0],
-                bbox[3],
-                bbox[2]
-              ];
-            var transform = ol.proj.getTransformFromProjections(ol.proj.get(metadata.projection), ol.proj.get('EPSG:900913'));
-            extent900913 = ol.extent.transform(bounds, transform);
+      var metadata = layer.get('metadata');
+      var extent900913 = layer.getSource().getExtent();
+      if (!goog.isDefAndNotNull(extent900913) && goog.isDefAndNotNull(metadata) && goog.isDefAndNotNull(metadata.bbox.crs)) {
+        extent900913 = metadata.bbox.extent;
+        var transform = ol.proj.getTransformFromProjections(ol.proj.get(metadata.bbox.crs), service_.map.getView().getView2D().getProjection());
+        extent900913 = ol.extent.transform(extent900913, transform);
+      }
+      if (goog.isDefAndNotNull(extent900913)) {
+        for (var index = 0; index < extent900913.length; index++) {
+          if (isNaN(parseFloat(extent900913[index])) || !isFinite(extent900913[index])) {
+            extent900913 = null;
+            break;
           }
         }
       }
@@ -71734,14 +71774,12 @@ var GeoGitRevertFeatureOptions = function () {
       return layers;
     };
     this.layerIsImagery = function (layer) {
-      if (layer.source_ instanceof ol.source.OSM || layer.source_ instanceof ol.source.BingMaps || layer.source_ instanceof ol.source.MapQuest) {
-        return true;
-      }
-      return false;
+      return !goog.isDefAndNotNull(layer.get('metadata').editable) || !layer.get('metadata').editable;
     };
     this.addLayer = function (config, doNotAddToMap) {
       var server = serverService_.getServerByIndex(config.source);
       var layer = null;
+      var url = null;
       if (server.ptype === 'gxp_osmsource') {
         layer = new ol.layer.Tile({
           metadata: {
@@ -71781,27 +71819,63 @@ var GeoGitRevertFeatureOptions = function () {
           console.log('====[ Error: could not create base layer.');
         }
       } else if (server.ptype === 'gxp_olsource' || server.ptype === 'gxp_wmscsource') {
-        var url = null;
-        if (goog.isDefAndNotNull(server.url)) {
-          var urlIndex = server.url.lastIndexOf('/');
-          if (urlIndex !== -1) {
-            url = server.url.slice(0, urlIndex);
+        if (server.type === 'TMS') {
+          url = server.url;
+          if (goog.isDefAndNotNull(server.url)) {
+            if (server.url.lastIndexOf('/') !== server.url.length - 1) {
+              url += '/';
+            }
           }
+          layer = new ol.layer.Tile({
+            metadata: {
+              serverId: server.id,
+              url: goog.isDefAndNotNull(url) ? url : undefined,
+              title: config.title,
+              name: config.name,
+              workspace: config.workspace,
+              abstract: config.abstract,
+              keywords: config.keywords,
+              editable: false,
+              bbox: config.bbox
+            },
+            source: new ol.source.XYZ({
+              tileUrlFunction: function (coordinate) {
+                if (coordinate == null) {
+                  return '';
+                }
+                var z = coordinate.z;
+                var x = coordinate.x;
+                var y = (1 << z) - coordinate.y - 1;
+                return '/proxy/?url=' + url + config.name + '/' + z + '/' + x + '/' + y + '.png';
+              }
+            })
+          });
+        } else {
+          if (goog.isDefAndNotNull(server.url)) {
+            var urlIndex = server.url.lastIndexOf('/');
+            if (urlIndex !== -1) {
+              url = server.url.slice(0, urlIndex);
+            }
+          }
+          layer = new ol.layer.Tile({
+            metadata: {
+              serverId: server.id,
+              url: goog.isDefAndNotNull(url) ? url : undefined,
+              title: config.title,
+              name: config.name,
+              workspace: config.workspace,
+              abstract: config.abstract,
+              keywords: config.keywords,
+              editable: false,
+              bbox: config.bbox
+            },
+            source: new ol.source.TileWMS({
+              url: server.url,
+              params: { 'LAYERS': config.name }
+            })
+          });
+          geogitService_.isGeoGit(layer);
         }
-        layer = new ol.layer.Tile({
-          metadata: {
-            serverId: server.id,
-            url: goog.isDefAndNotNull(url) ? url : undefined,
-            title: config.title,
-            name: config.name,
-            editable: true
-          },
-          source: new ol.source.TileWMS({
-            url: server.url,
-            params: { 'LAYERS': config.name }
-          })
-        });
-        geogitService_.isGeoGit(layer);
       }
       if (goog.isDefAndNotNull(layer)) {
         config.source = parseInt(config.source, 10);
@@ -75483,7 +75557,7 @@ angular.module("addlayers/partials/addserver.tpl.html", []).run(["$templateCache
     "        <label class=\"control-label\"><span translate=\"server_url\"></span>: </label>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-10\">\n" +
-    "      <input name=\"serverurl\" ng-model=\"url\" type=\"url\" class=\"form-control\" placeholder=\"http://url/wms\" required ng-pattern=\"//wms$/\">\n" +
+    "      <input name=\"serverurl\" ng-model=\"url\" type=\"url\" class=\"form-control\" placeholder=\"{{getPlaceholder()}}\" required ng-pattern=\"getPattern()\">\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </form>\n" +
@@ -75894,10 +75968,10 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "                </button>\n" +
     "        <!--<button type=\"button\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'show_pics' | translate}}\"\n" +
     "                class=\"btn btn-sm btn-default glyphicon glyphicon-camera\"></button>-->\n" +
-    "        <button type=\"button\" ng-click=\"featureManagerService.startAttributeEditing()\"\n" +
+    "        <button type=\"button\" ng-show=\"featureManagerService.getSelectedLayer().get('metadata').editable\" ng-click=\"featureManagerService.startAttributeEditing()\"\n" +
     "                tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'edit_attributes' | translate}}\"\n" +
     "                class=\"btn btn-sm btn-default glyphicon glyphicon-list-alt\"></button>\n" +
-    "        <button type=\"button\" ng-click=\"featureManagerService.startGeometryEditing()\"\n" +
+    "        <button type=\"button\" ng-show=\"featureManagerService.getSelectedLayer().get('metadata').editable\" ng-click=\"featureManagerService.startGeometryEditing()\"\n" +
     "                tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'edit_geometry' | translate}}\"\n" +
     "                class=\"btn btn-sm btn-default glyphicon glyphicon-edit\"></button>\n" +
     "        <button type=\"button\" ng-click=\"deleteFeature()\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"{{'delete_feature' | translate}}\"\n" +
@@ -76004,6 +76078,10 @@ angular.module("layers/partials/layerinfo.tpl.html", []).run(["$templateCache", 
     "  <div ng-show=\"serverName\">\n" +
     "    <div><h4 translate=\"server\"></h4></div>\n" +
     "    <div class=\"well\">{{serverName}}</div>\n" +
+    "  </div>\n" +
+    "  <div ng-show=\"serverURL\">\n" +
+    "    <div><h4 translate=\"server_url\"></h4></div>\n" +
+    "    <div class=\"well ellipsis\">{{serverURL}}</div>\n" +
     "  </div>\n" +
     "  <div ng-show=\"datastoreType\">\n" +
     "    <div><h4 translate=\"datastoretype\"></h4></div>\n" +
