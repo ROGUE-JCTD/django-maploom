@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-19
+ * MapLoom - v0.0.1 - 2014-03-20
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -68443,6 +68443,12 @@ var DiffColorMap = {
     this.schema = null;
     this.undoable = false;
     this.layer = null;
+    this.combinedExtent = [
+      0,
+      0,
+      0,
+      0
+    ];
     this.$get = [
       '$rootScope',
       'mapService',
@@ -68456,6 +68462,7 @@ var DiffColorMap = {
         geogitService_ = geogitService;
         dialogService_ = dialogService;
         translate_ = $translate;
+        ol.extent.empty(this.combinedExtent);
         var createMap = function (panel) {
           panel.map = new ol.Map({
             renderer: ol.RendererHint.CANVAS,
@@ -68604,6 +68611,7 @@ var DiffColorMap = {
       service_.left.clearFeature();
       service_.right.clearFeature();
       service_.merged.clearFeature();
+      ol.extent.empty(service_.combinedExtent);
       ours_ = ours;
       theirs_ = theirs;
       ancestor_ = ancestor;
@@ -68638,15 +68646,6 @@ var DiffColorMap = {
         var transform = ol.proj.getTransform(crs_, mapService_.map.getView().getView2D().getProjection());
         geom.transform(transform);
       }
-      var newBounds = geom.getExtent();
-      var x = newBounds[2] - newBounds[0];
-      var y = newBounds[3] - newBounds[1];
-      x *= 0.5;
-      y *= 0.5;
-      newBounds[0] -= x;
-      newBounds[2] += x;
-      newBounds[1] -= y;
-      newBounds[3] += y;
       diffsInError_ = 0;
       switch (feature.change) {
       case 'ADDED':
@@ -68679,7 +68678,7 @@ var DiffColorMap = {
         service_.performFeatureDiff(feature, merged_, ancestor_, service_.merged);
         break;
       }
-      mapService_.zoomToExtent(newBounds);
+      mapService_.zoomToExtent(geom.getExtent(), null, null, 0.5);
       service_.title = feature.id;
       rootScope_.$broadcast('feature-diff-feature-set');
     };
@@ -68720,16 +68719,7 @@ var DiffColorMap = {
         olFeature.setGeometry(geom);
         panel.featureLayer.getSource().addFeature(olFeature);
         panel.olFeature = olFeature;
-        var newBounds = geom.getExtent();
-        var x = newBounds[2] - newBounds[0];
-        var y = newBounds[3] - newBounds[1];
-        x *= 0.1;
-        y *= 0.1;
-        newBounds[0] -= x;
-        newBounds[2] += x;
-        newBounds[1] -= y;
-        newBounds[3] += y;
-        panel.bounds = newBounds;
+        ol.extent.extend(service_.combinedExtent, geom.getExtent());
         diffsNeeded_ -= 1;
         assignAttributeTypes(panel.attributes, false);
         if (diffsNeeded_ === 0) {
@@ -68832,7 +68822,7 @@ var DiffColorMap = {
             }
             $timeout(function () {
               scope.panel.map.setTarget(target);
-              mapService.zoomToExtent(scope.panel.bounds, false, scope.panel.map);
+              mapService.zoomToExtent(featureDiffService.combinedExtent, false, scope.panel.map, 0.1);
               $timeout(function () {
                 $(loadingtarget).fadeOut();
               }, 500);
@@ -71679,7 +71669,7 @@ var GeoGitRevertFeatureOptions = function () {
         }
       });
     };
-    this.zoomToExtent = function (extent, animate, map) {
+    this.zoomToExtent = function (extent, animate, map, scale) {
       console.log('---- MapService.zoomToExtent. extent: ', extent);
       if (!goog.isDefAndNotNull(animate)) {
         animate = true;
@@ -71687,9 +71677,27 @@ var GeoGitRevertFeatureOptions = function () {
       if (!goog.isDefAndNotNull(map)) {
         map = this.map;
       }
+      if (!goog.isDefAndNotNull(scale) || scale < 0) {
+        scale = 0;
+      }
       var view = map.getView().getView2D();
       if (!goog.isDefAndNotNull(extent)) {
         extent = view.getProjection().getExtent();
+      } else {
+        if (scale > 0) {
+          var width = extent[2] - extent[0];
+          var height = extent[3] - extent[1];
+          extent[0] -= width * scale;
+          extent[1] -= height * scale;
+          extent[2] += width * scale;
+          extent[3] += height * scale;
+          for (var index = 0; index < extent.length; index++) {
+            if (isNaN(parseFloat(extent[index])) || !isFinite(extent[index])) {
+              extent = view.getProjection().getExtent();
+              break;
+            }
+          }
+        }
       }
       if (animate) {
         var zoom = ol.animation.zoom({ resolution: map.getView().getResolution() });
@@ -71719,7 +71727,7 @@ var GeoGitRevertFeatureOptions = function () {
             ];
           var transform = ol.proj.getTransformFromProjections(ol.proj.get(layer.get('metadata').projection), ol.proj.get('EPSG:900913'));
           var extent900913 = ol.extent.transform(bounds, transform);
-          service_.zoomToExtent(extent900913);
+          service_.zoomToExtent(extent900913, null, null, 0.1);
         }).error(function (data, status, headers, config) {
           console.log('----[ Warning: wps gs:bounds failed, zooming to layer bounds ', data, status, headers, config);
           service_.zoomToLayerExtent(layer);
