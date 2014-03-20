@@ -66619,6 +66619,7 @@ goog.require("ol.xml");
       'remote_options': 'Remote Options',
       'history_summary': 'History Summary',
       'zoom_world': 'Zoom To World',
+      'legend_title': 'Legend',
       'toggle_legend': 'Toggle Legend',
       'refresh_layers': 'Refresh Layers',
       'sure_remove_layer': 'Are you sure that you want to remove this layer?',
@@ -66854,6 +66855,7 @@ goog.require("ol.xml");
       'remote_options': 'Opciones Remotas',
       'history_summary': 'Resumen de Historial',
       'zoom_world': 'Regresar a Mapa Mundial',
+      'legend_title': 'Descripcion',
       'toggle_legend': 'Modificar la Descripcion',
       'refresh_layers': 'Refrescar Capas',
       'sure_remove_layer': 'Esta seguro de querer eliminar esta capa?',
@@ -71376,7 +71378,7 @@ var GeoGitRevertFeatureOptions = function () {
 }());
 (function () {
   var module = angular.module('loom_legend_directive', []);
-  var legendOpen = true;
+  var legendOpen = false;
   module.directive('loomLegend', [
     '$rootScope',
     'mapService',
@@ -71389,19 +71391,25 @@ var GeoGitRevertFeatureOptions = function () {
         link: function (scope, element) {
           scope.mapService = mapService;
           scope.serverService = serverService;
-          scope.expandLegend = function () {
+          var openLegend = function () {
+            angular.element('#legend-container')[0].style.visibility = 'visible';
+            angular.element('#legend-panel').collapse('show');
+            legendOpen = true;
+          };
+          var closeLegend = function () {
+            angular.element('#legend-panel').collapse('hide');
+            legendOpen = false;
+            setTimeout(function () {
+              angular.element('#legend-container')[0].style.visibility = 'hidden';
+            }, 350);
+          };
+          scope.toggleLegend = function () {
             if (legendOpen === false) {
               if (angular.element('.legend-item').length > 0) {
-                angular.element('#legend-container')[0].style.visibility = 'visible';
-                angular.element('#legend-panel').collapse('show');
-                legendOpen = true;
+                openLegend();
               }
             } else {
-              angular.element('#legend-panel').collapse('hide');
-              legendOpen = false;
-              setTimeout(function () {
-                angular.element('#legend-container')[0].style.visibility = 'hidden';
-              }, 350);
+              closeLegend();
             }
           };
           scope.getLegendUrl = function (layer) {
@@ -71410,6 +71418,16 @@ var GeoGitRevertFeatureOptions = function () {
             url = server.url + '?request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=' + layer.get('metadata').name + '&transparent=true&legend_options=fontColor:0xFFFFFF;' + 'fontAntiAliasing:true;fontSize:14;fontStyle:bold;';
             return url;
           };
+          scope.$on('layer-added', function () {
+            if (legendOpen === false) {
+              openLegend();
+            }
+          });
+          scope.$on('layerRemoved', function () {
+            if (legendOpen === true && angular.element('.legend-item').length == 1) {
+              closeLegend();
+            }
+          });
         }
       };
     }
@@ -71455,6 +71473,7 @@ var GeoGitRevertFeatureOptions = function () {
   var dialogService_ = null;
   var translate_ = null;
   var dragZoomActive = false;
+  var rootScope_ = null;
   var select = null;
   var draw = null;
   var modify = null;
@@ -71607,7 +71626,8 @@ var GeoGitRevertFeatureOptions = function () {
       '$cookies',
       'configService',
       'dialogService',
-      function ($translate, serverService, geogitService, $http, $cookieStore, $cookies, configService, dialogService) {
+      '$rootScope',
+      function ($translate, serverService, geogitService, $http, $cookieStore, $cookies, configService, dialogService, $rootScope) {
         service_ = this;
         httpService_ = $http;
         cookieStoreService_ = $cookieStore;
@@ -71618,6 +71638,7 @@ var GeoGitRevertFeatureOptions = function () {
         geogitService_ = geogitService;
         dialogService_ = dialogService;
         translate_ = $translate;
+        rootScope_ = $rootScope;
         this.configuration = configService_.configuration;
         this.title = this.configuration.about.title;
         this.abstract = this.configuration.about.abstract;
@@ -71891,6 +71912,7 @@ var GeoGitRevertFeatureOptions = function () {
         meta.config = config;
         meta.uniqueID = sha1('server' + meta.serverId + '_' + meta.name);
         if (!goog.isDefAndNotNull(doNotAddToMap)) {
+          rootScope_.$broadcast('layer-added');
           this.map.addLayer(layer);
         }
       } else {
@@ -76190,13 +76212,16 @@ angular.module("legend/partial/legend.tpl.html", []).run(["$templateCache", func
     "<div>\n" +
     "    <div id=\"legend-btn-border\" class=\"map-btn-border\" tooltip-placement=\"left\" tooltip-append-to-body=\"true\"\n" +
     "         tooltip=\"{{'toggle_legend' | translate}}\">\n" +
-    "        <div id=\"legend-btn\" ng-click=\"expandLegend()\">\n" +
+    "        <div id=\"legend-btn\" ng-click=\"toggleLegend()\">\n" +
     "            <i class=\"glyphicon glyphicon-list-alt\"></i>\n" +
     "        </div>\n" +
     "    </div>\n" +
     "    <div id=\"legend-container\" class=\"panel\">\n" +
-    "        <!--<div id=\"legend-panel-heading\" class=\"panel-heading\">Legend</div>-->\n" +
-    "        <div id=\"legend-panel\" class=\"panel in legend-panel-body\">\n" +
+    "        <div id=\"legend-panel\" class=\"panel collapse legend-panel-body\">\n" +
+    "            <div id=\"legend-title-heading\" class=\"panel-heading\">\n" +
+    "                <div class=\"legend-panel-title pull-left\" id=\"legend-title-text\" translate=\"legend_title\"></div>\n" +
+    "                <i class=\"glyphicon glyphicon-remove legend-panel-title pull-right\" ng-click=\"toggleLegend()\"></i>\n" +
+    "            </div>\n" +
     "            <div class=\"panel in legend-panel-body\" ng-repeat=\"layer in mapService.getLayers();\">\n" +
     "                <div class=\"panel-heading legend-item-header\" data-toggle=\"collapse\"\n" +
     "                    data-target=\"{{'#' + layer.get('metadata').uniqueID + 'legend'}}\">{{layer.get('metadata').title}}\n" +
