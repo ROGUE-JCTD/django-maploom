@@ -29818,6 +29818,7 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
         }
         $(e.target).css('z-index', 760);
       });
+      ol.HAVE_PROJ4JS = ol.ENABLE_PROJ4JS && typeof Proj4js == 'object';
       $scope.mapService = mapService;
       $scope.refreshService = refreshService;
     }
