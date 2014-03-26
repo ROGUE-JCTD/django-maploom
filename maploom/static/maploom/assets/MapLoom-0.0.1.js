@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-25
+ * MapLoom - v0.0.1 - 2014-03-26
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -29745,6 +29745,8 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
         $scope.configService = configService;
         $scope.historyPanel = pulldownService.historyPanel.getVisible();
         $scope.toggleEnabled = pulldownService.toggleEnabled;
+        $scope.addLayers = pulldownService.addLayers;
+        $scope.serversLoading = pulldownService.serversLoading;
         $scope.pulldownService = pulldownService;
       }
       function updateScopeVariables() {
@@ -29779,6 +29781,7 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       $scope.$on('history_fetched', historyPanelEnabled);
       $scope.$on('history_cleared', historyPanelEnabled);
       $scope.$watch('pulldownService.toggleEnabled', updateScopeVariables);
+      $scope.$watch('pulldownService.serversLoading', updateScopeVariables);
     }
   ]);
 }());
@@ -30068,7 +30071,8 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'unknown_error': 'An unknown error occurred while saving the feature.',
       'unable_to_save_geometry': 'Failed to save the geometry changes for the following reason: {{value}}',
       'unable_to_save_attributes': 'Failed to save the attribute changes for the following reason: {{value}}',
-      'unable_to_delete_feature': 'Failed to delete feature for the following reason: {{value}}'
+      'unable_to_delete_feature': 'Failed to delete feature for the following reason: {{value}}',
+      'load_server_failed': 'Failed to load the server {{server}} for the following reason: {{value}}'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -30310,7 +30314,8 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'unknown_error': 'Se ha producido un error desconocido mientras se ahorra la funci\xf3n.',
       'unable_to_save_geometry': 'Error al guardar los cambios en la geometria de las siguientes razones: {{value}}',
       'unable_to_save_attributes': 'Error al guardar los cambios en los atributos de la siguiente razon: {{value}}',
-      'unable_to_delete_feature': 'Error al eliminar la funcion por la siguiente razon: {{value}}'
+      'unable_to_delete_feature': 'Error al eliminar la funcion por la siguiente razon: {{value}}',
+      'load_server_failed': 'No se pudo cargar el servidor {{server}} por la siguiente razon: {{value}}'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -30429,7 +30434,7 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
     function (serverService, $translate, $rootScope) {
       return {
         templateUrl: 'addlayers/partials/addserver.tpl.html',
-        link: function (scope) {
+        link: function (scope, element) {
           scope.serverService = serverService;
           scope.type = 'WMS';
           scope.name = null;
@@ -30453,6 +30458,7 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
             scope.type = 'WMS';
             scope.name = null;
             scope.url = null;
+            element.closest('.modal').modal('hide');
           };
           scope.getPattern = function () {
             if (scope.type === 'WMS') {
@@ -30534,6 +30540,18 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
           });
           element.mouseleave(function () {
             element.popover('hide');
+          });
+          scope.$watch('layer', function () {
+            element.popover('destroy');
+            var content = '<div class="popover-label">' + $translate('server_name') + ':</div>' + '<div class="popover-value">' + safeName() + '</div>' + '<div class="popover-label">' + $translate('title') + ':</div>' + '<div class="popover-value">' + safeTitle() + '</div>' + '<div class="popover-label">' + $translate('workspace') + ':</div>' + '<div class="popover-value">' + safeWorkspace() + '</div>' + '<div class="popover-label">' + $translate('abstract') + ':</div>' + '<div class="popover-value">' + safeAbstract() + '</div>' + '<div class="popover-label">' + $translate('keywords') + ':</div>' + '<div class="popover-value">' + buildKeywords() + '</div>';
+            element.popover({
+              trigger: 'manual',
+              animation: false,
+              html: true,
+              content: content,
+              container: 'body',
+              title: scope.layer.title
+            });
           });
         }
       };
@@ -32872,6 +32890,9 @@ var DiffColorMap = {
             service_.hide();
           }
         });
+        rootScope_.$on('conflict_mode', function () {
+          service_.hide();
+        });
         overlay_ = new ol.Overlay({
           insertFirst: false,
           element: document.getElementById('info-box')
@@ -34748,13 +34769,12 @@ var GeoGitRevertFeatureOptions = function () {
     '$rootScope',
     'mapService',
     'serverService',
-    'pulldownService',
     'historyService',
     'featureManagerService',
     'dialogService',
     '$translate',
     'tableViewService',
-    function ($rootScope, mapService, serverService, pulldownService, historyService, featureManagerService, dialogService, $translate, tableViewService) {
+    function ($rootScope, mapService, serverService, historyService, featureManagerService, dialogService, $translate, tableViewService) {
       return {
         restrict: 'C',
         replace: true,
@@ -34951,12 +34971,14 @@ var GeoGitRevertFeatureOptions = function () {
   var cookiesService_ = null;
   var configService_ = null;
   var dialogService_ = null;
+  var pulldownService_ = null;
   var translate_ = null;
   var dragZoomActive = false;
   var rootScope_ = null;
   var select = null;
   var draw = null;
   var modify = null;
+  var editableLayers_ = null;
   var createVectorEditLayer = function () {
     return new ol.layer.Vector({
       metadata: { vectorEditLayer: true },
@@ -35102,12 +35124,13 @@ var GeoGitRevertFeatureOptions = function () {
       'serverService',
       'geogitService',
       '$http',
+      'pulldownService',
       '$cookieStore',
       '$cookies',
       'configService',
       'dialogService',
       '$rootScope',
-      function ($translate, serverService, geogitService, $http, $cookieStore, $cookies, configService, dialogService, $rootScope) {
+      function ($translate, serverService, geogitService, $http, pulldownService, $cookieStore, $cookies, configService, dialogService, $rootScope) {
         service_ = this;
         httpService_ = $http;
         cookieStoreService_ = $cookieStore;
@@ -35119,6 +35142,7 @@ var GeoGitRevertFeatureOptions = function () {
         dialogService_ = dialogService;
         translate_ = $translate;
         rootScope_ = $rootScope;
+        pulldownService_ = pulldownService;
         this.configuration = configService_.configuration;
         this.title = this.configuration.about.title;
         this.abstract = this.configuration.about.abstract;
@@ -35133,6 +35157,19 @@ var GeoGitRevertFeatureOptions = function () {
         this.map = this.createMap();
         service_.loadLayers();
         this.editLayer = createVectorEditLayer();
+        $rootScope.$on('conflict_mode', function () {
+          editableLayers_ = service_.getLayers(true);
+          for (var index = 0; index < editableLayers_.length; index++) {
+            editableLayers_[index].get('metadata').editable = false;
+          }
+        });
+        $rootScope.$on('default_mode', function () {
+          if (goog.isDefAndNotNull(editableLayers_)) {
+            for (var index = 0; index < editableLayers_.length; index++) {
+              editableLayers_[index].get('metadata').editable = true;
+            }
+          }
+        });
         return this;
       }
     ];
@@ -35210,7 +35247,7 @@ var GeoGitRevertFeatureOptions = function () {
       if (!goog.isDefAndNotNull(layer)) {
         return;
       }
-      if (!service_.layerIsImagery(layer)) {
+      if (!service_.layerIsEditable(layer)) {
         var layerTypeName = layer.get('metadata').name;
         var url = layer.get('metadata').url + '/wps?version=' + settings.WPSVersion;
         var wpsPostData = '' + '<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="' + settings.WPSVersion + '" service="WPS" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'xmlns="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" ' + 'xmlns:ogc="http://www.opengis.net/ogc" ' + 'xmlns:wcs="http://www.opengis.net/wcs/1.1.1" ' + 'xmlns:xlink="http://www.w3.org/1999/xlink" ' + 'xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 ' + 'http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">' + '<ows:Identifier>gs:Bounds</ows:Identifier>' + '<wps:DataInputs>' + '<wps:Input>' + '<ows:Identifier>features</ows:Identifier>' + '<wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">' + '<wps:Body>' + '<wfs:GetFeature service="WFS" version="' + settings.WFSVersion + '" outputFormat="GML2" ' + 'xmlns:geonode="http://www.geonode.org/">' + '<wfs:Query typeName="' + layerTypeName + '"/>' + '</wfs:GetFeature>' + '</wps:Body>' + '</wps:Reference>' + '</wps:Input>' + '</wps:DataInputs>' + '<wps:ResponseForm>' + '<wps:RawDataOutput>' + '<ows:Identifier>bounds</ows:Identifier>' + '</wps:RawDataOutput>' + '</wps:ResponseForm>' + '</wps:Execute>';
@@ -35254,12 +35291,12 @@ var GeoGitRevertFeatureOptions = function () {
       }
       service_.zoomToExtent(extent900913);
     };
-    this.getLayers = function (includeHidden, includeImagery) {
+    this.getLayers = function (includeHidden, includeEditable) {
       var layers = [];
       this.map.getLayers().forEach(function (layer) {
         if (goog.isDefAndNotNull(layer.get('metadata')) && !layer.get('metadata').vectorEditLayer && !layer.get('metadata').internalLayer) {
-          if (service_.layerIsImagery(layer)) {
-            if (goog.isDefAndNotNull(includeImagery) && includeImagery) {
+          if (service_.layerIsEditable(layer)) {
+            if (goog.isDefAndNotNull(includeEditable) && includeEditable) {
               if (layer.get('visible')) {
                 layers.push(layer);
               } else {
@@ -35281,7 +35318,7 @@ var GeoGitRevertFeatureOptions = function () {
       });
       return layers;
     };
-    this.layerIsImagery = function (layer) {
+    this.layerIsEditable = function (layer) {
       return !goog.isDefAndNotNull(layer.get('metadata').editable) || !layer.get('metadata').editable;
     };
     this.addLayer = function (minimalConfig, doNotAddToMap) {
@@ -35532,11 +35569,25 @@ var GeoGitRevertFeatureOptions = function () {
             }
           });
         };
+        var numServers = orderedUnique.length;
+        pulldownService_.serversLoading = true;
         goog.array.forEach(orderedUnique, function (serverInfo, serverIndex, obj) {
           if (goog.isDefAndNotNull(serverInfo)) {
             serverService_.addServer(serverInfo).then(function (serverNew) {
+              numServers--;
               addLayersForServer(serverIndex, serverNew);
+              if (numServers === 0) {
+                pulldownService_.serversLoading = false;
+              }
             }, function (reject) {
+              numServers--;
+              if (numServers === 0) {
+                pulldownService_.serversLoading = false;
+              }
+              dialogService_.error(translate_('server'), translate_('load_server_failed', {
+                'server': serverInfo.name,
+                'value': reject
+              }));
               console.log('====[ Error: Add server failed. ', reject);
             });
           }
@@ -35937,6 +35988,7 @@ var GeoGitRevertFeatureOptions = function () {
         templateUrl: 'merge/partials/merge.tpl.html',
         link: function (scope, element, attrs) {
           scope.geogitService = geogitService;
+          scope.merging = false;
           scope.listFilter = function (otherItem) {
             return function (item) {
               return item !== otherItem;
@@ -35950,10 +36002,10 @@ var GeoGitRevertFeatureOptions = function () {
             scope.sourceBranch = null;
             scope.destinationBranch = null;
             element.closest('.modal').modal('hide');
-            element.find('#loading').addClass('hidden');
+            scope.merging = false;
           };
           scope.onMerge = function () {
-            element.find('#loading').toggleClass('hidden');
+            scope.merging = true;
             var repoId = scope.selectedRepoId;
             geogitService.beginTransaction(repoId).then(function (transaction) {
               var checkoutOptions = new GeoGitCheckoutOptions();
@@ -36137,7 +36189,8 @@ var GeoGitRevertFeatureOptions = function () {
       var modalInstance = modal_.open({
           template: '<div loom-dialog></div>',
           scope: modalScope,
-          backdrop: 'static'
+          backdrop: 'static',
+          keyboard: false
         });
       numModals = numModals + 1;
       modalInstance.result.then(function () {
@@ -36457,6 +36510,8 @@ var GeoGitRevertFeatureOptions = function () {
     this.syncPanel = new PulldownPanel(true, false);
     this.historyPanel = new PulldownPanel(true, false);
     this.toggleEnabled = true;
+    this.addLayers = true;
+    this.serversLoading = false;
     this.$get = [
       '$rootScope',
       '$timeout',
@@ -36475,6 +36530,8 @@ var GeoGitRevertFeatureOptions = function () {
       this.layersPanel.visible = true;
       this.syncPanel.visible = false;
       this.historyPanel.visible = false;
+      this.addLayers = false;
+      rootScope_.$broadcast('conflict_mode');
       this.apply();
       this.showDiffPanel();
     };
@@ -36484,6 +36541,8 @@ var GeoGitRevertFeatureOptions = function () {
       this.layersPanel.visible = true;
       this.syncPanel.visible = true;
       this.historyPanel.visible = true;
+      this.addLayers = true;
+      rootScope_.$broadcast('default_mode');
       this.apply();
       this.showLayerPanel();
     };
@@ -37307,17 +37366,18 @@ var GeoGitRevertFeatureOptions = function () {
         link: function (scope, element) {
           scope.geogitService = geogitService;
           scope.remoteService = remoteService;
+          scope.saving = false;
           angular.element('#remote-name')[0].attributes.placeholder.value = $translate('repo_name');
           angular.element('#remoteUsername')[0].attributes.placeholder.value = $translate('repo_username');
           angular.element('#remotePassword')[0].attributes.placeholder.value = $translate('repo_password');
           scope.finish = function (save) {
             if (save) {
-              element.find('#loading').toggleClass('hidden');
+              scope.saving = true;
               var result = $q.defer();
               remoteService.finishRemoteOperation(save, result);
               result.promise.then(function () {
                 remoteService.editing = false;
-                element.find('#loading').toggleClass('hidden');
+                scope.saving = false;
               });
             } else {
               remoteService.finishRemoteOperation(save);
@@ -39059,7 +39119,7 @@ angular.module("addlayers/partials/addserver.tpl.html", []).run(["$templateCache
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
     "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\" translate=\"close_btn\">Close</button>\n" +
-    "  <button type=\"button\" class=\"btn btn-primary\" ng-class=\"{'disabled': !serverform.$valid}\" ng-click=\"addServer({'type': type, 'name': name, 'url': url})\" data-dismiss=\"modal\" translate=\"add_btn\">Add</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" ng-disabled=\"!serverform.$valid\" ng-click=\"addServer({'type': type, 'name': name, 'url': url})\" translate=\"add_btn\">Add</button>\n" +
     "</div>\n" +
     "");
 }]);
@@ -39620,7 +39680,7 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "          <span ng-click=\"featureManagerService.startFeatureInsert(layer)\" tooltip-append-to-body=\"true\"\n" +
     "                tooltip-placement=\"top\" tooltip=\"{{'add_feature' | translate}}\"\n" +
     "                ng-show=\"layer.get('metadata').editable\" stop-event=\"click mousedown\" class=\"btn btn-xs btn-default\"\n" +
-    "                ng-class=\"{'disabled': (!layer.get('visible') || !layer.get('metadata').schema)}\">\n" +
+    "                ng-disabled=\"(!layer.get('visible') || !layer.get('metadata').schema)\">\n" +
     "            <i class=\"glyphicon glyphicon-pencil\"></i>\n" +
     "          </span>\n" +
     "          <span ng-click=\"toggleVisibility(layer)\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
@@ -39727,9 +39787,9 @@ angular.module("map/partial/savemap.tpl.html", []).run(["$templateCache", functi
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
     "    <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">{{'close_btn' | translate }}</button>\n" +
-    "  <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-class=\"{'disabled': !configService.username}\"\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-disabled=\"!configService.username\"\n" +
     "          ng-click=\"mapService.save(true)\" ng-show=\"mapService.id\" >{{'save_copy_btn' | translate}}</button>\n" +
-    "  <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-class=\"{'disabled': !configService.username}\"\n" +
+    "  <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" ng-disabled=\"!configService.username\"\n" +
     "          ng-click=\"mapService.save()\">{{'save_btn' | translate}}</button>\n" +
     "</div>\n" +
     "\n" +
@@ -39740,18 +39800,7 @@ angular.module("map/partial/savemap.tpl.html", []).run(["$templateCache", functi
 angular.module("merge/partials/merge.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("merge/partials/merge.tpl.html",
     "<div class=\"modal-body\">\n" +
-    "  <div id=\"merge-loading\" class=\"hidden\">\n" +
-    "    <div class=\"loading\">\n" +
-    "      <!-- We make this div spin -->\n" +
-    "      <div class=\"spinner\">\n" +
-    "        <!-- Mask of the quarter of circle -->\n" +
-    "        <div class=\"mask\">\n" +
-    "          <!-- Inner masked circle -->\n" +
-    "          <div class=\"maskedCircle\"></div>\n" +
-    "        </div>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
+    "  <div id=\"merge-loading\" class=\"loom-loading\" spinner-width=\"6\" spinner-radius=\"40\" spinner-hidden=\"!merging\"></div>\n" +
     "  <form class=\"form-horizontal\">\n" +
     "    <div class=\"form-group\">\n" +
     "      <div class=\"col-md-4\">\n" +
@@ -39774,7 +39823,7 @@ angular.module("merge/partials/merge.tpl.html", []).run(["$templateCache", funct
     "  </form>\n" +
     "  <div class=\"modal-footer\">\n" +
     "    <button type=\"button\" class=\"btn btn-default\" ng-click=\"cancel()\" translate=\"cancel_btn\">Cancel</button>\n" +
-    "    <button type=\"button\" class=\"btn btn-primary\" ng-class=\"{'disabled':!mergePossible()}\"\n" +
+    "    <button type=\"button\" class=\"btn btn-primary\" ng-disabled=\"!mergePossible()\"\n" +
     "      ng-click=\"onMerge()\" translate=\"merge\">Merge</button>\n" +
     "  </div>\n" +
     "</div>\n" +
@@ -39803,7 +39852,7 @@ angular.module("modal/partials/dialog.tpl.html", []).run(["$templateCache", func
 
 angular.module("modal/partials/modal.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("modal/partials/modal.tpl.html",
-    "<div class=\"modal fade custom\" data-backdrop=\"static\">\n" +
+    "<div class=\"modal fade custom\" tabindex=\"-1\" data-backdrop=\"static\" data-keyboard=\"false\">\n" +
     "  <div class=\"modal-dialog\">\n" +
     "    <div class=\"modal-content\">\n" +
     "      <div class=\"modal-header\">\n" +
@@ -39941,7 +39990,7 @@ angular.module("sync/partials/addsync.tpl.html", []).run(["$templateCache", func
     "  <button type=\"button\" class=\"btn btn-default\" translate=\"close_btn\" ng-click=\"dismiss()\">Close</button>\n" +
     "  <button type=\"button\" class=\"btn btn-primary\"\n" +
     "          ng-click=\"createLink(name, selectedRepo, selectedRemote, localBranch, remoteBranch)\"\n" +
-    "          ng-class=\"{'disabled': !syncform.$valid}\" translate=\"add_btn\">Add</button>\n" +
+    "          ng-disabled=\"!syncform.$valid\" translate=\"add_btn\">Add</button>\n" +
     "</div>\n" +
     "");
 }]);
@@ -39963,18 +40012,7 @@ angular.module("sync/partials/remoteselect.tpl.html", []).run(["$templateCache",
 
 angular.module("sync/partials/syncconfig.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("sync/partials/syncconfig.tpl.html",
-    "<div id=\"loading\" class=\"hidden\">\n" +
-    "  <div class=\"loading\">\n" +
-    "    <!-- We make this div spin -->\n" +
-    "    <div class=\"spinner\">\n" +
-    "      <!-- Mask of the quarter of circle -->\n" +
-    "      <div class=\"mask\">\n" +
-    "        <!-- Inner masked circle -->\n" +
-    "        <div class=\"maskedCircle\"></div>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
-    "</div>\n" +
+    "<div id=\"remote-loading\" class=\"loom-loading\" spinner-width=\"6\" spinner-radius=\"40\" spinner-hidden=\"!saving\"></div>\n" +
     "<div class=\"modal-body\">\n" +
     "  <form name=\"remoteform\" class=\"form-horizontal\">\n" +
     "    <div class=\"form-group\">\n" +
@@ -40082,7 +40120,7 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
     "                 class=\"btn btn-xs btn-default\" ng-class=\"{'sync-on': link.continuous}\">\n" +
     "              <i class=\"glyphicon glyphicon-retweet\"></i>\n" +
     "            </div>\n" +
-    "            <!--<button type=\"button\" class=\"btn btn-xs btn-default dropdown-toggle\" ng-class=\"{'disabled': link.isSyncing}\" data-toggle=\"dropdown\">\n" +
+    "            <!--<button type=\"button\" class=\"btn btn-xs btn-default dropdown-toggle\" ng-disabled=\"link.isSyncing\" data-toggle=\"dropdown\">\n" +
     "              <span class=\"caret\"></span>\n" +
     "            </button>\n" +
     "            <ul class=\"dropdown-menu\">\n" +
