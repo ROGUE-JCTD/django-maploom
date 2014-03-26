@@ -35321,10 +35321,10 @@ var GeoGitRevertFeatureOptions = function () {
     this.layerIsEditable = function (layer) {
       return !goog.isDefAndNotNull(layer.get('metadata').editable) || !layer.get('metadata').editable;
     };
-    this.addLayer = function (minimalConfig, doNotAddToMap) {
+    this.addLayer = function (minimalConfig, opt_layerOrder) {
       var server = serverService_.getServerById(minimalConfig.source);
       var fullConfig = serverService_.getLayerConfig(server.id, minimalConfig.name);
-      console.log('-- MapService.addLayer. minimalConfig: ', minimalConfig, ', fullConfig: ', fullConfig, ', server: ', server);
+      console.log('-- MapService.addLayer. minimalConfig: ', minimalConfig, ', fullConfig: ', fullConfig, ', server: ', server, ', opt_layerOrder: ', opt_layerOrder);
       var layer = null;
       var nameSplit = null;
       var url = null;
@@ -35435,10 +35435,22 @@ var GeoGitRevertFeatureOptions = function () {
         var meta = layer.get('metadata');
         meta.config = minimalConfig;
         meta.uniqueID = sha1('server' + meta.serverId + '_' + meta.name);
-        if (!goog.isDefAndNotNull(doNotAddToMap)) {
-          rootScope_.$broadcast('layer-added');
-          this.map.addLayer(layer);
+        var mapLayers = this.map.getLayerGroup().getLayers().getArray();
+        meta.layerOrder = goog.isDefAndNotNull(opt_layerOrder) ? opt_layerOrder : mapLayers.length;
+        var insertIndex = -1;
+        for (var index = 0; index < mapLayers.length; index++) {
+          var lyr = mapLayers[index];
+          var lyrLayerOrder = lyr.get('metadata').layerOrder;
+          if (meta.layerOrder < lyrLayerOrder) {
+            insertIndex = index;
+          }
         }
+        if (insertIndex === -1) {
+          this.map.addLayer(layer);
+        } else {
+          this.map.getLayerGroup().getLayers().insertAt(insertIndex, layer);
+        }
+        rootScope_.$broadcast('layer-added');
       } else {
         console.log('====[Error: could not load layer: ', minimalConfig);
       }
@@ -35556,14 +35568,17 @@ var GeoGitRevertFeatureOptions = function () {
           var configs = [];
           goog.array.forEach(service_.configuration.map.layers, function (layerInfo, index, obj) {
             if (layerInfo.source == configServerIndex) {
+              layerInfo.temp_layerOrder = index;
               configs.push(layerInfo);
             }
           });
           goog.array.forEach(configs, function (layerInfo) {
             if (goog.isDefAndNotNull(layerInfo.name)) {
+              var layerOrder = layerInfo.temp_layerOrder;
+              layerInfo.temp_layerOrder = undefined;
               var layerInfoClone = goog.object.clone(layerInfo);
               layerInfoClone.source = server.id;
-              service_.addLayer(layerInfoClone);
+              service_.addLayer(layerInfoClone, layerOrder);
             } else {
               console.log('====[ Warning: could not add layer because it does not have a name: ', layerInfo);
             }
