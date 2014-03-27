@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-26
+ * MapLoom - v0.0.1 - 2014-03-27
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -33796,7 +33796,8 @@ var GeoGitLogOptions = function () {
   this.page = null;
   this.show = null;
   this.firstParentOnly = null;
-  this.summarize = null;
+  this.countChanges = null;
+  this.summary = null;
   this.returnRange = null;
 };
 var GeoGitRevertFeatureOptions = function () {
@@ -34318,7 +34319,8 @@ var GeoGitRevertFeatureOptions = function () {
             var untilTime = startTime < endTime ? endTime : startTime;
             var sinceTime = startTime < endTime ? startTime : endTime;
             var path = historyService.pathFilter;
-            var url = repo.url + '/repo/exportcsv?path=' + path + '&sinceTime=' + sinceTime + '&untilTime=' + untilTime;
+            var until = historyService.layer.get('metadata').branchName;
+            var url = repo.url + '/log?output_format=csv&until=' + until + '&path=' + path + '&sinceTime=' + sinceTime + '&untilTime=' + untilTime + '&summary=true';
             $window.open(url);
           };
         }
@@ -34584,7 +34586,7 @@ var GeoGitRevertFeatureOptions = function () {
         logOptions.show = service_.entriesPerPage;
       }
       logOptions.firstParentOnly = 'true';
-      logOptions.summarize = true;
+      logOptions.countChanges = true;
       var thisTransaction = service_.historyTransaction;
       var metadata = service_.layer.get('metadata');
       if (goog.isDefAndNotNull(metadata)) {
