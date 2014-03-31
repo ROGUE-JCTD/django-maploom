@@ -30077,7 +30077,9 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'remove_layers_first': 'This server has layers that are on the map, please remove them from the map first.',
       'edit_server': 'Are you sure you want to edit this server?',
       'load_layer_failed': 'Failed to load the layer {{layer}}, this layer will not be added to the map and if you' + ' save your map it will not have this layer.',
-      'no_attributes': 'There are no attributes to display.'
+      'no_attributes': 'There are no attributes to display.',
+      'true': 'True',
+      'false': 'False'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -30325,7 +30327,9 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'remove_layers_first': 'Este servidor tiene capas que se encuentran en el mapa, por favor retirarlos del primer' + ' mapa.',
       'edit_server': 'Esta seguro que desea editar este servidor?',
       'load_layer_failed': 'Error al cargar la capa {{layer}}, no se a\xf1adir\xe1 esta capa al mapa y si guarda su' + ' mapa no tendr\xe1 esta capa.',
-      'no_attributes': 'No hay ningun atributo para mostrar.'
+      'no_attributes': 'No hay ningun atributo para mostrar.',
+      'true': 'Verdadero',
+      'false': 'Falso'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -32553,6 +32557,9 @@ var DiffColorMap = {
             scope.inserting = inserting;
             $('#attribute-edit-dialog').modal('toggle');
           });
+          scope.translate = function (value) {
+            return $translate(value);
+          };
           var reset = function () {
             scope.featureManagerService = null;
             scope.properties = null;
@@ -39629,11 +39636,11 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "            </button>\n" +
     "            <ul class=\"dropdown-menu\">\n" +
     "              <li ng-repeat=\"enum in prop.enum\">\n" +
-    "                <a ng-click=\"selectValue(prop, $index)\">{{enum._value}}</a>\n" +
+    "                <a ng-click=\"selectValue(prop, $index)\" translate=\"{{enum._value}}\"></a>\n" +
     "              </li>\n" +
     "            </ul>\n" +
     "          </div>\n" +
-    "          <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" disabled/>\n" +
+    "          <input value=\"{{translate(prop[1])}}\" type=\"text\" class=\"form-control\" disabled/>\n" +
     "        </div>\n" +
     "        <autotextarea ng-switch-default ng-model=\"prop[1]\" class=\"form-control custom-form-control auto-text-area\"></autotextarea>\n" +
     "      </div>\n" +
