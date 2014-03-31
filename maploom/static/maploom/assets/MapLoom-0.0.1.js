@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-03-27
+ * MapLoom - v0.0.1 - 2014-03-31
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -30072,7 +30072,12 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'unable_to_save_geometry': 'Failed to save the geometry changes for the following reason: {{value}}',
       'unable_to_save_attributes': 'Failed to save the attribute changes for the following reason: {{value}}',
       'unable_to_delete_feature': 'Failed to delete feature for the following reason: {{value}}',
-      'load_server_failed': 'Failed to load the server {{server}} for the following reason: {{value}}'
+      'load_server_failed': 'Failed to load the server {{server}} for the following reason: {{value}}',
+      'remove_server': 'Are you sure you want to remove this server?',
+      'remove_layers_first': 'This server has layers that are on the map, please remove them from the map first.',
+      'edit_server': 'Are you sure you want to edit this server?',
+      'load_layer_failed': 'Failed to load the layer {{layer}}, this layer will not be added to the map and if you' + ' save your map it will not have this layer.',
+      'no_attributes': 'There are no attributes to display.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -30315,7 +30320,12 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'unable_to_save_geometry': 'Error al guardar los cambios en la geometria de las siguientes razones: {{value}}',
       'unable_to_save_attributes': 'Error al guardar los cambios en los atributos de la siguiente razon: {{value}}',
       'unable_to_delete_feature': 'Error al eliminar la funcion por la siguiente razon: {{value}}',
-      'load_server_failed': 'No se pudo cargar el servidor {{server}} por la siguiente razon: {{value}}'
+      'load_server_failed': 'No se pudo cargar el servidor {{server}} por la siguiente razon: {{value}}',
+      'remove_server': 'Esta seguro que desea eliminar este servidor?',
+      'remove_layers_first': 'Este servidor tiene capas que se encuentran en el mapa, por favor retirarlos del primer' + ' mapa.',
+      'edit_server': 'Esta seguro que desea editar este servidor?',
+      'load_layer_failed': 'Error al cargar la capa {{layer}}, no se a\xf1adir\xe1 esta capa al mapa y si guarda su' + ' mapa no tendr\xe1 esta capa.',
+      'no_attributes': 'No hay ningun atributo para mostrar.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -30333,7 +30343,8 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
     'mapService',
     'geogitService',
     '$translate',
-    function ($rootScope, serverService, mapService, geogitService, $translate) {
+    'dialogService',
+    function ($rootScope, serverService, mapService, geogitService, $translate, dialogService) {
       return {
         templateUrl: 'addlayers/partials/addlayers.tpl.html',
         link: function (scope, element) {
@@ -30403,6 +30414,33 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
               }
             }
           });
+          scope.removeServer = function (id) {
+            var layers = mapService.getLayers(true, true);
+            for (var index = 0; index < layers.length; index++) {
+              if (layers[index].get('metadata').serverId == id) {
+                dialogService.error($translate('server'), $translate('remove_layers_first'), [$translate('btn_ok')]);
+                return;
+              }
+            }
+            dialogService.warn($translate('server'), $translate('remove_server'), [
+              $translate('yes_btn'),
+              $translate('no_btn')
+            ], false).then(function (button) {
+              switch (button) {
+              case 0:
+                serverService.removeServer(id);
+                break;
+              }
+            });
+          };
+          scope.editServer = function (server) {
+            $rootScope.$broadcast('server-edit', server);
+          };
+          scope.$on('server-removed', function (event, server) {
+            if (scope.currentServerId == server.id) {
+              scope.setCurrentServerId(serverService.getServerLocalGeoserver().id);
+            }
+          });
           scope.$on('server-added-through-ui', function (event, id) {
             scope.setCurrentServerId(id);
           });
@@ -30431,14 +30469,22 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
     'serverService',
     '$translate',
     '$rootScope',
-    function (serverService, $translate, $rootScope) {
+    'dialogService',
+    'mapService',
+    function (serverService, $translate, $rootScope, dialogService, mapService) {
       return {
         templateUrl: 'addlayers/partials/addserver.tpl.html',
         link: function (scope, element) {
           scope.serverService = serverService;
-          scope.type = 'WMS';
-          scope.name = null;
-          scope.url = null;
+          scope.loading = false;
+          scope.reset = function () {
+            scope.type = 'WMS';
+            scope.name = null;
+            scope.url = null;
+            scope.editing = false;
+            scope.server = null;
+          };
+          scope.reset();
           scope.addServer = function (info) {
             var config = {
                 name: info.name,
@@ -30452,13 +30498,17 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
             } else {
               config.ptype = 'gxp_wmscsource';
             }
+            scope.loading = true;
             serverService.addServer(config).then(function (server) {
+              scope.loading = false;
               $rootScope.$broadcast('server-added-through-ui', server.id);
+              scope.reset();
+              element.closest('.modal').modal('hide');
+            }, function () {
+              scope.loading = false;
+              scope.reset();
+              element.closest('.modal').modal('hide');
             });
-            scope.type = 'WMS';
-            scope.name = null;
-            scope.url = null;
-            element.closest('.modal').modal('hide');
           };
           scope.getPattern = function () {
             if (scope.type === 'WMS') {
@@ -30474,9 +30524,65 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
               return 'http://url/1.0.0/';
             }
           };
+          scope.editServer = function () {
+            scope.server.name = scope.name;
+            if (scope.server.url !== scope.url) {
+              var layers = mapService.getLayers(true, true);
+              for (var index = 0; index < layers.length; index++) {
+                if (layers[index].get('metadata').serverId == scope.server.id) {
+                  dialogService.error($translate('server'), $translate('remove_layers_first'), [$translate('btn_ok')]);
+                  element.closest('.modal').modal('hide');
+                  scope.reset();
+                  return;
+                }
+              }
+              dialogService.warn($translate('server'), $translate('edit_server'), [
+                $translate('yes_btn'),
+                $translate('no_btn')
+              ], false).then(function (button) {
+                switch (button) {
+                case 0:
+                  scope.server.url = scope.url;
+                  scope.loading = true;
+                  serverService.populateLayersConfig(scope.server, true).then(function () {
+                    scope.loading = false;
+                    element.closest('.modal').modal('hide');
+                    scope.reset();
+                  }, function () {
+                    scope.loading = false;
+                    element.closest('.modal').modal('hide');
+                    scope.reset();
+                  });
+                  break;
+                }
+              });
+            } else {
+              element.closest('.modal').modal('hide');
+              scope.reset();
+            }
+          };
+          var parentModal = element.closest('.modal');
+          var closeModal = function (event, element) {
+            if (parentModal[0] === element[0]) {
+              scope.reset();
+            }
+          };
+          scope.$on('modal-closed', closeModal);
           scope.$watch('type', function () {
             scope.name = null;
             scope.url = null;
+          });
+          scope.$on('server-edit', function (event, server) {
+            element.closest('.modal').modal('show');
+            scope.editing = true;
+            scope.name = server.name;
+            scope.url = server.url;
+            scope.server = server;
+            if (server.ptype == 'gxp_tmssource') {
+              scope.type = 'TMS';
+            } else if (server.ptype == 'gxp_wmscsource') {
+              scope.type = 'WMS';
+            }
           });
         }
       };
@@ -30569,6 +30675,7 @@ var SERVER_SERVICE_USE_PROXY = true;
   var translate_ = null;
   var http_ = null;
   var q_ = null;
+  var serverCount = 0;
   module.provider('serverService', function () {
     this.$get = [
       '$rootScope',
@@ -30608,6 +30715,24 @@ var SERVER_SERVICE_USE_PROXY = true;
         }
       }
       return server;
+    };
+    this.getServerIndex = function (id) {
+      if (!goog.isDefAndNotNull(id)) {
+        throw {
+          name: 'serverService',
+          level: 'High',
+          message: 'undefined server id.',
+          toString: function () {
+            return this.name + ': ' + this.message;
+          }
+        };
+      }
+      for (var index = 0; index < servers.length; index += 1) {
+        if (servers[index].id === id) {
+          return index;
+        }
+      }
+      return -1;
     };
     this.getServerByPtype = function (ptype) {
       var server = null;
@@ -30663,7 +30788,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       goog.object.extend(server, serverInfo, {});
       console.log('---- MapService.layerInfo. trying to add server: ', server);
       service_.populateLayersConfig(server).then(function (response) {
-        server.id = servers.length;
+        server.id = serverCount++;
         servers.push(server);
         rootScope_.$broadcast('server-added', server.id);
         deferredResponse.resolve(server);
@@ -30672,30 +30797,53 @@ var SERVER_SERVICE_USE_PROXY = true;
       });
       return deferredResponse.promise;
     };
+    this.removeServer = function (id) {
+      var serverIndex = -1;
+      for (var index = 0; index < servers.length; index += 1) {
+        if (servers[index].id === id) {
+          serverIndex = index;
+          break;
+        }
+      }
+      if (serverIndex > -1) {
+        var server = servers.splice(serverIndex, 1)[0];
+        rootScope_.$broadcast('server-removed', server);
+      }
+    };
     this.configDefaultServers = function () {
       var config = null;
       console.log('----- Configuring default servers.');
       if (!goog.isDefAndNotNull(service_.getServerByPtype('gxp_bingsource'))) {
         config = {
           ptype: 'gxp_bingsource',
-          name: 'Bing'
+          name: 'Bing',
+          defaultServer: true
         };
         service_.addServer(config);
+      } else {
+        service_.getServerByPtype('gxp_bingsource').defaultServer = true;
       }
       if (!goog.isDefAndNotNull(service_.getServerByPtype('gxp_mapquestsource'))) {
         config = {
           ptype: 'gxp_mapquestsource',
-          name: 'MapQuest'
+          name: 'MapQuest',
+          defaultServer: true
         };
         service_.addServer(config);
+      } else {
+        service_.getServerByPtype('gxp_mapquestsource').defaultServer = true;
       }
       if (!goog.isDefAndNotNull(service_.getServerByPtype('gxp_osmsource'))) {
         config = {
           ptype: 'gxp_osmsource',
-          name: 'OpenStreetMap'
+          name: 'OpenStreetMap',
+          defaultServer: true
         };
         service_.addServer(config);
+      } else {
+        service_.getServerByPtype('gxp_osmsource').defaultServer = true;
       }
+      service_.getServerLocalGeoserver().defaultServer = true;
     };
     this.getLayersConfig = function (serverId) {
       var server = service_.getServerById(serverId);
@@ -32763,6 +32911,16 @@ var DiffColorMap = {
               scope.featureManagerService = featureManagerService;
             });
           });
+          scope.isShowingAttributes = function () {
+            var schema = featureManagerService.getSelectedLayer().get('metadata').schema;
+            var properties = featureManagerService.getSelectedItemProperties();
+            for (var index = 0; index < properties.length; index++) {
+              if (schema[properties[index][0]].visible) {
+                return true;
+              }
+            }
+            return false;
+          };
           scope.showFeatureHistory = function () {
             if (!scope.loadingHistory) {
               var layer = featureManagerService.getSelectedLayer();
@@ -32991,17 +33149,34 @@ var DiffColorMap = {
       }
       if (selectedItem_ !== selectedItemOld) {
         var pics = null;
-        if (getItemType(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) && goog.isDefAndNotNull(selectedItem_.properties) && goog.isDefAndNotNull(selectedItem_.properties.fotos) && selectedItem_.properties.fotos !== '') {
-          pics = JSON.parse(selectedItem_.properties.fotos);
+        if (getItemType(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) && goog.isDefAndNotNull(selectedItem_.properties)) {
+          if (goog.isDefAndNotNull(selectedItem_.properties.fotos) && selectedItem_.properties.fotos !== '') {
+            pics = {
+              name: 'fotos',
+              pics: JSON.parse(selectedItem_.properties.fotos)
+            };
+          } else if (goog.isDefAndNotNull(selectedItem_.properties.photos) && selectedItem_.properties.photos !== '') {
+            pics = {
+              name: 'photos',
+              pics: JSON.parse(selectedItem_.properties.photos)
+            };
+          }
           if (goog.isDefAndNotNull(pics) && pics.length === 0) {
             pics = null;
           }
         }
         selectedItemPics_ = pics;
         if (selectedItemPics_ !== null) {
-          goog.array.forEach(selectedItemPics_, function (item, index) {
-            selectedItemPics_[index] = '/file-service/' + item;
+          goog.array.forEach(selectedItemPics_.pics, function (item, index) {
+            selectedItemPics_.pics[index] = '/file-service/' + item;
           });
+        }
+        if (getItemType(selectedItem_) === 'feature') {
+          selectedLayer_ = this.getSelectedItemLayer().layer;
+          mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+          position = getNewPositionFromGeometry(mapService_.editLayer.getSource().getFeatures()[0].getGeometry(), clickPosition_);
+        } else {
+          mapService_.clearEditLayer();
         }
         var props = null;
         if (getItemType(selectedItem_) === 'feature') {
@@ -33014,13 +33189,6 @@ var DiffColorMap = {
               ]);
             }
           });
-        }
-        if (getItemType(selectedItem_) === 'feature') {
-          selectedLayer_ = this.getSelectedItemLayer().layer;
-          mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
-          position = getNewPositionFromGeometry(mapService_.editLayer.getSource().getFeatures()[0].getGeometry(), clickPosition_);
-        } else {
-          mapService_.clearEditLayer();
         }
         selectedItemProperties_ = props;
       }
@@ -33087,7 +33255,7 @@ var DiffColorMap = {
         if (goog.isDefAndNotNull(activeIndex)) {
           options.index = activeIndex;
         }
-        blueimp.Gallery(selectedItemPics_, options);
+        blueimp.Gallery(selectedItemPics_.pics, options);
       }
     };
     this.startFeatureInsert = function (layer) {
@@ -34106,6 +34274,7 @@ var GeoGitRevertFeatureOptions = function () {
           if (goog.isDefAndNotNull(json.schema)) {
             forEachArrayish(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
               schema[obj._name] = obj;
+              schema[obj._name].visible = true;
               if (goog.isDefAndNotNull(obj.simpleType)) {
                 schema[obj._name]._type = 'simpleType';
               }
@@ -34785,8 +34954,12 @@ var GeoGitRevertFeatureOptions = function () {
           scope.mapService = mapService;
           scope.featureManagerService = featureManagerService;
           scope.tableViewService = tableViewService;
+          scope.zooming = false;
           scope.toggleVisibility = function (layer) {
             layer.setVisible(!layer.get('visible'));
+          };
+          scope.toggleAttributeVisibility = function (attribute) {
+            attribute.visible = !attribute.visible;
           };
           scope.removeLayer = function (layer) {
             dialogService.warn($translate('remove_layer'), $translate('sure_remove_layer'), [
@@ -34801,6 +34974,12 @@ var GeoGitRevertFeatureOptions = function () {
               case 1:
                 break;
               }
+            });
+          };
+          scope.zoomToData = function (layer) {
+            scope.zooming = true;
+            mapService.zoomToLayerFeatures(layer).then(function () {
+              scope.zooming = false;
             });
           };
           scope.reorderLayer = function (startIndex, endIndex) {
@@ -34854,15 +35033,15 @@ var GeoGitRevertFeatureOptions = function () {
               layer.get('metadata').loadingHistory = false;
             }
           };
-          scope.attrList = [];
-          scope.fillAttrList = function (layer) {
-            scope.attrList = [];
+          scope.getAttrList = function (layer) {
+            var attrList = [];
             for (var i in layer.get('metadata').schema) {
               if (layer.get('metadata').schema[i]._type.search('gml:') > -1) {
                 continue;
               }
-              scope.attrList.push(layer.get('metadata').schema[i]._name);
+              attrList.push(layer.get('metadata').schema[i]);
             }
+            return attrList;
           };
           scope.getLayerInfo = function (layer) {
             $rootScope.$broadcast('getLayerInfo', layer);
@@ -34977,6 +35156,7 @@ var GeoGitRevertFeatureOptions = function () {
   var translate_ = null;
   var dragZoomActive = false;
   var rootScope_ = null;
+  var q_ = null;
   var select = null;
   var draw = null;
   var modify = null;
@@ -35132,7 +35312,8 @@ var GeoGitRevertFeatureOptions = function () {
       'configService',
       'dialogService',
       '$rootScope',
-      function ($translate, serverService, geogitService, $http, pulldownService, $cookieStore, $cookies, configService, dialogService, $rootScope) {
+      '$q',
+      function ($translate, serverService, geogitService, $http, pulldownService, $cookieStore, $cookies, configService, dialogService, $rootScope, $q) {
         service_ = this;
         httpService_ = $http;
         cookieStoreService_ = $cookieStore;
@@ -35145,6 +35326,7 @@ var GeoGitRevertFeatureOptions = function () {
         translate_ = $translate;
         rootScope_ = $rootScope;
         pulldownService_ = pulldownService;
+        q_ = $q;
         this.configuration = configService_.configuration;
         this.title = this.configuration.about.title;
         this.abstract = this.configuration.about.abstract;
@@ -35246,8 +35428,10 @@ var GeoGitRevertFeatureOptions = function () {
       view.fitExtent(extent, map.getSize());
     };
     this.zoomToLayerFeatures = function (layer) {
+      var deferredResponse = q_.defer();
       if (!goog.isDefAndNotNull(layer)) {
-        return;
+        deferredResponse.resolve();
+        return deferredResponse.promise;
       }
       if (!service_.layerIsEditable(layer)) {
         var layerTypeName = layer.get('metadata').name;
@@ -35267,13 +35451,17 @@ var GeoGitRevertFeatureOptions = function () {
           var transform = ol.proj.getTransformFromProjections(ol.proj.get(layer.get('metadata').projection), ol.proj.get('EPSG:900913'));
           var extent900913 = ol.extent.transform(bounds, transform);
           service_.zoomToExtent(extent900913, null, null, 0.1);
+          deferredResponse.resolve();
         }).error(function (data, status, headers, config) {
           console.log('----[ Warning: wps gs:bounds failed, zooming to layer bounds ', data, status, headers, config);
           service_.zoomToLayerExtent(layer);
+          deferredResponse.resolve();
         });
       } else {
         service_.zoomToLayerExtent(layer);
+        deferredResponse.resolve();
       }
+      return deferredResponse.promise;
     };
     this.zoomToLayerExtent = function (layer) {
       var metadata = layer.get('metadata');
@@ -35327,6 +35515,10 @@ var GeoGitRevertFeatureOptions = function () {
       var server = serverService_.getServerById(minimalConfig.source);
       var fullConfig = serverService_.getLayerConfig(server.id, minimalConfig.name);
       console.log('-- MapService.addLayer. minimalConfig: ', minimalConfig, ', fullConfig: ', fullConfig, ', server: ', server, ', opt_layerOrder: ', opt_layerOrder);
+      if (!goog.isDefAndNotNull(fullConfig)) {
+        dialogService_.error(translate_('map_layers'), translate_('load_layer_failed', { 'layer': minimalConfig.name }), [translate_('btn_ok')], false);
+        return;
+      }
       var layer = null;
       var nameSplit = null;
       var url = null;
@@ -35457,6 +35649,7 @@ var GeoGitRevertFeatureOptions = function () {
         console.log('====[Error: could not load layer: ', minimalConfig);
       }
       console.log('-- MapService.addLayer, added: ', layer);
+      pulldownService_.showLayerPanel();
       return layer;
     };
     this.getCenter = function () {
@@ -35508,10 +35701,12 @@ var GeoGitRevertFeatureOptions = function () {
         cfg.sources.push(server.config);
       });
       goog.array.forEach(service_.getLayers(true, true), function (layer, key, obj) {
+        var config = layer.get('metadata').config;
+        config.source = serverService_.getServerIndex(config.source);
         console.log('saving layer: ', layer);
         console.log('metadata: ', layer.get('metadata'));
         console.log('config: ', layer.get('metadata').config);
-        cfg.map.layers.push(layer.get('metadata').config);
+        cfg.map.layers.push(config);
       });
       console.log('--- save.cfg: ', cfg);
       httpService_({
@@ -35595,21 +35790,22 @@ var GeoGitRevertFeatureOptions = function () {
               addLayersForServer(serverIndex, serverNew);
               if (numServers === 0) {
                 pulldownService_.serversLoading = false;
+                serverService_.configDefaultServers();
               }
             }, function (reject) {
               numServers--;
               if (numServers === 0) {
                 pulldownService_.serversLoading = false;
+                serverService_.configDefaultServers();
               }
               dialogService_.error(translate_('server'), translate_('load_server_failed', {
                 'server': serverInfo.name,
                 'value': reject
-              }));
+              }), [translate_('btn_ok')], false);
               console.log('====[ Error: Add server failed. ', reject);
             });
           }
         });
-        serverService_.configDefaultServers();
       } else {
         console.log('invalid config object, cannot load map: ', service_.configuration);
         alert('invalid config object, cannot load map');
@@ -39058,7 +39254,13 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "            <span class=\"caret right-and-center\"></span>\n" +
     "          </button>\n" +
     "          <ul id=\"server-list\" class=\"dropdown-menu col-md-12\">\n" +
-    "            <li ng-repeat=\"server in servers = serverService.getServers()\"><a ng-click=\"setCurrentServerId(server.id)\">{{server.name}}</a></li>\n" +
+    "            <li ng-repeat=\"server in servers = serverService.getServers()\">\n" +
+    "              <a ng-click=\"setCurrentServerId(server.id)\">{{server.name}}\n" +
+    "                <div ng-hide=\"server.defaultServer\" stop-event='click' ng-click=\"removeServer(server.id)\" class=\"glyphicon glyphicon-remove-circle pull-right\"></div>\n" +
+    "                <div ng-hide=\"server.defaultServer\" stop-event='click' ng-click=\"editServer(server)\" class=\"glyphicon glyphicon-pencil pull-right server-edit-icon\"></div>\n" +
+    "              </a>\n" +
+    "\n" +
+    "            </li>\n" +
     "            <li class=\"divider\"></li>\n" +
     "            <li><a data-target=\"#add-server-dialog\" data-toggle=\"modal\" translate=\"add_new_server\">Add New Server</a></li>\n" +
     "          </ul>\n" +
@@ -39103,6 +39305,7 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
 
 angular.module("addlayers/partials/addserver.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addserver.tpl.html",
+    "<div id=\"server-add-loading\" class=\"loom-loading\" spinner-width=\"6\" spinner-radius=\"40\" spinner-hidden=\"!loading\"></div>\n" +
     "<div class=\"modal-body\">\n" +
     "  <form name=\"serverform\" class=\"form-horizontal\">\n" +
     "    <div class=\"form-group\">\n" +
@@ -39135,8 +39338,9 @@ angular.module("addlayers/partials/addserver.tpl.html", []).run(["$templateCache
     "  </form>\n" +
     "</div>\n" +
     "<div class=\"modal-footer\">\n" +
-    "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\" translate=\"close_btn\">Close</button>\n" +
-    "  <button type=\"button\" class=\"btn btn-primary\" ng-disabled=\"!serverform.$valid\" ng-click=\"addServer({'type': type, 'name': name, 'url': url})\" translate=\"add_btn\">Add</button>\n" +
+    "  <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\" translate=\"close_btn\" ng-click=\"reset()\">Close</button>\n" +
+    "  <button ng-hide=\"editing\" type=\"button\" class=\"btn btn-primary\" ng-disabled=\"!serverform.$valid\" ng-click=\"addServer({'type': type, 'name': name, 'url': url})\" translate=\"add_btn\">Add</button>\n" +
+    "  <button ng-show=\"editing\" type=\"button\" class=\"btn btn-primary\" ng-disabled=\"!serverform.$valid\" ng-click=\"editServer()\" translate=\"save_btn\">Save</button>\n" +
     "</div>\n" +
     "");
 }]);
@@ -39522,18 +39726,21 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "  </div>\n" +
     "\n" +
     "  <div ng-if=\"featureManagerService.getState() == 'feature'\">\n" +
-    "    <div id=\"pic-carousel-container\" ng-if=\"featureManagerService.getSelectedItemPics()\">\n" +
+    "    <div id=\"pic-carousel-container\" ng-if=\"featureManagerService.getSelectedItemPics() && featureManagerService.getSelectedLayer().get('metadata').schema[featureManagerService.getSelectedItemPics().name].visible\">\n" +
     "      <carousel id=\"feature-info-box-carousel\" interval=\"2000\">\n" +
-    "        <slide ng-repeat=\"pic in featureManagerService.getSelectedItemPics()\">\n" +
+    "        <slide ng-repeat=\"pic in featureManagerService.getSelectedItemPics().pics\">\n" +
     "          <img ng-src=\"{{pic}}\" style=\"margin: auto\" ng-click=\"featureManagerService.showPics($index)\">\n" +
     "        </slide>\n" +
     "      </carousel>\n" +
     "    </div>\n" +
     "\n" +
     "    <div class=\"feature-info-box\">\n" +
+    "      <span class=\"info-box-attribute\" ng-show=\"!isShowingAttributes()\" translate=\"no_attributes\"></span>\n" +
     "      <span ng-repeat=\"prop in featureManagerService.getSelectedItemProperties()\">\n" +
-    "        <span class=\"info-box-attribute\">{{prop[0]}}</span>\n" +
-    "        <span class=\"info-box-attribute-value\">{{prop[1]}}</span>\n" +
+    "        <div ng-show=\"featureManagerService.getSelectedLayer().get('metadata').schema[prop[0]].visible\">\n" +
+    "          <span class=\"info-box-attribute\">{{prop[0]}}</span>\n" +
+    "          <span class=\"info-box-attribute-value\">{{prop[1]}}</span>\n" +
+    "        </div>\n" +
     "      </span>\n" +
     "    </div>\n" +
     "\n" +
@@ -39687,7 +39894,7 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "     arrangeable-placeholder='<div class=\"placeholder\"></div>'>\n" +
     "  <div class=\"panel\"\n" +
     "       ng-repeat=\"layer in layers = mapService.map.getLayers().getArray() | reverse | filter:filterInternalLayers\">\n" +
-    "    <div class=\"panel-heading layer-heading\" data-toggle=\"collapse\" ng-click=\"fillAttrList(layer)\"\n" +
+    "    <div class=\"panel-heading layer-heading\" data-toggle=\"collapse\"\n" +
     "         data-parent=\"#layerpanel-group\" data-target=\"#{{layer.get('metadata').uniqueID}}\">\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"layer-title ellipsis\">\n" +
@@ -39713,9 +39920,10 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "      <div class=\"panel-body layer-inner-panel\">\n" +
     "        <div class=\"btn-group-wrap\">\n" +
     "          <div class=\"btn-group\">\n" +
-    "            <a type=\"button\" ng-click=\"mapService.zoomToLayerFeatures(layer)\" tooltip-append-to-body=\"true\"\n" +
+    "            <a type=\"button\" ng-click=\"zoomToData(layer)\" tooltip-append-to-body=\"true\"\n" +
     "               tooltip-placement=\"top\" tooltip=\"{{'zoom_to_data' | translate}}\"\n" +
     "               class=\"btn btn-sm btn-default\">\n" +
+    "              <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!zooming\"></div>\n" +
     "              <i class=\"glyphicon glyphicon-resize-small\"></i>\n" +
     "            </a>\n" +
     "            <a type=\"button\" ng-click=\"showTable(layer)\" ng-show=\"layer.get('metadata').editable\"\n" +
@@ -39747,7 +39955,13 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "\n" +
     "        <div id=\"attributeRow\" class=\"row\" ng-show=\"layer.get('metadata').editable\">\n" +
     "          <ul class=\"list-group\">\n" +
-    "            <li class=\"list-group-item\" ng-repeat=\"attribute in attrList\">{{attribute}}</li>\n" +
+    "            <li class=\"list-group-item\" ng-repeat=\"attribute in getAttrList(layer)\">{{attribute._name}}\n" +
+    "              <span ng-click=\"toggleAttributeVisibility(attribute)\" \n" +
+    "                    class=\"btn btn-xs btn-default layer-visible-button pull-right\"\n" +
+    "                    ng-class=\"{'layer-visible': attribute.visible}\">\n" +
+    "                <i class=\"glyphicon\" ng-class=\"{'glyphicon-eye-close': !attribute.visible, 'glyphicon-eye-open': attribute.visible}\"></i>\n" +
+    "              </span>\n" +
+    "            </li>\n" +
     "          </ul>\n" +
     "        </div>\n" +
     "      </div>\n" +
