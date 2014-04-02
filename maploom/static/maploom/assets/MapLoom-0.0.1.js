@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-01
+ * MapLoom - v0.0.1 - 2014-04-02
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -35599,7 +35599,7 @@ var GeoGitRevertFeatureOptions = function () {
             workspace: nameSplit.length > 1 ? nameSplit[0] : '',
             editable: false,
             bbox: goog.isArray(fullConfig.BoundingBox) ? fullConfig.BoundingBox[0] : fullConfig.BoundingBox,
-            projection: fullConfig.SRS
+            projection: goog.isArray(fullConfig.CRS) ? fullConfig.CRS[0] : fullConfig.CRS
           },
           source: new ol.source.TileWMS({
             url: server.url,
