@@ -29845,7 +29845,7 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'layer_type_not_supported': 'Layer type not supported',
       'notifications_tab': 'Notifications',
       'no_notifications': 'No notifications',
-      'map_layers': 'Map Layers',
+      'map_layers': 'Layers',
       'add_layer_btn': 'Add Layer',
       'add_layers': 'Add Layers',
       'remove_layer': 'Remove Layer',
@@ -30095,7 +30095,7 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'layer_type_not_supported': 'El tipo de capa no soportado',
       'notifications_tab': 'Notificaciones',
       'no_notifications': 'Ninguna notificaci\xf3n',
-      'map_layers': 'Capas de Mapa',
+      'map_layers': 'Capas',
       'add_layer_btn': 'A\xf1adir Capa',
       'add_layers': 'A\xf1adir Capas',
       'remove_layer': 'Retirar la Capa',
@@ -30573,20 +30573,21 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
           };
           scope.$on('modal-closed', closeModal);
           scope.$watch('type', function () {
-            scope.name = null;
-            scope.url = null;
+            if (!scope.editing) {
+              scope.url = null;
+            }
           });
           scope.$on('server-edit', function (event, server) {
             element.closest('.modal').modal('show');
-            scope.editing = true;
-            scope.name = server.name;
-            scope.url = server.url;
-            scope.server = server;
             if (server.ptype == 'gxp_tmssource') {
               scope.type = 'TMS';
             } else if (server.ptype == 'gxp_wmscsource') {
               scope.type = 'WMS';
             }
+            scope.editing = true;
+            scope.name = server.name;
+            scope.url = server.url;
+            scope.server = server;
           });
         }
       };
@@ -32526,8 +32527,9 @@ var DiffColorMap = {
             var attributeTypes = featureManagerService.getSelectedLayer().get('metadata').schema;
             goog.array.forEach(properties, function (property, index, arr) {
               if (goog.isDefAndNotNull(attributeTypes)) {
-                if (attributeTypes[property[0]]._type.search('gml:') === -1) {
-                  var prop = goog.object.clone(property);
+                var prop;
+                if (goog.isDefAndNotNull(attributeTypes[property[0]]) && attributeTypes[property[0]]._type.search('gml:') === -1) {
+                  prop = goog.object.clone(property);
                   prop.type = attributeTypes[prop[0]]._type;
                   if (prop.type === 'simpleType') {
                     prop.enum = attributeTypes[prop[0]].simpleType.restriction.enumeration;
@@ -32758,8 +32760,8 @@ var DiffColorMap = {
     };
     this.addToFeature = function () {
       if (!this.addMode) {
-        mapService_.removeModify();
         mapService_.removeSelect();
+        mapService_.removeModify();
         if (geometryType_.toLowerCase() == 'multigeometry' || geometryType_.toLowerCase() == 'geometrycollection') {
           $('#drawSelectDialog').modal('toggle');
         } else {
@@ -33297,6 +33299,7 @@ var DiffColorMap = {
         if (mapService_.editLayer.getSource().getFeatures().length < 1) {
           dialogService_.warn(translate_('adding_feature'), translate_('must_create_feature'), [translate_('btn_ok')], false);
         } else {
+          exclusiveModeService_.addMode = false;
           exclusiveModeService_.endExclusiveMode();
           mapService_.removeDraw();
           mapService_.removeSelect();
@@ -33349,6 +33352,7 @@ var DiffColorMap = {
           service_.startAttributeEditing(true);
         }
       }), exclusiveModeService_.button(translate_('cancel_feature'), function () {
+        exclusiveModeService_.addMode = false;
         exclusiveModeService_.endExclusiveMode();
         mapService_.removeDraw();
         mapService_.removeSelect();
@@ -33386,7 +33390,7 @@ var DiffColorMap = {
               }, selectedLayer_.get('metadata').projection, mapService_.map.getView().getView2D().getProjection());
             feature.setGeometry(newGeom);
             newPos = newGeom.getCoordinates();
-            featureGML = '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '"><gml:pos>' + newPos[0] + ' ' + newPos[1] + '</gml:pos></gml:Point>';
+            featureGML = '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:coordinates decimal="." cs="," ts=" ">' + newPos[0] + ',' + newPos[1] + '</gml:coordinates></gml:Point>';
             var pan = ol.animation.pan({ source: mapService_.map.getView().getView2D().getCenter() });
             mapService_.map.beforeRender(pan);
             mapService_.map.getView().getView2D().setCenter(newPos);
@@ -33475,8 +33479,9 @@ var DiffColorMap = {
           });
         }
       }), exclusiveModeService_.button(translate_('cancel_feature'), function () {
-        exclusiveModeService_.endExclusiveMode();
-        service_.endGeometryEditing(false);
+        service_.endGeometryEditing(false).then(function (resolve) {
+          exclusiveModeService_.endExclusiveMode();
+        });
       }), geometryType);
       mapService_.addSelect();
       mapService_.addModify();
@@ -33524,12 +33529,26 @@ var DiffColorMap = {
         var partial = '<wfs:Property><wfs:Name>' + selectedItem_.geometry_name + '</wfs:Name><wfs:Value>' + featureGML + '</wfs:Value></wfs:Property>';
         var coords = null;
         var newPos;
-        if (feature.getGeometry().getType().toLowerCase() == 'point') {
+        var transformedGeom;
+        if (feature.getGeometry().getType().toLowerCase() == 'geometrycollection') {
+          coords = feature.getGeometry().getGeometries();
+          transformedGeom = transformGeometry({
+            type: 'multigeometry',
+            coordinates: coords
+          }, mapService_.map.getView().getView2D().getProjection(), selectedLayer_.get('metadata').projection);
+          coords = [];
+          for (index = 0; index < transformedGeom.getGeometries().length; index++) {
+            coords.push({
+              coordinates: transformedGeom.getGeometries()[index].getCoordinates(),
+              type: transformedGeom.getGeometries()[index].getType()
+            });
+          }
+        } else {
           coords = feature.getGeometry().getCoordinates();
-          var transformedGeom = transformGeometry({
-              type: 'point',
-              coordinates: coords
-            }, mapService_.map.getView().getView2D().getProjection(), selectedLayer_.get('metadata').projection);
+          transformedGeom = transformGeometry({
+            type: feature.getGeometry().getType(),
+            coordinates: coords
+          }, mapService_.map.getView().getView2D().getProjection(), selectedLayer_.get('metadata').projection);
           coords = transformedGeom.getCoordinates();
         }
         newPos = getNewPositionFromGeometry(feature.getGeometry());
@@ -33586,7 +33605,7 @@ var DiffColorMap = {
             var feature = mapService_.editLayer.getSource().getFeatures()[0];
             feature.setGeometry(newGeom);
             newPos = newGeom.getCoordinates();
-            var featureGML = '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '"><gml:pos>' + newPos[0] + ' ' + newPos[1] + '</gml:pos></gml:Point>';
+            var featureGML = '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:coordinates decimal="." cs="," ts=" ">' + newPos[0] + ',' + newPos[1] + '</gml:coordinates></gml:Point>';
             propertyXmlPartial += '<wfs:Property><wfs:Name>' + selectedItem_.geometry_name + '</wfs:Name><wfs:Value>' + featureGML + '</wfs:Value></wfs:Property>';
             var pan = ol.animation.pan({ source: mapService_.map.getView().getView2D().getCenter() });
             mapService_.map.beforeRender(pan);
@@ -33722,7 +33741,11 @@ var DiffColorMap = {
           selectedItemProperties_ = properties;
         }
         if (goog.isDefAndNotNull(coords)) {
-          selectedItem_.geometry.coordinates = coords;
+          if (selectedItem_.geometry.type.toLowerCase() == 'geometrycollection') {
+            selectedItem_.geometry.geometries = coords;
+          } else {
+            selectedItem_.geometry.coordinates = coords;
+          }
         }
         if (goog.isDefAndNotNull(newPos)) {
           service_.show(selectedItem_, newPos);
@@ -35751,6 +35774,7 @@ var GeoGitRevertFeatureOptions = function () {
           ordered[key] = serverInfo;
         });
         var orderedUnique = new Array(ordered.length);
+        var orderedUniqueLength = 0;
         goog.array.forEach(ordered, function (serverInfo, key, obj) {
           if (goog.isDefAndNotNull(serverInfo.url)) {
             var foundServerIndex = null;
@@ -35777,9 +35801,11 @@ var GeoGitRevertFeatureOptions = function () {
               }
             } else {
               orderedUnique[key] = serverInfo;
+              orderedUniqueLength++;
             }
           } else {
             orderedUnique[key] = serverInfo;
+            orderedUniqueLength++;
           }
         });
         var addLayersForServer = function (configServerIndex, server) {
@@ -35802,20 +35828,19 @@ var GeoGitRevertFeatureOptions = function () {
             }
           });
         };
-        var numServers = orderedUnique.length;
         pulldownService_.serversLoading = true;
         goog.array.forEach(orderedUnique, function (serverInfo, serverIndex, obj) {
           if (goog.isDefAndNotNull(serverInfo)) {
             serverService_.addServer(serverInfo).then(function (serverNew) {
-              numServers--;
+              orderedUniqueLength--;
               addLayersForServer(serverIndex, serverNew);
-              if (numServers === 0) {
+              if (orderedUniqueLength === 0) {
                 pulldownService_.serversLoading = false;
                 serverService_.configDefaultServers();
               }
             }, function (reject) {
-              numServers--;
-              if (numServers === 0) {
+              orderedUniqueLength--;
+              if (orderedUniqueLength === 0) {
                 pulldownService_.serversLoading = false;
                 serverService_.configDefaultServers();
               }
@@ -35921,37 +35946,55 @@ var GeoGitRevertFeatureOptions = function () {
       }
     };
     this.addSelect = function () {
-      select = new ol.interaction.Select({ style: styleFunc });
-      this.map.addInteraction(select);
+      if (!goog.isDefAndNotNull(select)) {
+        select = new ol.interaction.Select({
+          style: styleFunc,
+          layer: this.editLayer
+        });
+        this.map.addInteraction(select);
+      }
     };
     this.addDraw = function (geometryType) {
-      draw = new ol.interaction.Draw({
-        source: this.editLayer.getSource(),
-        type: geometryType
-      });
-      this.map.addInteraction(draw);
+      if (!goog.isDefAndNotNull(draw)) {
+        draw = new ol.interaction.Draw({
+          source: this.editLayer.getSource(),
+          type: geometryType
+        });
+        this.map.addInteraction(draw);
+      }
     };
     this.addModify = function () {
-      modify = new ol.interaction.Modify({
-        features: select.getFeatures(),
-        style: styleFunc
-      });
-      this.map.addInteraction(modify);
+      if (!goog.isDefAndNotNull(modify)) {
+        modify = new ol.interaction.Modify({
+          features: select.getFeatures(),
+          style: styleFunc
+        });
+        this.map.addInteraction(modify);
+      }
     };
     this.removeSelect = function () {
       this.map.removeInteraction(select);
+      select = null;
     };
     this.removeDraw = function () {
       this.map.removeInteraction(draw);
+      draw = null;
     };
     this.removeModify = function () {
       this.map.removeInteraction(modify);
+      modify = null;
     };
     this.hasSelectedFeature = function () {
-      return select.getFeatures().getLength() > 0;
+      if (goog.isDefAndNotNull(select)) {
+        return select.getFeatures().getLength() > 0;
+      }
+      return false;
     };
     this.getSelectedFeatures = function () {
-      return select.getFeatures();
+      if (goog.isDefAndNotNull(select)) {
+        return select.getFeatures();
+      }
+      return [];
     };
   });
 }());
