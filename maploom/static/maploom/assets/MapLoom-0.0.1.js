@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-02
+ * MapLoom - v0.0.1 - 2014-04-03
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -36433,6 +36433,11 @@ var GeoGitRevertFeatureOptions = function () {
         rootScope_ = $rootScope;
         modal_ = $modal;
         q_ = $q;
+        $(document).keydown(function (objEvent) {
+          if (objEvent.keyCode == 9 && numModals > 0) {
+            objEvent.preventDefault();
+          }
+        });
         return this;
       }
     ];
