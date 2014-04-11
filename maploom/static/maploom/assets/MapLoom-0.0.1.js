@@ -34643,9 +34643,17 @@ var GeoGitRevertFeatureOptions = function () {
           var json = x2js.xml_str2json(response.data);
           var schema = [];
           if (goog.isDefAndNotNull(json.schema)) {
+            var savedSchema = layer.get('metadata').savedSchema;
             forEachArrayish(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
               schema[obj._name] = obj;
               schema[obj._name].visible = true;
+              if (goog.isDefAndNotNull(savedSchema)) {
+                for (var index = 0; index < savedSchema.length; index++) {
+                  if (obj._name == savedSchema[index].name) {
+                    schema[obj._name].visible = savedSchema[index].visible;
+                  }
+                }
+              }
               if (goog.isDefAndNotNull(obj.simpleType)) {
                 schema[obj._name]._type = 'simpleType';
               }
@@ -35910,6 +35918,7 @@ var GeoGitRevertFeatureOptions = function () {
             name: minimalConfig.name,
             title: fullConfig.Title
           },
+          visible: minimalConfig.visibility,
           source: new ol.source.OSM()
         });
       } else if (server.ptype === 'gxp_bingsource') {
@@ -35926,6 +35935,7 @@ var GeoGitRevertFeatureOptions = function () {
             name: minimalConfig.name,
             title: fullConfig.Title
           },
+          visible: minimalConfig.visibility,
           source: new ol.source.BingMaps(sourceParams)
         });
       } else if (server.ptype === 'gxp_googlesource') {
@@ -35939,6 +35949,7 @@ var GeoGitRevertFeatureOptions = function () {
               name: minimalConfig.name,
               title: fullConfig.Title
             },
+            visible: minimalConfig.visibility,
             source: source
           });
         } else {
@@ -35963,8 +35974,10 @@ var GeoGitRevertFeatureOptions = function () {
             workspace: nameSplit.length > 1 ? nameSplit[0] : '',
             editable: false,
             bbox: goog.isArray(fullConfig.BoundingBox) ? fullConfig.BoundingBox[0] : fullConfig.BoundingBox,
-            projection: goog.isArray(fullConfig.CRS) ? fullConfig.CRS[0] : fullConfig.CRS
+            projection: goog.isArray(fullConfig.CRS) ? fullConfig.CRS[0] : fullConfig.CRS,
+            savedSchema: minimalConfig.schema
           },
+          visible: minimalConfig.visibility,
           source: new ol.source.TileWMS({
             url: server.url,
             params: { 'LAYERS': minimalConfig.name }
@@ -35991,6 +36004,7 @@ var GeoGitRevertFeatureOptions = function () {
             editable: false,
             bbox: fullConfig.BoundingBox[0]
           },
+          visible: minimalConfig.visibility,
           source: new ol.source.XYZ({
             tileUrlFunction: function (coordinate) {
               if (coordinate == null) {
@@ -36088,6 +36102,16 @@ var GeoGitRevertFeatureOptions = function () {
       goog.array.forEach(service_.getLayers(true, true), function (layer, key, obj) {
         var config = layer.get('metadata').config;
         config.source = serverService_.getServerIndex(config.source);
+        config.visibility = layer.get('visible');
+        if (goog.isDefAndNotNull(layer.get('metadata').schema)) {
+          config.schema = [];
+          for (var i in layer.get('metadata').schema) {
+            config.schema.push({
+              name: i,
+              visible: layer.get('metadata').schema[i].visible
+            });
+          }
+        }
         console.log('saving layer: ', layer);
         console.log('metadata: ', layer.get('metadata'));
         console.log('config: ', layer.get('metadata').config);
