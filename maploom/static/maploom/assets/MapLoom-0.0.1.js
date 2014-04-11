@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-08
+ * MapLoom - v0.0.1 - 2014-04-11
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -33181,43 +33181,48 @@ var DiffColorMap = {
     };
     var updatePolygon = function (feature) {
       var feat = new ol.Feature();
-      points.push(points[0]);
-      feat.setGeometry(new ol.geom.Polygon([points]));
+      feat.setGeometry(new ol.geom.Polygon(points));
       mapService_.getSelectedFeatures().pop();
       mapService_.editLayer.getSource().clear();
       mapService_.editLayer.getSource().addFeature(feat);
     };
     var updateMultiPolygon = function (feature) {
       var feat = new ol.Feature();
-      points.push(points[0]);
-      feat.setGeometry(new ol.geom.MultiPolygon([[points]]));
+      feat.setGeometry(new ol.geom.MultiPolygon([points]));
       service_.removeFromFeature();
       mapService_.editLayer.getSource().addFeature(feat);
     };
     this.orthogonalize = function () {
       if (mapService_.hasSelectedFeature()) {
         var feature = mapService_.getSelectedFeatures().getAt(0);
+        var coordinates;
         if (feature.getGeometry().getType().search(/Multi/g) > -1) {
-          points = feature.getGeometry().getCoordinates()[0][0];
+          coordinates = feature.getGeometry().getCoordinates()[0];
         } else {
-          points = feature.getGeometry().getCoordinates()[0];
+          coordinates = feature.getGeometry().getCoordinates();
         }
-        points.pop();
-        var steps = 1000;
-        var tolerance = 1e-8;
-        var score = totalScore();
-        for (var index = 0; index < steps; index++) {
-          step();
-          var newScore = totalScore();
-          if (newScore > score) {
-            dialogService_.open(translate_('right_angles'), translate_('right_angles_failed'), [translate_('btn_ok')], false);
-            return;
+        for (var ringIndex = 0; ringIndex < coordinates.length; ringIndex++) {
+          points = coordinates[ringIndex];
+          points.pop();
+          var steps = 1000;
+          var tolerance = 1e-8;
+          var score = totalScore();
+          for (var index = 0; index < steps; index++) {
+            step();
+            var newScore = totalScore();
+            if (newScore > score) {
+              dialogService_.open(translate_('right_angles'), translate_('right_angles_failed'), [translate_('btn_ok')], false);
+              return;
+            }
+            score = newScore;
+            if (score < tolerance) {
+              break;
+            }
           }
-          score = newScore;
-          if (score < tolerance) {
-            break;
-          }
+          points.push(points[0]);
+          coordinates[ringIndex] = points;
         }
+        points = coordinates;
         if (feature.getGeometry().getType().search(/Multi/g) > -1) {
           updateMultiPolygon(feature);
         } else {
@@ -34143,9 +34148,11 @@ var DiffColorMap = {
       } else if (geometryType == 'linestring') {
         featureGML += '<gml:LineString xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates().toString()) + '</gml:coordinates></gml:LineString>';
       } else if (geometryType == 'polygon') {
-        for (var coordIndex = 0; coordIndex < geometry.getCoordinates().length; coordIndex++) {
+        featureGML += '<gml:Polygon xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:outerBoundaryIs><gml:LinearRing><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[0].toString()) + '</gml:coordinates>' + '</gml:LinearRing></gml:outerBoundaryIs>';
+        for (index = 1; index < geometry.getCoordinates().length; index++) {
+          featureGML += '<gml:innerBoundaryIs><gml:LinearRing><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[index].toString()) + '</gml:coordinates>' + '</gml:LinearRing></gml:innerBoundaryIs>';
         }
-        featureGML += '<gml:Polygon xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">' + '<gml:outerBoundaryIs><gml:LinearRing><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates().toString()) + '</gml:coordinates>' + '</gml:LinearRing></gml:outerBoundaryIs></gml:Polygon>';
+        featureGML += '</gml:Polygon>';
       } else if (geometryType == 'multipoint') {
         featureGML += '<gml:MultiPoint xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">';
         for (index = 0; index < geometry.getCoordinates().length; index++) {
@@ -34155,13 +34162,17 @@ var DiffColorMap = {
       } else if (geometryType == 'multilinestring') {
         featureGML += '<gml:MultiLineString xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">';
         for (index = 0; index < geometry.getCoordinates().length; index++) {
-          featureGML += '<gml:lineMember><gml:LineString>' + '<gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[index].toString()) + '</gml:coordinates></gml:LineString></gml:lineMember>';
+          featureGML += '<gml:lineMember><gml:LineString><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[index].toString()) + '</gml:coordinates></gml:LineString></gml:lineMember>';
         }
         featureGML += '</gml:MultiLineString>';
       } else if (geometryType == 'multipolygon') {
         featureGML += '<gml:MultiPolygon xmlns:gml="http://www.opengis.net/gml" srsName="' + mapService_.map.getView().getView2D().getProjection().getCode() + '">';
         for (index = 0; index < geometry.getCoordinates().length; index++) {
-          featureGML += '<gml:polygonMember><gml:Polygon>' + '<gml:outerBoundaryIs><gml:LinearRing><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[index].toString()) + '</gml:coordinates>' + '</gml:LinearRing></gml:outerBoundaryIs></gml:Polygon></gml:polygonMember>';
+          featureGML += '<gml:polygonMember><gml:Polygon>' + '<gml:outerBoundaryIs><gml:LinearRing><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[index][0].toString()) + '</gml:coordinates>' + '</gml:LinearRing></gml:outerBoundaryIs>';
+          for (var innerIndex = 1; innerIndex < geometry.getCoordinates()[index].length; innerIndex++) {
+            featureGML += '<gml:innerBoundaryIs><gml:LinearRing><gml:coordinates decimal="." cs="," ts=" ">' + buildCoordString(geometry.getCoordinates()[index][innerIndex].toString()) + '</gml:coordinates>' + '</gml:LinearRing></gml:innerBoundaryIs>';
+          }
+          featureGML += '</gml:Polygon></gml:polygonMember>';
         }
         featureGML += '</gml:MultiPolygon>';
       }
@@ -35751,7 +35762,6 @@ var GeoGitRevertFeatureOptions = function () {
       });
     };
     this.zoomToExtent = function (extent, animate, map, scale) {
-      console.log('---- MapService.zoomToExtent. extent: ', extent);
       if (!goog.isDefAndNotNull(animate)) {
         animate = true;
       }
@@ -35772,14 +35782,15 @@ var GeoGitRevertFeatureOptions = function () {
           extent[1] -= height * scale;
           extent[2] += width * scale;
           extent[3] += height * scale;
-          for (var index = 0; index < extent.length; index++) {
-            if (isNaN(parseFloat(extent[index])) || !isFinite(extent[index])) {
-              extent = view.getProjection().getExtent();
-              break;
-            }
+        }
+        for (var index = 0; index < extent.length; index++) {
+          if (isNaN(parseFloat(extent[index])) || !isFinite(extent[index])) {
+            extent = view.getProjection().getExtent();
+            break;
           }
         }
       }
+      console.log('---- MapService.zoomToExtent. extent: ', extent);
       if (animate) {
         var zoom = ol.animation.zoom({ resolution: map.getView().getResolution() });
         var pan = ol.animation.pan({ source: map.getView().getCenter() });
