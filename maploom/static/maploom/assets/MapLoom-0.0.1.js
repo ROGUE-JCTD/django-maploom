@@ -36806,6 +36806,49 @@ var GeoGitRevertFeatureOptions = function () {
         return this;
       }
     ];
+    this.promptCredentials = function (title, message, type) {
+      if (!goog.isDefAndNotNull(type)) {
+        type = 'dialog-default';
+      }
+      var username = null;
+      var password = null;
+      var deferredPromise = q_.defer();
+      var modalScope = rootScope_.$new();
+      var ok = false;
+      modalScope.dialogTitle = title;
+      modalScope.dialogContent = message;
+      modalScope.modalOffset = numModals * 20;
+      modalScope.type = type;
+      modalScope.username = '';
+      modalScope.password = '';
+      modalScope.ok = function (_username, _password) {
+        ok = true;
+        username = _username;
+        password = _password;
+        modalInstance.close();
+      };
+      modalScope.cancel = function () {
+        modalInstance.close();
+      };
+      var modalInstance = modal_.open({
+          template: '<div loom-password-dialog></div>',
+          scope: modalScope,
+          backdrop: 'static',
+          keyboard: false
+        });
+      numModals = numModals + 1;
+      modalInstance.result.then(function () {
+        numModals -= 1;
+        if (ok) {
+          deferredPromise.resolve(username + ':' + password);
+        } else {
+          deferredPromise.reject();
+        }
+      }, function (reject) {
+        deferredPromise.reject(reject);
+      });
+      return deferredPromise.promise;
+    };
     this.open = function (title, message, buttons, closeButton, type) {
       if (!goog.isDefAndNotNull(type)) {
         type = 'dialog-default';
@@ -36888,9 +36931,19 @@ var GeoGitRevertFeatureOptions = function () {
 (function () {
   angular.module('loom_modal', [
     'loom_modal_directive',
+    'loom_password_directive',
     'loom_dialog_directive',
     'loom_dialog_service'
   ]);
+}());
+(function () {
+  var module = angular.module('loom_password_directive', []);
+  module.directive('loomPasswordDialog', function () {
+    return {
+      replace: true,
+      templateUrl: 'modal/partials/password.tpl.html'
+    };
+  });
 }());
 (function () {
   var module = angular.module('loom_notification_poster_directive', []);
@@ -39674,7 +39727,7 @@ var WKT = {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'modal/partials/password.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -40526,6 +40579,34 @@ angular.module("modal/partials/modal.tpl.html", []).run(["$templateCache", funct
     "      </div>\n" +
     "      <div ng-transclude style=\"height: 100%\">\n" +
     "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
+angular.module("modal/partials/password.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("modal/partials/password.tpl.html",
+    "<div class=\"loom-password-dialog loom-dialog {{type}}\" ng-style=\"{'margin-left':{{modalOffset}},'margin-top':{{modalOffset}}}\">\n" +
+    "  <div class=\"modal-header\">\n" +
+    "    <h4 class=\"modal-title\">{{dialogTitle}}</h4>\n" +
+    "  </div>\n" +
+    "  <div class=\"modal-body\">\n" +
+    "    {{dialogContent}}\n" +
+    "    <div>\n" +
+    "      <label class=\"control-label\"><span translate=\"repo_username\"></span>: </label>\n" +
+    "      <input type=\"text\" ng-model=\"username\" class=\"form-control\"\n" +
+    "               placeholder=\"{{'repo_username' | translate}}\">\n" +
+    "      <label class=\"control-label\"><span translate=\"repo_password\"></span>: </label>\n" +
+    "      <input type=\"password\" ng-model=\"password\" class=\"form-control\"\n" +
+    "             placeholder=\"{{'repo_password' | translate}}\">\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "  <div class=\"modal-footer\">\n" +
+    "    <div align=\"center\">\n" +
+    "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"ok(username, password)\" translate=\"btn_ok\">\n" +
+    "      </button>\n" +
+    "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"cancel()\" translate=\"cancel_btn\">\n" +
+    "      </button>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>");
