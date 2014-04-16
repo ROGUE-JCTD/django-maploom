@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-14
+ * MapLoom - v0.0.1 - 2014-04-16
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -33517,8 +33517,10 @@ var DiffColorMap = {
         }
         if (getItemType(selectedItem_) === 'feature') {
           selectedLayer_ = this.getSelectedItemLayer().layer;
-          mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
-          position = getNewPositionFromGeometry(mapService_.editLayer.getSource().getFeatures()[0].getGeometry(), clickPosition_);
+          if (goog.isDefAndNotNull(selectedItem_.geometry)) {
+            mapService_.addToEditLayer(selectedItem_.geometry, selectedLayer_.get('metadata').projection);
+            position = getNewPositionFromGeometry(mapService_.editLayer.getSource().getFeatures()[0].getGeometry(), clickPosition_);
+          }
         } else {
           mapService_.clearEditLayer();
         }
