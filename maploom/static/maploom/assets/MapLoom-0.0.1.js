@@ -30878,6 +30878,9 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
           };
           scope.editServer = function () {
             scope.server.name = scope.name;
+            if (goog.isDefAndNotNull(scope.server.config)) {
+              scope.server.config.name = scope.name;
+            }
             if (scope.server.url !== scope.url) {
               var layers = mapService.getLayers(true, true);
               for (var index = 0; index < layers.length; index++) {
@@ -31135,7 +31138,14 @@ var SERVER_SERVICE_USE_PROXY = true;
       return server;
     };
     this.getServerLocalGeoserver = function () {
-      return service_.getServerByName('Local Geoserver');
+      var server = null;
+      for (var index = 0; index < servers.length; index += 1) {
+        if (servers[index].isLocal === true) {
+          server = servers[index];
+          break;
+        }
+      }
+      return server;
     };
     this.changeCredentials = function (server) {
       var deferredResponse = q_.defer();
@@ -31201,6 +31211,7 @@ var SERVER_SERVICE_USE_PROXY = true;
         } else {
           server.username = configService_.username;
           server.isLocal = true;
+          server.name = translate_('local_geoserver');
           doWork();
         }
       } else {
