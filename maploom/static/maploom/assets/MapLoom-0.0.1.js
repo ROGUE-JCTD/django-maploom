@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-16
+ * MapLoom - v0.0.1 - 2014-04-17
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -30718,6 +30718,9 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
               }
             }
           };
+          scope.changeCredentials = function () {
+            serverService.changeCredentials(scope.currentServer);
+          };
           scope.filterAddedLayers = function (layerConfig) {
             var show = true;
             var layers = mapService.getLayers(true, true);
@@ -31009,6 +31012,8 @@ var SERVER_SERVICE_USE_PROXY = true;
   var dialogService_ = null;
   var translate_ = null;
   var http_ = null;
+  var location_ = null;
+  var configService_ = null;
   var q_ = null;
   var serverCount = 0;
   module.provider('serverService', function () {
@@ -31016,14 +31021,19 @@ var SERVER_SERVICE_USE_PROXY = true;
       '$rootScope',
       '$http',
       '$q',
+      '$location',
       '$translate',
       'dialogService',
-      function ($rootScope, $http, $q, $translate, dialogService) {
+      'configService',
+      function ($rootScope, $http, $q, $location, $translate, dialogService, configService) {
         service_ = this;
         rootScope_ = $rootScope;
         dialogService_ = dialogService;
         translate_ = $translate;
         http_ = $http;
+        location_ = $location;
+        configService_ = configService;
+        configService_.serverList = servers;
         q_ = $q;
         return this;
       }
@@ -31112,6 +31122,36 @@ var SERVER_SERVICE_USE_PROXY = true;
     this.getServerLocalGeoserver = function () {
       return service_.getServerByName('Local Geoserver');
     };
+    this.changeCredentials = function (server) {
+      var deferredResponse = q_.defer();
+      var doWork = function () {
+        service_.populateLayersConfig(server, true).then(function (response) {
+          deferredResponse.resolve(server);
+        }, function (reject) {
+          deferredResponse.reject(server, reject);
+        });
+      };
+      if (goog.isDefAndNotNull(server.url)) {
+        if (server.url.indexOf(location_.host()) === -1) {
+          dialogService_.promptCredentials(server.url).then(function (credentials) {
+            server.username = credentials.username;
+            server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
+            doWork();
+          }, function (reject) {
+            server.username = 'Anonymous';
+            server.authentication = undefined;
+            doWork();
+          });
+        } else {
+          server.username = configService_.username;
+          server.isLocal = true;
+          doWork();
+        }
+      } else {
+        doWork();
+      }
+      return deferredResponse.promise;
+    };
     this.addServer = function (serverInfo) {
       var deferredResponse = q_.defer();
       var server = {
@@ -31121,15 +31161,36 @@ var SERVER_SERVICE_USE_PROXY = true;
           populatingLayersConfig: false
         };
       goog.object.extend(server, serverInfo, {});
-      console.log('---- MapService.layerInfo. trying to add server: ', server);
-      service_.populateLayersConfig(server).then(function (response) {
-        server.id = serverCount++;
-        servers.push(server);
-        rootScope_.$broadcast('server-added', server.id);
-        deferredResponse.resolve(server);
-      }, function (reject) {
-        deferredResponse.reject(server, reject);
-      });
+      var doWork = function () {
+        console.log('---- MapService.layerInfo. trying to add server: ', server);
+        service_.populateLayersConfig(server).then(function (response) {
+          server.id = serverCount++;
+          servers.push(server);
+          rootScope_.$broadcast('server-added', server.id);
+          deferredResponse.resolve(server);
+        }, function (reject) {
+          deferredResponse.reject(server, reject);
+        });
+      };
+      if (goog.isDefAndNotNull(server.url)) {
+        if (server.url.indexOf(location_.host()) === -1) {
+          dialogService_.promptCredentials(server.url).then(function (credentials) {
+            server.username = credentials.username;
+            server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
+            doWork();
+          }, function (reject) {
+            server.username = 'Anonymous';
+            server.authentication = undefined;
+            doWork();
+          });
+        } else {
+          server.username = configService_.username;
+          server.isLocal = true;
+          doWork();
+        }
+      } else {
+        doWork();
+      }
       return deferredResponse.promise;
     };
     this.removeServer = function (id) {
@@ -31270,7 +31331,14 @@ var SERVER_SERVICE_USE_PROXY = true;
             var parser = new ol.format.WMSCapabilities();
             var url = server.url + '?SERVICE=WMS&REQUEST=GetCapabilities';
             server.populatingLayersConfig = true;
-            http_.get(url).then(function (xhr) {
+            var config = {};
+            config.headers = {};
+            if (goog.isDefAndNotNull(server.authentication)) {
+              config.headers['Authorization'] = 'Basic ' + server.authentication;
+            } else {
+              config.headers['Authorization'] = '';
+            }
+            http_.get(url, config).then(function (xhr) {
               if (xhr.status === 200) {
                 var response = parser.read(xhr.data);
                 if (goog.isDefAndNotNull(response.Capability) && goog.isDefAndNotNull(response.Capability.Layer)) {
@@ -31375,6 +31443,14 @@ var SERVER_SERVICE_USE_PROXY = true;
             config.headers['X-CSRFToken'] = service_.csrfToken;
           }
           if (goog.isDefAndNotNull(config) && goog.isDefAndNotNull(config.url) && config.url.indexOf('http') === 0 && config.url.indexOf('http://' + $location.host()) !== 0) {
+            var server = service_.getServerByURL(config.url);
+            if (goog.isDefAndNotNull(server)) {
+              if (!goog.isDefAndNotNull(server.authentication)) {
+                config.headers['Authorization'] = '';
+              } else {
+                config.headers['Authorization'] = 'Basic ' + server.authentication;
+              }
+            }
             var configCopy = $.extend(true, {}, config);
             var proxy = service_.configuration.proxy;
             if (goog.isDefAndNotNull(proxy)) {
@@ -31396,6 +31472,7 @@ var SERVER_SERVICE_USE_PROXY = true;
   ]);
   module.provider('configService', function () {
     this.configuration = {};
+    this.serverList = null;
     this.$get = [
       '$window',
       '$http',
@@ -31468,6 +31545,32 @@ var SERVER_SERVICE_USE_PROXY = true;
     ];
     this.isAuthenticated = function () {
       return service_.configuration.authStatus == 200;
+    };
+    this.getServerByURL = function (url) {
+      var server = null;
+      if (!goog.isDefAndNotNull(url)) {
+        throw {
+          name: 'configService',
+          level: 'High',
+          message: 'undefined server url.',
+          toString: function () {
+            return this.name + ': ' + this.message;
+          }
+        };
+      }
+      for (var index = 0; index < service_.serverList.length; index += 1) {
+        var subURL = service_.serverList[index].url;
+        if (goog.isDefAndNotNull(subURL)) {
+          if (subURL.indexOf('/wms') >= 0) {
+            subURL = subURL.substring(0, subURL.indexOf('/wms'));
+          }
+          if (url.indexOf(subURL) === 0) {
+            server = service_.serverList[index];
+            break;
+          }
+        }
+      }
+      return server;
     };
   });
 }());
@@ -34356,7 +34459,8 @@ var GeoGitRevertFeatureOptions = function () {
   var q, http, rootScope, dialogService_, translate_;
   var service_ = null;
   var issueRequest = function (URL, deferredResponse) {
-    http.jsonp(URL).then(function (response) {
+    http.get(URL).then(function (response) {
+      console.log('GeoGit response: ', response);
       if (!goog.isDef(response.data.response.success) || response.data.response.success === true) {
         if (goog.isDef(response.data.response.Merge) && goog.isDef(response.data.response.Merge.conflicts)) {
           deferredResponse.reject(response.data.response.Merge);
@@ -34420,7 +34524,7 @@ var GeoGitRevertFeatureOptions = function () {
       var deferredResponse = q.defer();
       var repo = service_.getRepoById(repoId);
       if (goog.isDefAndNotNull(repo)) {
-        var URL = repo.url + '/' + command + '?output_format=JSON&callback=JSON_CALLBACK';
+        var URL = repo.url + '/' + command + '?output_format=JSON';
         URL += '&_dc=' + new Date().getTime();
         if (goog.isDefAndNotNull(options)) {
           for (var property in options) {
@@ -36800,15 +36904,10 @@ var GeoGitRevertFeatureOptions = function () {
         rootScope_ = $rootScope;
         modal_ = $modal;
         q_ = $q;
-        $(document).keydown(function (objEvent) {
-          if (objEvent.keyCode == 9 && numModals > 0) {
-            objEvent.preventDefault();
-          }
-        });
         return this;
       }
     ];
-    this.promptCredentials = function (title, message, type) {
+    this.promptCredentials = function (server, type) {
       if (!goog.isDefAndNotNull(type)) {
         type = 'dialog-default';
       }
@@ -36817,8 +36916,7 @@ var GeoGitRevertFeatureOptions = function () {
       var deferredPromise = q_.defer();
       var modalScope = rootScope_.$new();
       var ok = false;
-      modalScope.dialogTitle = title;
-      modalScope.dialogContent = message;
+      modalScope.serverURL = server;
       modalScope.modalOffset = numModals * 20;
       modalScope.type = type;
       modalScope.username = '';
@@ -36842,7 +36940,10 @@ var GeoGitRevertFeatureOptions = function () {
       modalInstance.result.then(function () {
         numModals -= 1;
         if (ok) {
-          deferredPromise.resolve(username + ':' + password);
+          deferredPromise.resolve({
+            username: username,
+            password: password
+          });
         } else {
           deferredPromise.reject();
         }
@@ -39764,7 +39865,17 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "    <div class=\"form-group\">\n" +
     "      <input id=\"layer-filter\" ng-model=\"filterLayers\" type=\"text\" class=\"form-control\" placeholder=\"{{'filter_layers' | translate}}\">\n" +
     "    </div>\n" +
-    "    <hr>\n" +
+    "    <div class=\"form-group\" ng-if=\"currentServer.username !== null && currentServer.username !== undefined\">\n" +
+    "      <div ng-class=\"{'input-group':!currentServer.isLocal}\">\n" +
+    "        <input type=\"text\" value=\"Connected as {{currentServer.username}}.\" disabled class=\"form-control logged-in-as-input\">\n" +
+    "        <span class=\"input-group-btn\" ng-if=\"!currentServer.isLocal\">\n" +
+    "          <a class=\"switch-user-btn btn btn-default\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\"\n" +
+    "             tooltip=\"Connect as...\" ng-click=\"changeCredentials()\" type=\"button\">\n" +
+    "            <i class=\"glyphicon glyphicon-transfer\"></i>\n" +
+    "          </a>\n" +
+    "        </span>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
     "    <div class=\"add-layers-loading loom-loading\" spinner-hidden=\"!currentServer.populatingLayersConfig\"></div>\n" +
     "    <div class=\"form-group layer-container\">\n" +
     "      <ul id=\"layer-list\" class=\"list-group\">\n" +
@@ -40572,7 +40683,7 @@ angular.module("modal/partials/dialog.tpl.html", []).run(["$templateCache", func
 
 angular.module("modal/partials/modal.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("modal/partials/modal.tpl.html",
-    "<div class=\"modal fade custom\" tabindex=\"-1\" data-backdrop=\"static\" data-keyboard=\"false\">\n" +
+    "<div class=\"modal fade custom\" data-backdrop=\"static\" data-keyboard=\"false\">\n" +
     "  <div class=\"modal-dialog\">\n" +
     "    <div class=\"modal-content\">\n" +
     "      <div class=\"modal-header\">\n" +
@@ -40590,10 +40701,14 @@ angular.module("modal/partials/password.tpl.html", []).run(["$templateCache", fu
   $templateCache.put("modal/partials/password.tpl.html",
     "<div class=\"loom-password-dialog loom-dialog {{type}}\" ng-style=\"{'margin-left':{{modalOffset}},'margin-top':{{modalOffset}}}\">\n" +
     "  <div class=\"modal-header\">\n" +
-    "    <h4 class=\"modal-title\">{{dialogTitle}}</h4>\n" +
+    "    <h4 class=\"modal-title\">Credentials</h4>\n" +
     "  </div>\n" +
     "  <div class=\"modal-body\">\n" +
-    "    {{dialogContent}}\n" +
+    "    Please enter your credentials for:\n" +
+    "    <br><b>{{serverURL}}</b><br>\n" +
+    "    Or you may click Skip to log in anonymously. Only public layer will be visible to anonymous users and changes to\n" +
+    "    those layers will not be associated with a user. It is recommended that you log in if you have credentials for this\n" +
+    "    server.\n" +
     "    <div>\n" +
     "      <label class=\"control-label\"><span translate=\"repo_username\"></span>: </label>\n" +
     "      <input type=\"text\" ng-model=\"username\" class=\"form-control\"\n" +
@@ -40607,7 +40722,7 @@ angular.module("modal/partials/password.tpl.html", []).run(["$templateCache", fu
     "    <div align=\"center\">\n" +
     "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"ok(username, password)\" translate=\"btn_ok\">\n" +
     "      </button>\n" +
-    "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"cancel()\" translate=\"cancel_btn\">\n" +
+    "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"cancel()\">Skip\n" +
     "      </button>\n" +
     "    </div>\n" +
     "  </div>\n" +
