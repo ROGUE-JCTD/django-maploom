@@ -30390,6 +30390,12 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'keywords': 'Keywords',
       'srs': 'SRS',
       'server': 'Server',
+      'credentials': 'Credentials',
+      'enter_credentials': 'Please enter your credentials for:',
+      'skip_credentials': 'Or you may click Skip to log in anonymously. Only public layer will be visible to anonymous ' + 'users and changes to those layers will not be associated with a user. It is recommended that you log in if ' + 'you have credentials for this server.',
+      'skip': 'Skip',
+      'connected_as': 'Connected as {{value}}.',
+      'connect_as': 'Connect as...',
       'datastoretype': 'Datastore Type',
       'branch': 'Branch',
       'layerinfo': 'Layer Info',
@@ -30640,6 +30646,12 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'keywords': 'Palabras clave',
       'srs': 'SRS',
       'server': 'Servidor',
+      'credentials': 'Cartas Credenciales',
+      'enter_credentials': 'Por favor, introduzca sus credenciales para:',
+      'skip_credentials': 'O usted puede hacer clic en Omitir para iniciar sesi\xf3n de forma an\xf3nima. S\xf3lo capa ' + 'p\xfablico ser\xe1 visible para los usuarios an\xf3nimos y los cambios en las capas no se asociar\xe1 con un usuario. ' + 'Se recomienda que usted inicia sesi\xf3n si usted tiene las credenciales para este servidor.',
+      'skip': 'Omitir',
+      'connected_as': 'Conectado como {{value}}.',
+      'connect_as': 'Conecte como...',
       'datastoretype': 'Tipo de almacen de datos',
       'branch': 'Rama',
       'layerinfo': 'Informacion de las Capas',
@@ -30692,6 +30704,9 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
               scope.currentServerId = serverId;
               scope.currentServer = server;
             }
+          };
+          scope.getConnectedString = function () {
+            return $translate('connected_as', { value: scope.currentServer.username });
           };
           var server = serverService.getServerLocalGeoserver();
           if (goog.isDefAndNotNull(server)) {
@@ -31138,7 +31153,7 @@ var SERVER_SERVICE_USE_PROXY = true;
             server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
             doWork();
           }, function (reject) {
-            server.username = 'Anonymous';
+            server.username = translate_('anonymous');
             server.authentication = undefined;
             doWork();
           });
@@ -31179,7 +31194,7 @@ var SERVER_SERVICE_USE_PROXY = true;
             server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
             doWork();
           }, function (reject) {
-            server.username = 'Anonymous';
+            server.username = translate_('anonymous');
             server.authentication = undefined;
             doWork();
           });
@@ -34460,7 +34475,6 @@ var GeoGitRevertFeatureOptions = function () {
   var service_ = null;
   var issueRequest = function (URL, deferredResponse) {
     http.get(URL).then(function (response) {
-      console.log('GeoGit response: ', response);
       if (!goog.isDef(response.data.response.success) || response.data.response.success === true) {
         if (goog.isDef(response.data.response.Merge) && goog.isDef(response.data.response.Merge.conflicts)) {
           deferredResponse.reject(response.data.response.Merge);
@@ -39867,10 +39881,10 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "    </div>\n" +
     "    <div class=\"form-group\" ng-if=\"currentServer.username !== null && currentServer.username !== undefined\">\n" +
     "      <div ng-class=\"{'input-group':!currentServer.isLocal}\">\n" +
-    "        <input type=\"text\" value=\"Connected as {{currentServer.username}}.\" disabled class=\"form-control logged-in-as-input\">\n" +
+    "        <input type=\"text\" value=\"{{getConnectedString()}}\" disabled class=\"form-control logged-in-as-input\">\n" +
     "        <span class=\"input-group-btn\" ng-if=\"!currentServer.isLocal\">\n" +
     "          <a class=\"switch-user-btn btn btn-default\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\"\n" +
-    "             tooltip=\"Connect as...\" ng-click=\"changeCredentials()\" type=\"button\">\n" +
+    "             tooltip=\"{{'connect_as' | translate}}\" ng-click=\"changeCredentials()\" type=\"button\">\n" +
     "            <i class=\"glyphicon glyphicon-transfer\"></i>\n" +
     "          </a>\n" +
     "        </span>\n" +
@@ -40701,14 +40715,12 @@ angular.module("modal/partials/password.tpl.html", []).run(["$templateCache", fu
   $templateCache.put("modal/partials/password.tpl.html",
     "<div class=\"loom-password-dialog loom-dialog {{type}}\" ng-style=\"{'margin-left':{{modalOffset}},'margin-top':{{modalOffset}}}\">\n" +
     "  <div class=\"modal-header\">\n" +
-    "    <h4 class=\"modal-title\">Credentials</h4>\n" +
+    "    <h4 class=\"modal-title\" translate=\"credentials\"></h4>\n" +
     "  </div>\n" +
     "  <div class=\"modal-body\">\n" +
-    "    Please enter your credentials for:\n" +
+    "    <span translate=\"enter_credentials\"></span>\n" +
     "    <br><b>{{serverURL}}</b><br>\n" +
-    "    Or you may click Skip to log in anonymously. Only public layer will be visible to anonymous users and changes to\n" +
-    "    those layers will not be associated with a user. It is recommended that you log in if you have credentials for this\n" +
-    "    server.\n" +
+    "    <span translate=\"skip_credentials\"></span>\n" +
     "    <div>\n" +
     "      <label class=\"control-label\"><span translate=\"repo_username\"></span>: </label>\n" +
     "      <input type=\"text\" ng-model=\"username\" class=\"form-control\"\n" +
@@ -40722,7 +40734,7 @@ angular.module("modal/partials/password.tpl.html", []).run(["$templateCache", fu
     "    <div align=\"center\">\n" +
     "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"ok(username, password)\" translate=\"btn_ok\">\n" +
     "      </button>\n" +
-    "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"cancel()\">Skip\n" +
+    "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"cancel()\" translate=\"skip\">\n" +
     "      </button>\n" +
     "    </div>\n" +
     "  </div>\n" +
