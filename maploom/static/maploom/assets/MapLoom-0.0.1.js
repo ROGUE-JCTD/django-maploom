@@ -37961,7 +37961,11 @@ var GeoGitRevertFeatureOptions = function () {
       }
     };
     var checkCompatiblity = function (url, result) {
-      http_.get(url + '/log?returnRange=true&output_format=JSON').then(function (logInfo) {
+      var config = { headers: {} };
+      if (goog.isDefAndNotNull(service_.remoteUsername)) {
+        config.headers['Authorization'] = 'Basic ' + $.base64.encode(service_.remoteUsername + ':' + service_.remotePassword);
+      }
+      http_.get(url + '/log?returnRange=true&output_format=JSON', config).then(function (logInfo) {
         if (logInfo.data.response.success === true) {
           if (logInfo.data.response.sinceCommit.id == service_.selectedRepoInitialCommit) {
             result.resolve(url);
@@ -38125,7 +38129,11 @@ var GeoGitRevertFeatureOptions = function () {
           extraPath = '/geoserver/geogit';
         }
         service_.verificationResult = q_.defer();
-        http_.get(url + extraPath, { headers: { 'Accept': 'text/json' } }).then(function (response) {
+        var config = { headers: { 'Accept': 'text/json' } };
+        if (goog.isDefAndNotNull(service_.remoteUsername)) {
+          config.headers['Authorization'] = 'Basic ' + $.base64.encode(service_.remoteUsername + ':' + service_.remotePassword);
+        }
+        http_.get(url + extraPath, config).then(function (response) {
           if (!goog.isDefAndNotNull(response.data.repositories)) {
             checkCompatiblity(url, service_.verificationResult);
           } else {
