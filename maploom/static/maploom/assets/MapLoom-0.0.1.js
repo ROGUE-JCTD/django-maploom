@@ -31159,18 +31159,21 @@ var SERVER_SERVICE_USE_PROXY = true;
         });
       };
       if (goog.isDefAndNotNull(server.url)) {
-        if (server.url.indexOf(location_.host()) !== -1) {
+        if (server.url.indexOf(location_.host()) === -1) {
+          dialogService_.promptCredentials(server.url).then(function (credentials) {
+            server.username = credentials.username;
+            server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
+            doWork();
+          }, function (reject) {
+            server.username = translate_('anonymous');
+            server.authentication = undefined;
+            doWork();
+          });
+        } else {
+          server.username = configService_.username;
           server.isLocal = true;
+          doWork();
         }
-        dialogService_.promptCredentials(server.url).then(function (credentials) {
-          server.username = credentials.username;
-          server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
-          doWork();
-        }, function (reject) {
-          server.username = translate_('anonymous');
-          server.authentication = undefined;
-          doWork();
-        });
       } else {
         doWork();
       }
@@ -31197,19 +31200,22 @@ var SERVER_SERVICE_USE_PROXY = true;
         });
       };
       if (goog.isDefAndNotNull(server.url)) {
-        if (server.url.indexOf(location_.host()) !== -1) {
+        if (server.url.indexOf(location_.host()) === -1) {
+          dialogService_.promptCredentials(server.url).then(function (credentials) {
+            server.username = credentials.username;
+            server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
+            doWork();
+          }, function (reject) {
+            server.username = translate_('anonymous');
+            server.authentication = undefined;
+            doWork();
+          });
+        } else {
+          server.username = configService_.username;
           server.isLocal = true;
           server.name = translate_('local_geoserver');
+          doWork();
         }
-        dialogService_.promptCredentials(server.url).then(function (credentials) {
-          server.username = credentials.username;
-          server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
-          doWork();
-        }, function (reject) {
-          server.username = translate_('anonymous');
-          server.authentication = undefined;
-          doWork();
-        });
       } else {
         doWork();
       }
@@ -31464,7 +31470,7 @@ var SERVER_SERVICE_USE_PROXY = true;
           if (goog.isDefAndNotNull(config) && (config.method.toLowerCase() === 'post' || config.method.toLowerCase() === 'put')) {
             config.headers['X-CSRFToken'] = service_.csrfToken;
           }
-          if (goog.isDefAndNotNull(config) && goog.isDefAndNotNull(config.url)) {
+          if (goog.isDefAndNotNull(config) && goog.isDefAndNotNull(config.url) && config.url.indexOf('http') === 0 && config.url.indexOf('http://' + $location.host()) !== 0) {
             var server = service_.getServerByURL(config.url);
             if (goog.isDefAndNotNull(server)) {
               if (!goog.isDefAndNotNull(server.authentication)) {
@@ -31474,11 +31480,9 @@ var SERVER_SERVICE_USE_PROXY = true;
               }
             }
             var configCopy = $.extend(true, {}, config);
-            if (config.url.indexOf('http') === 0 && config.url.indexOf('http://' + $location.host()) !== 0) {
-              var proxy = service_.configuration.proxy;
-              if (goog.isDefAndNotNull(proxy)) {
-                configCopy.url = proxy + encodeURIComponent(configCopy.url);
-              }
+            var proxy = service_.configuration.proxy;
+            if (goog.isDefAndNotNull(proxy)) {
+              configCopy.url = proxy + encodeURIComponent(configCopy.url);
             }
             return configCopy;
           }
@@ -39951,9 +39955,9 @@ angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache
     "      <input id=\"layer-filter\" ng-model=\"filterLayers\" type=\"text\" class=\"form-control\" placeholder=\"{{'filter_layers' | translate}}\">\n" +
     "    </div>\n" +
     "    <div class=\"form-group\" ng-if=\"currentServer.username !== null && currentServer.username !== undefined\">\n" +
-    "      <div class=\"input-group\">\n" +
+    "      <div ng-class=\"{'input-group':!currentServer.isLocal}\">\n" +
     "        <input type=\"text\" value=\"{{getConnectedString()}}\" disabled class=\"form-control logged-in-as-input\">\n" +
-    "        <span class=\"input-group-btn\">\n" +
+    "        <span class=\"input-group-btn\" ng-if=\"!currentServer.isLocal\">\n" +
     "          <a class=\"switch-user-btn btn btn-default\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\"\n" +
     "             tooltip=\"{{'connect_as' | translate}}\" ng-click=\"changeCredentials()\" type=\"button\">\n" +
     "            <i class=\"glyphicon glyphicon-transfer\"></i>\n" +
