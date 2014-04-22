@@ -34877,7 +34877,7 @@ var GeoGitRevertFeatureOptions = function () {
           service_.isNotLayerGroup(layer).then(function () {
             service_.getDataStoreName(layer).then(function (dataStoreName) {
               service_.getDataStore(layer, dataStoreName).then(function (dataStore) {
-                if (dataStore.type === 'GeoGIT' && goog.isDefAndNotNull(server.authentication)) {
+                if (dataStore.type === 'GeoGIT' && (goog.isDefAndNotNull(server.authentication) || server.isLocal === true)) {
                   var repoName = dataStore.connectionParameters.entry[0].$;
                   repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
                   metadata.branchName = dataStore.connectionParameters.entry[1].$;
