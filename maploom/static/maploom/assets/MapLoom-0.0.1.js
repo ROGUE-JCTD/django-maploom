@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-21
+ * MapLoom - v0.0.1 - 2014-04-22
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -31160,14 +31160,16 @@ var SERVER_SERVICE_USE_PROXY = true;
       };
       if (goog.isDefAndNotNull(server.url)) {
         if (server.url.indexOf(location_.host()) === -1) {
-          dialogService_.promptCredentials(server.url).then(function (credentials) {
+          dialogService_.promptCredentials(server.url, true).then(function (credentials) {
             server.username = credentials.username;
             server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
             doWork();
           }, function (reject) {
-            server.username = translate_('anonymous');
-            server.authentication = undefined;
-            doWork();
+            if (goog.isDefAndNotNull(reject) && reject.anonymous) {
+              server.username = translate_('anonymous');
+              server.authentication = undefined;
+              doWork();
+            }
           });
         } else {
           server.username = configService_.username;
@@ -31201,7 +31203,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       };
       if (goog.isDefAndNotNull(server.url)) {
         if (server.url.indexOf(location_.host()) === -1) {
-          dialogService_.promptCredentials(server.url).then(function (credentials) {
+          dialogService_.promptCredentials(server.url, false).then(function (credentials) {
             server.username = credentials.username;
             server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
             doWork();
@@ -32092,7 +32094,7 @@ var DiffColorMap = {
             scope.featureDiffService = featureDiffService;
             scope.editable = false;
             scope.readOnly = false;
-            if (goog.isDefAndNotNull(featureDiffService.layer) && goog.isDefAndNotNull(featureDiffService.layer.get('metadata')) && featureDiffService.layer.get('metadata').readOnly) {
+            if (goog.isDefAndNotNull(featureDiffService.layer) && goog.isDefAndNotNull(featureDiffService.layer.get('metadata')) && (featureDiffService.layer.get('metadata').readOnly || !featureDiffService.layer.get('metadata').editable)) {
               scope.readOnly = true;
             }
             switch (featureDiffService.change) {
@@ -33095,6 +33097,12 @@ var DiffColorMap = {
             property[1] = property.enum[index]._value;
           };
           scope.$on('modal-closed', closeModal);
+          function onResize() {
+            var height = $(window).height();
+            element.children('.modal-body').css('max-height', (height - 200).toString() + 'px');
+          }
+          onResize();
+          $(window).resize(onResize);
         }
       };
     }
@@ -34862,14 +34870,14 @@ var GeoGitRevertFeatureOptions = function () {
       });
       return deferredResponse.promise;
     };
-    this.isGeoGit = function (layer) {
+    this.isGeoGit = function (layer, server) {
       if (goog.isDefAndNotNull(layer)) {
         var metadata = layer.get('metadata');
         if (!goog.isDefAndNotNull(metadata.isGeoGit)) {
           service_.isNotLayerGroup(layer).then(function () {
             service_.getDataStoreName(layer).then(function (dataStoreName) {
               service_.getDataStore(layer, dataStoreName).then(function (dataStore) {
-                if (dataStore.type === 'GeoGIT') {
+                if (dataStore.type === 'GeoGIT' && goog.isDefAndNotNull(server.authentication)) {
                   var repoName = dataStore.connectionParameters.entry[0].$;
                   repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
                   metadata.branchName = dataStore.connectionParameters.entry[1].$;
@@ -35481,6 +35489,12 @@ var GeoGitRevertFeatureOptions = function () {
             scope.serverURL = server.url;
             element.closest('.modal').modal('toggle');
           });
+          function onResize() {
+            var height = $(window).height();
+            element.children('.modal-body').css('max-height', (height - 200).toString() + 'px');
+          }
+          onResize();
+          $(window).resize(onResize);
         }
       };
     }
@@ -35689,6 +35703,12 @@ var GeoGitRevertFeatureOptions = function () {
           scope.mapService = mapService;
           scope.configService = configService;
           scope.translate = $translate;
+          function onResize() {
+            var height = $(window).height();
+            element.children('.modal-body').css('max-height', (height - 200).toString() + 'px');
+          }
+          onResize();
+          $(window).resize(onResize);
         }
       };
     }
@@ -36166,9 +36186,9 @@ var GeoGitRevertFeatureOptions = function () {
             if (goog.isDefAndNotNull(json.ServiceExceptionReport) && goog.isDefAndNotNull(json.ServiceExceptionReport.ServiceException) && json.ServiceExceptionReport.ServiceException.indexOf('read-only') >= 0) {
               layer.get('metadata').readOnly = true;
             }
-            geogitService_.isGeoGit(layer);
+            geogitService_.isGeoGit(layer, server);
           }).error(function (data, status, headers, config) {
-            geogitService_.isGeoGit(layer);
+            geogitService_.isGeoGit(layer, server);
           });
         }
       } else if (server.ptype === 'gxp_tmssource') {
@@ -36988,16 +37008,21 @@ var GeoGitRevertFeatureOptions = function () {
         return this;
       }
     ];
-    this.promptCredentials = function (server, type) {
+    this.promptCredentials = function (server, closeButton, type) {
       if (!goog.isDefAndNotNull(type)) {
         type = 'dialog-default';
+      }
+      if (!goog.isDefAndNotNull(closeButton)) {
+        closeButton = false;
       }
       var username = null;
       var password = null;
       var deferredPromise = q_.defer();
       var modalScope = rootScope_.$new();
       var ok = false;
+      var skip = false;
       modalScope.serverURL = server;
+      modalScope.closeButton = closeButton;
       modalScope.modalOffset = numModals * 20;
       modalScope.type = type;
       modalScope.username = '';
@@ -37006,6 +37031,10 @@ var GeoGitRevertFeatureOptions = function () {
         ok = true;
         username = _username;
         password = _password;
+        modalInstance.close();
+      };
+      modalScope.skip = function () {
+        skip = true;
         modalInstance.close();
       };
       modalScope.cancel = function () {
@@ -37025,6 +37054,8 @@ var GeoGitRevertFeatureOptions = function () {
             username: username,
             password: password
           });
+        } else if (skip) {
+          deferredPromise.reject({ anonymous: true });
         } else {
           deferredPromise.reject();
         }
@@ -38297,6 +38328,12 @@ var GeoGitRevertFeatureOptions = function () {
           });
           scope.$on('repoRemoved', remoteService.reset);
           scope.$on('modal-closed', closeModal);
+          function onResize() {
+            var height = $(window).height();
+            element.children('.modal-body').css('max-height', (height - 200).toString() + 'px');
+          }
+          onResize();
+          $(window).resize(onResize);
         }
       };
     }
@@ -40794,6 +40831,7 @@ angular.module("modal/partials/password.tpl.html", []).run(["$templateCache", fu
   $templateCache.put("modal/partials/password.tpl.html",
     "<div class=\"loom-password-dialog loom-dialog {{type}}\" ng-style=\"{'margin-left':{{modalOffset}},'margin-top':{{modalOffset}}}\">\n" +
     "  <div class=\"modal-header\">\n" +
+    "    <i ng-if=\"closeButton\" ng-click=\"cancel()\" class=\"close glyphicon glyphicon-remove\"></i>\n" +
     "    <h4 class=\"modal-title\" translate=\"credentials\"></h4>\n" +
     "  </div>\n" +
     "  <div class=\"modal-body\">\n" +
@@ -40813,7 +40851,7 @@ angular.module("modal/partials/password.tpl.html", []).run(["$templateCache", fu
     "    <div align=\"center\">\n" +
     "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"ok(username, password)\" translate=\"btn_ok\">\n" +
     "      </button>\n" +
-    "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"cancel()\" translate=\"skip\">\n" +
+    "      <button class=\"btn btn-default\" type=\"button\" ng-click=\"skip()\" translate=\"skip\">\n" +
     "      </button>\n" +
     "    </div>\n" +
     "  </div>\n" +
