@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-22
+ * MapLoom - v0.0.1 - 2014-04-23
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -22346,6 +22346,21 @@ goog.global.CLOSURE_DEFINES;
 
 
 /**
+ * Returns true if the specified value is not undefined.
+ * WARNING: Do not use this to test if an object has a property. Use the in
+ * operator instead.
+ *
+ * @param {?} val Variable to test.
+ * @return {boolean} Whether variable is defined.
+ */
+goog.isDef = function(val) {
+  // void 0 always evaluates to undefined and hence we do not need to depend on
+  // the definition of the global variable named 'undefined'.
+  return val !== void 0;
+};
+
+
+/**
  * Builds an object structure for the provided namespace path, ensuring that
  * names that already exist are not overwritten. For example:
  * "a.b.c" -> a = {};a.b={};a.b.c={};
@@ -22374,7 +22389,7 @@ goog.exportPath_ = function(name, opt_object, opt_objectToExportTo) {
 
   // Parentheses added to eliminate strict JS warning in Firefox.
   for (var part; parts.length && (part = parts.shift());) {
-    if (!parts.length && opt_object !== undefined) {
+    if (!parts.length && goog.isDef(opt_object)) {
       // last part and we have an object; use it
       cur[part] = opt_object;
     } else if (cur[part]) {
@@ -23133,19 +23148,6 @@ goog.typeOf = function(value) {
     return 'object';
   }
   return s;
-};
-
-
-/**
- * Returns true if the specified value is not undefined.
- * WARNING: Do not use this to test if an object has a property. Use the in
- * operator instead.  Additionally, this function assumes that the global
- * undefined variable has not been redefined.
- * @param {?} val Variable to test.
- * @return {boolean} Whether variable is defined.
- */
-goog.isDef = function(val) {
-  return val !== undefined;
 };
 
 
@@ -24012,10 +24014,11 @@ goog.addDependency('crypt/basen_test.js', ['goog.crypt.baseNTest'], ['goog.crypt
 goog.addDependency('crypt/blobhasher.js', ['goog.crypt.BlobHasher', 'goog.crypt.BlobHasher.EventType'], ['goog.asserts', 'goog.crypt', 'goog.crypt.Hash', 'goog.events.EventTarget', 'goog.fs', 'goog.log']);
 goog.addDependency('crypt/blobhasher_test.js', ['goog.crypt.BlobHasherTest'], ['goog.crypt', 'goog.crypt.BlobHasher', 'goog.crypt.Md5', 'goog.events', 'goog.testing.PropertyReplacer', 'goog.testing.jsunit']);
 goog.addDependency('crypt/blockcipher.js', ['goog.crypt.BlockCipher'], []);
+goog.addDependency('crypt/bytestring_perf.js', ['goog.crypt.byteArrayToStringPerf'], ['goog.array', 'goog.dom', 'goog.testing.PerformanceTable']);
 goog.addDependency('crypt/cbc.js', ['goog.crypt.Cbc'], ['goog.array', 'goog.asserts', 'goog.crypt']);
 goog.addDependency('crypt/cbc_test.js', ['goog.crypt.CbcTest'], ['goog.crypt', 'goog.crypt.Aes', 'goog.crypt.Cbc', 'goog.testing.jsunit']);
 goog.addDependency('crypt/crypt.js', ['goog.crypt'], ['goog.array', 'goog.asserts']);
-goog.addDependency('crypt/crypt_test.js', ['goog.cryptTest'], ['goog.crypt', 'goog.testing.jsunit']);
+goog.addDependency('crypt/crypt_test.js', ['goog.cryptTest'], ['goog.crypt', 'goog.string', 'goog.testing.jsunit']);
 goog.addDependency('crypt/hash.js', ['goog.crypt.Hash'], []);
 goog.addDependency('crypt/hash32.js', ['goog.crypt.hash32'], ['goog.crypt']);
 goog.addDependency('crypt/hash32_test.js', ['goog.crypt.hash32Test'], ['goog.crypt.hash32', 'goog.testing.TestCase', 'goog.testing.jsunit']);
@@ -24498,9 +24501,9 @@ goog.addDependency('labs/format/csv.js', ['goog.labs.format.csv', 'goog.labs.for
 goog.addDependency('labs/format/csv_test.js', ['goog.labs.format.csvTest'], ['goog.labs.format.csv', 'goog.labs.format.csv.ParseError', 'goog.object', 'goog.testing.asserts', 'goog.testing.jsunit']);
 goog.addDependency('labs/html/attribute_rewriter.js', ['goog.labs.html.AttributeRewriter', 'goog.labs.html.AttributeValue', 'goog.labs.html.attributeRewriterPresubmitWorkaround'], []);
 goog.addDependency('labs/html/sanitizer.js', ['goog.labs.html.Sanitizer'], ['goog.asserts', 'goog.html.SafeUrl', 'goog.labs.html.attributeRewriterPresubmitWorkaround', 'goog.labs.html.scrubber', 'goog.object', 'goog.string']);
-goog.addDependency('labs/html/sanitizer_test.js', ['goog.labs.html.SanitizerTest'], ['goog.html.SafeUrl', 'goog.labs.html.Sanitizer', 'goog.string', 'goog.string.Const', 'goog.testing.jsunit', 'goog.userAgent']);
-goog.addDependency('labs/html/scrubber.js', ['goog.labs.html.scrubber'], ['goog.dom.tags', 'goog.labs.html.attributeRewriterPresubmitWorkaround', 'goog.string']);
-goog.addDependency('labs/html/scrubber_test.js', ['goog.html.ScrubberTest'], ['goog.labs.html.scrubber', 'goog.object', 'goog.string', 'goog.testing.jsunit', 'goog.userAgent']);
+goog.addDependency('labs/html/sanitizer_test.js', ['goog.labs.html.SanitizerTest'], ['goog.html.SafeUrl', 'goog.labs.html.Sanitizer', 'goog.string', 'goog.string.Const', 'goog.testing.jsunit']);
+goog.addDependency('labs/html/scrubber.js', ['goog.labs.html.scrubber'], ['goog.array', 'goog.dom.tags', 'goog.labs.html.attributeRewriterPresubmitWorkaround', 'goog.string']);
+goog.addDependency('labs/html/scrubber_test.js', ['goog.html.ScrubberTest'], ['goog.labs.html.scrubber', 'goog.object', 'goog.string', 'goog.testing.jsunit']);
 goog.addDependency('labs/i18n/listformat.js', ['goog.labs.i18n.GenderInfo', 'goog.labs.i18n.GenderInfo.Gender', 'goog.labs.i18n.ListFormat'], ['goog.asserts', 'goog.labs.i18n.ListFormatSymbols']);
 goog.addDependency('labs/i18n/listformat_test.js', ['goog.labs.i18n.ListFormatTest'], ['goog.labs.i18n.GenderInfo', 'goog.labs.i18n.ListFormat', 'goog.labs.i18n.ListFormatSymbols', 'goog.labs.i18n.ListFormatSymbols_el', 'goog.labs.i18n.ListFormatSymbols_en', 'goog.labs.i18n.ListFormatSymbols_fr', 'goog.labs.i18n.ListFormatSymbols_ml', 'goog.labs.i18n.ListFormatSymbols_zu', 'goog.testing.jsunit']);
 goog.addDependency('labs/i18n/listsymbols.js', ['goog.labs.i18n.ListFormatSymbols', 'goog.labs.i18n.ListFormatSymbols_af', 'goog.labs.i18n.ListFormatSymbols_am', 'goog.labs.i18n.ListFormatSymbols_ar', 'goog.labs.i18n.ListFormatSymbols_az', 'goog.labs.i18n.ListFormatSymbols_bg', 'goog.labs.i18n.ListFormatSymbols_bn', 'goog.labs.i18n.ListFormatSymbols_br', 'goog.labs.i18n.ListFormatSymbols_ca', 'goog.labs.i18n.ListFormatSymbols_chr', 'goog.labs.i18n.ListFormatSymbols_cs', 'goog.labs.i18n.ListFormatSymbols_cy', 'goog.labs.i18n.ListFormatSymbols_da', 'goog.labs.i18n.ListFormatSymbols_de', 'goog.labs.i18n.ListFormatSymbols_de_AT', 'goog.labs.i18n.ListFormatSymbols_de_CH', 'goog.labs.i18n.ListFormatSymbols_el', 'goog.labs.i18n.ListFormatSymbols_en', 'goog.labs.i18n.ListFormatSymbols_en_AU', 'goog.labs.i18n.ListFormatSymbols_en_GB', 'goog.labs.i18n.ListFormatSymbols_en_IE', 'goog.labs.i18n.ListFormatSymbols_en_IN', 'goog.labs.i18n.ListFormatSymbols_en_ISO', 'goog.labs.i18n.ListFormatSymbols_en_SG', 'goog.labs.i18n.ListFormatSymbols_en_US', 'goog.labs.i18n.ListFormatSymbols_en_ZA', 'goog.labs.i18n.ListFormatSymbols_es', 'goog.labs.i18n.ListFormatSymbols_es_419', 'goog.labs.i18n.ListFormatSymbols_es_ES', 'goog.labs.i18n.ListFormatSymbols_et', 'goog.labs.i18n.ListFormatSymbols_eu', 'goog.labs.i18n.ListFormatSymbols_fa', 'goog.labs.i18n.ListFormatSymbols_fi', 'goog.labs.i18n.ListFormatSymbols_fil', 'goog.labs.i18n.ListFormatSymbols_fr', 'goog.labs.i18n.ListFormatSymbols_fr_CA', 'goog.labs.i18n.ListFormatSymbols_gl', 'goog.labs.i18n.ListFormatSymbols_gsw', 'goog.labs.i18n.ListFormatSymbols_gu', 'goog.labs.i18n.ListFormatSymbols_haw', 'goog.labs.i18n.ListFormatSymbols_he', 'goog.labs.i18n.ListFormatSymbols_hi', 'goog.labs.i18n.ListFormatSymbols_hr', 'goog.labs.i18n.ListFormatSymbols_hu', 'goog.labs.i18n.ListFormatSymbols_hy', 'goog.labs.i18n.ListFormatSymbols_id', 'goog.labs.i18n.ListFormatSymbols_in', 'goog.labs.i18n.ListFormatSymbols_is', 'goog.labs.i18n.ListFormatSymbols_it', 'goog.labs.i18n.ListFormatSymbols_iw', 'goog.labs.i18n.ListFormatSymbols_ja', 'goog.labs.i18n.ListFormatSymbols_ka', 'goog.labs.i18n.ListFormatSymbols_kk', 'goog.labs.i18n.ListFormatSymbols_km', 'goog.labs.i18n.ListFormatSymbols_kn', 'goog.labs.i18n.ListFormatSymbols_ko', 'goog.labs.i18n.ListFormatSymbols_ky', 'goog.labs.i18n.ListFormatSymbols_ln', 'goog.labs.i18n.ListFormatSymbols_lo', 'goog.labs.i18n.ListFormatSymbols_lt', 'goog.labs.i18n.ListFormatSymbols_lv', 'goog.labs.i18n.ListFormatSymbols_mk', 'goog.labs.i18n.ListFormatSymbols_ml', 'goog.labs.i18n.ListFormatSymbols_mn', 'goog.labs.i18n.ListFormatSymbols_mo', 'goog.labs.i18n.ListFormatSymbols_mr', 'goog.labs.i18n.ListFormatSymbols_ms', 'goog.labs.i18n.ListFormatSymbols_mt', 'goog.labs.i18n.ListFormatSymbols_my', 'goog.labs.i18n.ListFormatSymbols_nb', 'goog.labs.i18n.ListFormatSymbols_ne', 'goog.labs.i18n.ListFormatSymbols_nl', 'goog.labs.i18n.ListFormatSymbols_no', 'goog.labs.i18n.ListFormatSymbols_no_NO', 'goog.labs.i18n.ListFormatSymbols_or', 'goog.labs.i18n.ListFormatSymbols_pa', 'goog.labs.i18n.ListFormatSymbols_pl', 'goog.labs.i18n.ListFormatSymbols_pt', 'goog.labs.i18n.ListFormatSymbols_pt_BR', 'goog.labs.i18n.ListFormatSymbols_pt_PT', 'goog.labs.i18n.ListFormatSymbols_ro', 'goog.labs.i18n.ListFormatSymbols_ru', 'goog.labs.i18n.ListFormatSymbols_sh', 'goog.labs.i18n.ListFormatSymbols_si', 'goog.labs.i18n.ListFormatSymbols_sk', 'goog.labs.i18n.ListFormatSymbols_sl', 'goog.labs.i18n.ListFormatSymbols_sq', 'goog.labs.i18n.ListFormatSymbols_sr', 'goog.labs.i18n.ListFormatSymbols_sv', 'goog.labs.i18n.ListFormatSymbols_sw', 'goog.labs.i18n.ListFormatSymbols_ta', 'goog.labs.i18n.ListFormatSymbols_te', 'goog.labs.i18n.ListFormatSymbols_th', 'goog.labs.i18n.ListFormatSymbols_tl', 'goog.labs.i18n.ListFormatSymbols_tr', 'goog.labs.i18n.ListFormatSymbols_uk', 'goog.labs.i18n.ListFormatSymbols_ur', 'goog.labs.i18n.ListFormatSymbols_uz', 'goog.labs.i18n.ListFormatSymbols_vi', 'goog.labs.i18n.ListFormatSymbols_zh', 'goog.labs.i18n.ListFormatSymbols_zh_CN', 'goog.labs.i18n.ListFormatSymbols_zh_HK', 'goog.labs.i18n.ListFormatSymbols_zh_TW', 'goog.labs.i18n.ListFormatSymbols_zu'], []);
@@ -30417,7 +30420,8 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'load_layer_failed': 'Failed to load the layer {{layer}}, this layer will not be added to the map and if you' + ' save your map it will not have this layer.',
       'no_attributes': 'There are no attributes to display.',
       'true': 'True',
-      'false': 'False'
+      'false': 'False',
+      'failed_to_add_server': 'There was a problem trying to connect to the server you specified, check the url and' + ' credentials to make sure they are correct before trying again.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -30673,7 +30677,8 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
       'load_layer_failed': 'Error al cargar la capa {{layer}}, no se a\xf1adir\xe1 esta capa al mapa y si guarda su' + ' mapa no tendr\xe1 esta capa.',
       'no_attributes': 'No hay ningun atributo para mostrar.',
       'true': 'Verdadero',
-      'false': 'Falso'
+      'false': 'Falso',
+      'failed_to_add_server': 'Hubo un problema al intentar conectar con el servidor especificado, compruebe la URL y' + ' las credenciales para asegurarse de que son correctos antes de volver a intentarlo.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -30713,6 +30718,8 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
           var server = serverService.getServerLocalGeoserver();
           if (goog.isDefAndNotNull(server)) {
             scope.setCurrentServerId(server.id);
+          } else {
+            scope.setCurrentServerId(serverService.getServerByName('OpenStreetMap').id);
           }
           scope.getCurrentServerName = function () {
             var server = serverService.getServerById(scope.currentServerId);
@@ -30761,11 +30768,9 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
             }
           });
           scope.$on('server-added', function (event, id) {
-            if (scope.currentServerId === -1) {
-              var server = serverService.getServerById(id);
-              if (server === serverService.getServerLocalGeoserver()) {
-                scope.setCurrentServerId(id);
-              }
+            var server = serverService.getServerById(id);
+            if (server === serverService.getServerLocalGeoserver()) {
+              scope.setCurrentServerId(id);
             }
           });
           scope.removeServer = function (id) {
@@ -30860,8 +30865,7 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
               element.closest('.modal').modal('hide');
             }, function () {
               scope.loading = false;
-              scope.reset();
-              element.closest('.modal').modal('hide');
+              dialogService.error($translate('error'), $translate('failed_to_add_server'), [$translate('btn_ok')]);
             });
           };
           scope.getPattern = function () {
@@ -31269,7 +31273,9 @@ var SERVER_SERVICE_USE_PROXY = true;
       } else {
         service_.getServerByPtype('gxp_osmsource').defaultServer = true;
       }
-      service_.getServerLocalGeoserver().defaultServer = true;
+      if (goog.isDefAndNotNull(service_.getServerLocalGeoserver())) {
+        service_.getServerLocalGeoserver().defaultServer = true;
+      }
     };
     this.getLayersConfig = function (serverId) {
       var server = service_.getServerById(serverId);
@@ -31381,12 +31387,10 @@ var SERVER_SERVICE_USE_PROXY = true;
                 }
                 server.populatingLayersConfig = false;
               } else {
-                dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
                 deferredResponse.reject(server);
                 server.populatingLayersConfig = false;
               }
             }, function (xhr) {
-              dialogService_.error(translate_('error'), translate_('failed_get_capabilities') + ' (' + xhr.status + ')');
               deferredResponse.reject(server);
               server.populatingLayersConfig = false;
             });
@@ -36401,6 +36405,7 @@ var GeoGitRevertFeatureOptions = function () {
           });
         };
         pulldownService_.serversLoading = true;
+        pulldownService_.addLayers = false;
         goog.array.forEach(orderedUnique, function (serverInfo, serverIndex, obj) {
           if (goog.isDefAndNotNull(serverInfo)) {
             serverService_.addServer(serverInfo).then(function (serverNew) {
@@ -36408,12 +36413,14 @@ var GeoGitRevertFeatureOptions = function () {
               addLayersForServer(serverIndex, serverNew);
               if (orderedUniqueLength === 0) {
                 pulldownService_.serversLoading = false;
+                pulldownService_.addLayers = true;
                 serverService_.configDefaultServers();
               }
             }, function (reject) {
               orderedUniqueLength--;
               if (orderedUniqueLength === 0) {
                 pulldownService_.serversLoading = false;
+                pulldownService_.addLayers = true;
                 serverService_.configDefaultServers();
               }
               dialogService_.error(translate_('server'), translate_('load_server_failed', {
@@ -40598,7 +40605,7 @@ angular.module("layers/partials/layerinfo.tpl.html", []).run(["$templateCache", 
     "  </div>\n" +
     "  <div ng-show=\"serverURL\">\n" +
     "    <div><h4 translate=\"server_url\"></h4></div>\n" +
-    "    <div class=\"well ellipsis\">{{serverURL}}</div>\n" +
+    "    <div class=\"well\">{{serverURL}}</div>\n" +
     "  </div>\n" +
     "  <div ng-show=\"datastoreType\">\n" +
     "    <div><h4 translate=\"datastoretype\"></h4></div>\n" +
