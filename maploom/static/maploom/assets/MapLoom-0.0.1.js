@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-23
+ * MapLoom - v0.0.1 - 2014-04-24
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -38836,21 +38836,25 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           service_.attributeNameList.push(layer.get('metadata').schema[i]._name);
         }
         var index = layer.get('metadata').name.split(':')[1];
-        for (var feat in json.FeatureCollection.member) {
+        forEachArrayish(json.FeatureCollection.member, function (member) {
           var feature = {
               visible: true,
               properties: []
             };
-          feature.properties.push(json.FeatureCollection.member[feat][index]['_gml:id']);
+          var feat = member;
+          if (goog.isDefAndNotNull(member[index])) {
+            feat = member[index];
+          }
+          feature.properties.push(feat['_gml:id']);
           for (var attr in service_.attributeNameList) {
-            if (!goog.isDef(json.FeatureCollection.member[feat][index][service_.attributeNameList[attr]])) {
+            if (!goog.isDef(feat[service_.attributeNameList[attr]])) {
               feature.properties.push('');
             } else {
-              feature.properties.push(json.FeatureCollection.member[feat][index][service_.attributeNameList[attr]].toString());
+              feature.properties.push(feat[service_.attributeNameList[attr]].toString());
             }
           }
-          service_.featureList[feat] = feature;
-        }
+          service_.featureList.push(feature);
+        });
         deferredResponse.resolve();
       }, function (reject) {
         deferredResponse.reject(reject);
@@ -40209,7 +40213,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "           class=\"geom-author form-control attr-none\" placeholder=\"\">\n" +
     "  </div>\n" +
     "  <span ng-repeat=\"attribute in panel.attributes\" class=\"\">\n" +
-    "    <span class=\"info-box-attribute\">{{attribute.attributename}}</span>\n" +
+    "    <span class=\"info-box-attribute ellipsis\">{{attribute.attributename}}</span>\n" +
     "            <div ng-switch on=\"attribute.type\" class=\"attribute-value-section\">\n" +
     "              <div ng-switch-when=\"xsd:dateTime\" ng-class=\"{\n" +
     "                        'attr-added': attribute.changetype == 'ADDED',\n" +
@@ -40692,12 +40696,15 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "\n" +
     "        <div id=\"attributeRow\" class=\"row\" ng-show=\"layer.get('metadata').editable\">\n" +
     "          <ul class=\"list-group\">\n" +
-    "            <li class=\"list-group-item\" ng-repeat=\"attribute in getAttrList(layer)\">{{attribute._name}}\n" +
+    "            <li class=\"list-group-item\" ng-repeat=\"attribute in getAttrList(layer)\">\n" +
+    "              <div class=\"attribute-value ellipsis\">{{attribute._name}}</div>\n" +
+    "              <div class=\"layer-buttons\">\n" +
     "              <span ng-click=\"toggleAttributeVisibility(attribute)\"\n" +
-    "                    class=\"btn btn-xs btn-default layer-visible-button pull-right\"\n" +
+    "                    class=\"btn btn-xs btn-default layer-visible-button\"\n" +
     "                    ng-class=\"{'layer-visible': attribute.visible}\">\n" +
     "                <i class=\"glyphicon\" ng-class=\"{'glyphicon-eye-close': !attribute.visible, 'glyphicon-eye-open': attribute.visible}\"></i>\n" +
     "              </span>\n" +
+    "              </div>\n" +
     "            </li>\n" +
     "          </ul>\n" +
     "        </div>\n" +
