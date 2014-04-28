@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-24
+ * MapLoom - v0.0.1 - 2014-04-28
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -31571,7 +31571,7 @@ var SERVER_SERVICE_USE_PROXY = true;
         this.proxy = this.configuration.proxy;
         this.csrfToken = $cookies.csrftoken;
         if (goog.isDefAndNotNull(this.configuration.map.zoom) && this.configuration.map.zoom === 0) {
-          this.configuration.map.zoom = 1;
+          this.configuration.map.zoom = 3;
         }
         $translate.uses(this.currentLanguage);
         return this;
@@ -32675,7 +32675,7 @@ var DiffColorMap = {
       mapService_.map.getLayers().forEach(function (layer) {
         var metadata = layer.get('metadata');
         if (goog.isDefAndNotNull(metadata)) {
-          if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === repoName) {
+          if (goog.isDefAndNotNull(metadata.repoName) && metadata.repoName === repoName) {
             var splitFeature = feature.id.split('/');
             if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
               service_.layer = layer;
@@ -32823,10 +32823,14 @@ var DiffColorMap = {
         }
         if (properties[propertyIndex].type === 'xsd:dateTime') {
           if (goog.isDefAndNotNull(properties[propertyIndex].oldvalue)) {
-            properties[propertyIndex].oldvalue = new Date(properties[propertyIndex].oldvalue).toISOString();
+            if (properties[propertyIndex].oldvalue.search(' ') != -1) {
+              properties[propertyIndex].oldvalue = properties[propertyIndex].oldvalue.replace(' ', 'T') + 'Z';
+            }
           }
           if (goog.isDefAndNotNull(properties[propertyIndex].newvalue)) {
-            properties[propertyIndex].newvalue = new Date(properties[propertyIndex].newvalue).toISOString();
+            if (properties[propertyIndex].newvalue.search(' ') != -1) {
+              properties[propertyIndex].newvalue = properties[propertyIndex].newvalue.replace(' ', 'T') + 'Z';
+            }
           }
         }
         properties[propertyIndex].valid = true;
@@ -33039,8 +33043,12 @@ var DiffColorMap = {
             scope.coordinates = null;
             scope.inserting = false;
           };
-          scope.validateInteger = validateInteger;
-          scope.validateDouble = validateDouble;
+          scope.validateInteger = function (property, key) {
+            property.valid = validateInteger(property[key]);
+          };
+          scope.validateDouble = function (property, key) {
+            property.valid = validateDouble(property[key]);
+          };
           var parentModal = element.closest('.modal');
           var closeModal = function (event, element) {
             if (parentModal[0] === element[0]) {
@@ -39281,21 +39289,13 @@ var transformGeometry = function (geometry, crsFrom, crsTo) {
   }
   return newGeom;
 };
-var validateInteger = function (property, key) {
+var validateInteger = function (property) {
   var numbers = /^[-+]?[0-9]*$/;
-  var valid = true;
-  if (!numbers.test(property[key])) {
-    valid = false;
-  }
-  property.valid = valid;
+  return numbers.test(property);
 };
-var validateDouble = function (property, key) {
+var validateDouble = function (property) {
   var numbers = /^[-+]?[0-9]*\.?[0-9]+$/;
-  var valid = true;
-  if (property[key] !== null && property[key] !== '' && !numbers.test(property[key])) {
-    valid = false;
-  }
-  property.valid = valid;
+  return property == null || property === '' || numbers.test(property);
 };
 var sha1 = function (msg) {
   var rotate_left = function (n, s) {
@@ -40435,13 +40435,12 @@ angular.module("featuremanager/partial/exclusivemode.tpl.html", []).run(["$templ
 angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("featuremanager/partial/featureinfobox.tpl.html",
     "<div>\n" +
-    "  <div class=\"row\">\n" +
-    "    <div ng-if=\"featureManagerService.getPreviousState() != ''\" class=\"btn btn-sm pull-left\">\n" +
-    "      <i class=\"glyphicon glyphicon-chevron-left\" ng-click=\"featureManagerService.showPreviousState()\"></i>\n" +
-    "    </div>\n" +
-    "    <div class=\"btn btn-sm pull-right\">\n" +
-    "      <i class=\"glyphicon glyphicon-remove\" ng-click=\"featureManagerService.hide()\"></i>\n" +
-    "    </div>\n" +
+    "  <div class=\"info-box-title-row row\">\n" +
+    "    <div class=\"info-box-back\"><i ng-if=\"featureManagerService.getPreviousState() != ''\" class=\"glyphicon glyphicon-chevron-left\" ng-click=\"featureManagerService.showPreviousState()\"></i></div>\n" +
+    "    <div ng-if=\"featureManagerService.getState() == 'layers'\" class=\"info-box-title ellipsis\" translate=\"map_layers\"></div>\n" +
+    "    <div ng-if=\"featureManagerService.getState() == 'layer'\" class=\"info-box-title ellipsis\">{{featureManagerService.getSelectedItem().layer.get('metadata').title}}</div>\n" +
+    "    <div ng-if=\"featureManagerService.getState() == 'feature'\" class=\"info-box-title ellipsis\">{{featureManagerService.getSelectedItem().id}}</div>\n" +
+    "    <div class=\"info-box-close\"><i class=\"glyphicon glyphicon-remove\" ng-click=\"featureManagerService.hide()\"></i></div>\n" +
     "  </div>\n" +
     "  <div class=\"animate-switch-container\">\n" +
     "    <div ng-if=\"featureManagerService.getState() == 'layers'\">\n" +
