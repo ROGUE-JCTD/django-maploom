@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-28
+ * MapLoom - v0.0.1 - 2014-04-29
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -38900,6 +38900,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
               }
             }
             scope.restrictions = tableViewService.restrictionList;
+            scope.readOnly = tableViewService.readOnly;
             featureManagerService.hide();
           });
           function hasValidationErrors() {
@@ -38986,6 +38987,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     this.attributeNameList = [];
     this.restrictionList = null;
     this.selectedLayer = null;
+    this.readOnly = false;
     this.showTable = function (layer, feature) {
       var deferredResponse = q_.defer();
       service_.rows = [];
@@ -38996,6 +38998,10 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       var url = layer.get('metadata').url + '/wfs?version=' + settings.WFSVersion + '&srsName=' + projection + '&outputFormat=JSON&request=GetFeature&typeNames=' + layer.get('metadata').name;
       http_.get(url).then(function (response) {
         var getRestrictions = function () {
+          if (layer.get('metadata').readOnly || !layer.get('metadata').editable) {
+            service_.readOnly = true;
+            return;
+          }
           for (var attr in service_.attributeNameList) {
             var attrRestriction = '';
             var schemaType = layer.get('metadata').schema[service_.attributeNameList[attr]]._type;
@@ -41380,7 +41386,7 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "    <button type=\"submit\" class=\"btn btn-primary table-btn\" ng-show=\"tableviewform.$visible\">{{'save_btn' | translate}}</button>\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"tableviewform.$cancel()\" ng-show=\"tableviewform.$visible\">{{'cancel_btn' | translate}}</button>\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"tableviewform.$show()\"\n" +
-    "          ng-show=\"!tableviewform.$visible\" tooltip=\"{{'edit_attributes' | translate}}\" tooltip-append-to-body=\"true\">\n" +
+    "          ng-show=\"!tableviewform.$visible && !readOnly\" tooltip=\"{{'edit_attributes' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "        <i class=\"glyphicon glyphicon-edit\"></i>\n" +
     "    </button>\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"toggleWordWrap()\" tooltip=\"{{'word_wrap' | translate}}\" tooltip-append-to-body=\"true\">\n" +
