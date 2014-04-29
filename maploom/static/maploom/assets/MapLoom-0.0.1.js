@@ -30060,7 +30060,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
     'loom_utils',
     'loom_refresh',
     'loom_search',
-    'loom_test'
+    'loom_test',
+    'loom_timeline'
   ]);
 }());
 (function () {
@@ -39315,6 +39316,28 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
   }
 }());
 (function () {
+  var module = angular.module('loom_timeline_directive', []);
+  module.directive('loomTimeline', function () {
+    return {
+      restrict: 'C',
+      replace: true,
+      templateUrl: 'timeline/partials/timeline.tpl.html',
+      link: function (scope) {
+        scope.isPlaying = false;
+        scope.onPlay = function () {
+          scope.isPlaying = true;
+        };
+        scope.onPause = function () {
+          scope.isPlaying = false;
+        };
+      }
+    };
+  });
+}());
+(function () {
+  angular.module('loom_timeline', ['loom_timeline_directive']);
+}());
+(function () {
   var module = angular.module('loom_update_notification_directive', []);
   module.directive('loomUpdateNotification', function () {
     return {
@@ -40154,7 +40177,7 @@ var WKT = {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'modal/partials/password.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'modal/partials/password.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'timeline/partials/timeline.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -41409,6 +41432,30 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "  </form>\n" +
     "</div>\n" +
     "");
+}]);
+
+angular.module("timeline/partials/timeline.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("timeline/partials/timeline.tpl.html",
+    "<div class=\"timeline-background\">\n" +
+    "  <div class=\"btn-group\">\n" +
+    "    <a type=\"button\" ng-click=\"onPlay()\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"Play\"\n" +
+    "       class=\"btn btn-sm btn-default\" ng-if=\"!isPlaying\">\n" +
+    "      <i class=\"glyphicon glyphicon-play\"></i>\n" +
+    "    </a>\n" +
+    "    <a type=\"button\" ng-click=\"onPause()\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"Pause\"\n" +
+    "       class=\"btn btn-sm btn-default\" ng-if=\"isPlaying\">\n" +
+    "      <i class=\"glyphicon glyphicon-pause\"></i>\n" +
+    "    </a>\n" +
+    "    <a type=\"button\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"Skip Backward\"\n" +
+    "       class=\"btn btn-sm btn-default\">\n" +
+    "      <i class=\"glyphicon glyphicon-fast-backward\"></i>\n" +
+    "    </a>\n" +
+    "    <a type=\"button\" tooltip-append-to-body=\"true\" tooltip-placement=\"top\" tooltip=\"Skip Forward\"\n" +
+    "       class=\"btn btn-sm btn-default\">\n" +
+    "      <i class=\"glyphicon glyphicon-fast-forward\"></i>\n" +
+    "    </a>\n" +
+    "  </div>\n" +
+    "</div>");
 }]);
 
 angular.module("updatenotification/partial/updatenotification.tpl.html", []).run(["$templateCache", function($templateCache) {
