@@ -33718,7 +33718,11 @@ var DiffColorMap = {
         selectedItemPics_ = pics;
         if (selectedItemPics_ !== null) {
           goog.array.forEach(selectedItemPics_.pics, function (item, index) {
-            selectedItemPics_.pics[index] = '/file-service/' + item;
+            if (item.indexOf('http') === -1) {
+              selectedItemPics_.pics[index] = '/file-service/' + item;
+            } else {
+              selectedItemPics_.pics[index] = item;
+            }
           });
         }
         if (getItemType(selectedItem_) === 'feature') {
@@ -40749,7 +40753,7 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "  </div>\n" +
     "\n" +
     "  <div ng-if=\"featureManagerService.getState() == 'feature'\">\n" +
-    "    <div id=\"pic-carousel-container\" ng-if=\"featureManagerService.getSelectedItemPics() && featureManagerService.getSelectedLayer().get('metadata').schema[featureManagerService.getSelectedItemPics().name].visible\">\n" +
+    "    <div id=\"pic-carousel-container\" ng-if=\"featureManagerService.getSelectedItemPics() && isAttributeVisible(featureManagerService.getSelectedItemPics().name)\">\n" +
     "      <carousel id=\"feature-info-box-carousel\" interval=\"2000\">\n" +
     "        <slide ng-repeat=\"pic in featureManagerService.getSelectedItemPics().pics\">\n" +
     "          <img ng-src=\"{{pic}}\" style=\"margin: auto\" ng-click=\"featureManagerService.showPics($index)\">\n" +
