@@ -30434,7 +30434,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'no_attributes': 'There are no attributes to display.',
       'true': 'True',
       'false': 'False',
-      'failed_to_add_server': 'There was a problem trying to connect to the server you specified, check the url and' + ' credentials to make sure they are correct before trying again.'
+      'failed_to_add_server': 'There was a problem trying to connect to the server you specified, check the url and' + ' credentials to make sure they are correct before trying again.',
+      'failed_to_save_features': '{{value}} features failed to save, please try to save again before closing' + ' the table or you will lose work.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -30692,7 +30693,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'no_attributes': 'No hay ningun atributo para mostrar.',
       'true': 'Verdadero',
       'false': 'Falso',
-      'failed_to_add_server': 'Hubo un problema al intentar conectar con el servidor especificado, compruebe la URL y' + ' las credenciales para asegurarse de que son correctos antes de volver a intentarlo.'
+      'failed_to_add_server': 'Hubo un problema al intentar conectar con el servidor especificado, compruebe la URL y' + ' las credenciales para asegurarse de que son correctos antes de volver a intentarlo.',
+      'failed_to_save_features': '{{value}} caracteristicas no pudieron salvar, por favor tratar de salvar una' + ' vez mas antes de cerrar la tabla o perdera el trabajo.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -30732,8 +30734,6 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
           var server = serverService.getServerLocalGeoserver();
           if (goog.isDefAndNotNull(server)) {
             scope.setCurrentServerId(server.id);
-          } else {
-            scope.setCurrentServerId(serverService.getServerByName('OpenStreetMap').id);
           }
           scope.getCurrentServerName = function () {
             var server = serverService.getServerById(scope.currentServerId);
@@ -30784,6 +30784,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
           scope.$on('server-added', function (event, id) {
             var server = serverService.getServerById(id);
             if (server === serverService.getServerLocalGeoserver()) {
+              scope.setCurrentServerId(id);
+            } else if (scope.currentServerId == -1 && server === serverService.getServerByName('OpenStreetMap')) {
               scope.setCurrentServerId(id);
             }
           });
@@ -36301,6 +36303,7 @@ var GeoGitRevertFeatureOptions = function () {
           var lyrLayerOrder = lyr.get('metadata').layerOrder;
           if (meta.layerOrder < lyrLayerOrder) {
             insertIndex = index;
+            break;
           }
         }
         if (insertIndex === -1) {
@@ -36855,11 +36858,34 @@ var GeoGitRevertFeatureOptions = function () {
           console.log('ERROR: Failed to checkout conflicted feature: ', conflict, reject);
         });
       } else {
+        var merges = $.extend(true, {}, conflict.merges);
+        var schema = null;
+        var repoName = geogitService_.getRepoById(service_.repoId).name;
+        mapService_.map.getLayers().forEach(function (layer) {
+          var metadata = layer.get('metadata');
+          if (goog.isDefAndNotNull(metadata)) {
+            if (goog.isDefAndNotNull(metadata.repoName) && metadata.repoName === repoName) {
+              var splitFeature = conflict.id.split('/');
+              if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
+                if (goog.isDefAndNotNull(layer.get('metadata').schema)) {
+                  schema = layer.get('metadata').schema;
+                }
+              }
+            }
+          }
+        });
+        for (var attr in merges) {
+          if (goog.isDefAndNotNull(merges[attr].value) && goog.isDefAndNotNull(schema)) {
+            if (schema[attr]._type == 'xsd:dateTime') {
+              merges[attr].value = new Date(merges[attr].value).getTime();
+            }
+          }
+        }
         var resolveConflict = {
             path: conflict.id,
             ours: service_.ours,
             theirs: service_.theirs,
-            merges: conflict.merges
+            merges: merges
           };
         geogitService_.post(service_.repoId, 'repo/mergefeature', resolveConflict).then(function (response) {
           var resolveConflictOptions = new GeoGitResolveConflictOptions();
@@ -38837,6 +38863,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         restrict: 'C',
         templateUrl: 'tableview/partial/tableview.tpl.html',
         link: function (scope, element) {
+          scope.isSaving = false;
           function resizeModal() {
             var containerHeight = angular.element('#table-view-window .modal-content')[0].clientHeight;
             var headerHeight = angular.element('#table-view-window .modal-header')[0].clientHeight;
@@ -38913,6 +38940,9 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             featureManagerService.show(item);
           };
           $('#table-view-window').on('hidden.bs.modal', function (e) {
+            if (scope.isSaving) {
+              return;
+            }
             tableViewService.rows = [];
             tableViewService.attributeNameList = [];
             scope.restrictions = {};
@@ -38956,10 +38986,16 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             }
           }
           scope.saveTable = function () {
+            if (scope.isSaving) {
+              return;
+            }
             if (hasValidationErrors() === true) {
               return 'Invalid fields detected';
             }
-            for (var featureIndex = 0; featureIndex < scope.rows.length; ++featureIndex) {
+            scope.isSaving = true;
+            var featureIndex = 0;
+            var numFailed = 0;
+            var save = function () {
               var originalPropertyArray = [];
               var propertyArray = [];
               var originalFeature = tableViewService.rows[featureIndex].feature;
@@ -38981,8 +39017,31 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
               });
               featureManagerService.setSelectedItemProperties(originalPropertyArray);
               featureManagerService.setSelectedLayer(tableViewService.selectedLayer);
-              featureManagerService.endAttributeEditing(true, false, propertyArray);
-            }
+              featureManagerService.endAttributeEditing(true, false, propertyArray).then(function () {
+                tableViewService.rows[featureIndex].feature = $.extend(true, {}, scope.rows[featureIndex].feature);
+                featureIndex++;
+                if (featureIndex < scope.rows.length) {
+                  save();
+                } else {
+                  scope.isSaving = false;
+                  if (numFailed > 0) {
+                    dialogService.error($translate('save_attributes'), $translate('failed_to_save_features', { value: numFailed }), [$translate('btn_ok')], false);
+                  }
+                }
+              }, function () {
+                featureIndex++;
+                numFailed++;
+                if (featureIndex < scope.rows.length) {
+                  save();
+                } else {
+                  scope.isSaving = false;
+                  if (numFailed > 0) {
+                    dialogService.error($translate('save_attributes'), $translate('failed_to_save_features', { value: numFailed }), [$translate('btn_ok')], false);
+                  }
+                }
+              });
+            };
+            save();
             $.bootstrapSortable();
           };
         }
@@ -41387,6 +41446,7 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
 angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("tableview/partial/tableview.tpl.html",
     "<div class=\"modal-body\">\n" +
+    "  <div id=\"table-loading\" class=\"loom-loading\" spinner-width=\"6\" spinner-radius=\"40\" spinner-hidden=\"!isSaving\"></div>\n" +
     "  <form ng-submit=\"filterTable()\">\n" +
     "    <div class=\"input-group input-group-sm\" id=\"table-filter-group\">\n" +
     "      <input class=\"form-control\" id=\"filter-text\" type=\"text\" ng-model=\"filterText\" ng-change=\"clearFilter()\">\n" +
