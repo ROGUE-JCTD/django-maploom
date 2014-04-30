@@ -33427,6 +33427,9 @@ var DiffColorMap = {
           });
           scope.isShowingAttributes = function () {
             var schema = featureManagerService.getSelectedLayer().get('metadata').schema;
+            if (!goog.isDefAndNotNull(schema)) {
+              return true;
+            }
             var properties = featureManagerService.getSelectedItemProperties();
             for (var index = 0; index < properties.length; index++) {
               if (goog.isDefAndNotNull(schema[properties[index][0]]) && schema[properties[index][0]].visible) {
@@ -33434,6 +33437,13 @@ var DiffColorMap = {
               }
             }
             return false;
+          };
+          scope.isAttributeVisible = function (property) {
+            var schema = featureManagerService.getSelectedLayer().get('metadata').schema;
+            if (!goog.isDefAndNotNull(schema)) {
+              return true;
+            }
+            return featureManagerService.getSelectedLayer().get('metadata').schema[property].visible;
           };
           scope.showFeatureHistory = function () {
             if (!scope.loadingHistory) {
@@ -40691,7 +40701,7 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "    <div class=\"feature-info-box\">\n" +
     "      <span class=\"info-box-attribute\" ng-show=\"!isShowingAttributes()\" translate=\"no_attributes\"></span>\n" +
     "      <span ng-repeat=\"prop in featureManagerService.getSelectedItemProperties()\">\n" +
-    "        <div ng-show=\"featureManagerService.getSelectedLayer().get('metadata').schema[prop[0]].visible\">\n" +
+    "        <div ng-show=\"isAttributeVisible(prop[0])\">\n" +
     "          <span class=\"info-box-attribute\">{{prop[0]}}</span>\n" +
     "          <span class=\"info-box-attribute-value\">{{prop[1]}}</span>\n" +
     "        </div>\n" +
