@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-04-30
+ * MapLoom - v0.0.1 - 2014-05-01
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -36201,7 +36201,7 @@ var GeoGitRevertFeatureOptions = function () {
       } else if (server.ptype === 'gxp_googlesource') {
         dialogService_.error(translate_('add_layers'), translate_('layer_type_not_supported', { type: 'gxp_googlesource' }));
       } else if (server.ptype === 'gxp_mapquestsource') {
-        var source = new ol.source.MapQuest(minimalConfig.sourceParams);
+        var source = new ol.source.MapQuest(fullConfig.sourceParams);
         if (goog.isDefAndNotNull(source)) {
           layer = new ol.layer.Tile({
             metadata: {
