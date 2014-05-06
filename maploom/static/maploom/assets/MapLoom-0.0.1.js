@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-05-02
+ * MapLoom - v0.0.1 - 2014-05-06
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -31226,7 +31226,7 @@ var SERVER_SERVICE_USE_PROXY = true;
           dialogService_.promptCredentials(server.url, false).then(function (credentials) {
             server.username = credentials.username;
             server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
-            var subURL = server.url.replace('/geoserver/wms', '/geoserver/rest');
+            var subURL = server.url.replace('/wms', '/rest');
             $.ajax({
               url: subURL,
               type: 'GET',
@@ -34860,7 +34860,7 @@ var GeoGitRevertFeatureOptions = function () {
       var url = layer.get('metadata').url + '/rest/workspaces/' + layer.get('metadata').workspace + '/datastores/' + name + '.json';
       var deferredResponse = q.defer();
       http.get(url).then(function (response) {
-        if (goog.isDefAndNotNull(response.data) && goog.isDefAndNotNull(response.data.dataStore) && goog.isDefAndNotNull(response.data.dataStore.type)) {
+        if (goog.isDefAndNotNull(response.data) && goog.isDefAndNotNull(response.data.dataStore)) {
           deferredResponse.resolve(response.data.dataStore);
         } else {
           deferredResponse.reject(translate_('unable_to_get_datastore'));
@@ -34951,7 +34951,7 @@ var GeoGitRevertFeatureOptions = function () {
           service_.isNotLayerGroup(layer).then(function () {
             service_.getDataStoreName(layer).then(function (dataStoreName) {
               service_.getDataStore(layer, dataStoreName).then(function (dataStore) {
-                if (dataStore.type === 'GeoGIT' && (goog.isDefAndNotNull(server.authentication) || server.isLocal === true)) {
+                if (goog.isDefAndNotNull(dataStore.type) && dataStore.type === 'GeoGIT' && (goog.isDefAndNotNull(server.authentication) || server.isLocal === true)) {
                   var repoName = dataStore.connectionParameters.entry[0].$;
                   repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
                   metadata.branchName = dataStore.connectionParameters.entry[1].$;
