@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-05-06
+ * MapLoom - v0.0.1 - 2014-05-07
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -31183,7 +31183,15 @@ var SERVER_SERVICE_USE_PROXY = true;
           dialogService_.promptCredentials(server.url, true).then(function (credentials) {
             server.username = credentials.username;
             server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
-            doWork();
+            var subURL = server.url.replace('/wms', '/rest');
+            subURL = subURL.replace('http://', 'http://null:null@');
+            $.ajax({
+              url: subURL,
+              type: 'GET',
+              dataType: 'jsonp',
+              jsonp: 'callback',
+              complete: doWork
+            });
           }, function (reject) {
             if (goog.isDefAndNotNull(reject) && reject.anonymous) {
               server.username = translate_('anonymous');
@@ -31227,6 +31235,7 @@ var SERVER_SERVICE_USE_PROXY = true;
             server.username = credentials.username;
             server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
             var subURL = server.url.replace('/wms', '/rest');
+            subURL = subURL.replace('http://', 'http://null:null@');
             $.ajax({
               url: subURL,
               type: 'GET',
