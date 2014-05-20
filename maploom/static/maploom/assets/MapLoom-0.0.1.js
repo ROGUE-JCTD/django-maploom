@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-05-19
+ * MapLoom - v0.0.1 - 2014-05-20
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -27507,7 +27507,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'previous_page': 'Previous Page',
       'next_page': 'Next Page',
       'current_page': 'Page {{currentPage}} of {{totalPages}}',
-      'filter': 'Filter:'
+      'filter': 'Filter:',
+      'merge_commit': 'Merge Commit'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -27776,7 +27777,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'previous_page': 'P\xe1gina Anterior',
       'next_page': 'P\xe1gina Siguiente',
       'current_page': 'P\xe1gina {{currentPage}} de {{totalPages}}',
-      'filter': 'Filtro:'
+      'filter': 'Filtro:',
+      'merge_commit': 'Fusion Confirmada'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -32466,6 +32468,9 @@ var GeoGitRevertFeatureOptions = function () {
           scope.isLoading = function (commit) {
             return goog.isDefAndNotNull(commit.loading) && commit.loading === true;
           };
+          scope.isMerge = function (commit) {
+            return goog.isDefAndNotNull(commit.parents) && goog.isArray(commit.parents.id) && commit.parents.id.length > 1;
+          };
           function updateVariables(newLog, oldLog) {
             if (goog.isDefAndNotNull(oldLog) && oldLog.length === 0) {
               $timeout(function () {
@@ -36201,6 +36206,24 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       return copy;
     }
   }
+  module.controller('previous-tt-controller', [
+    '$scope',
+    function ($scope) {
+      $scope.onPrevious = function () {
+        $scope.tt_isOpen = false;
+        $scope.previousPage();
+      };
+    }
+  ]);
+  module.controller('next-tt-controller', [
+    '$scope',
+    function ($scope) {
+      $scope.onNext = function () {
+        $scope.tt_isOpen = false;
+        $scope.nextPage();
+      };
+    }
+  ]);
   module.directive('loomTableView', [
     'tableFilter',
     'mapService',
@@ -36426,24 +36449,6 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             $.bootstrapSortable();
           };
         }
-      };
-    }
-  ]);
-  module.controller('previous-tt-controller', [
-    '$scope',
-    function ($scope) {
-      $scope.onPrevious = function () {
-        $scope.tt_isOpen = false;
-        $scope.previousPage();
-      };
-    }
-  ]);
-  module.controller('next-tt-controller', [
-    '$scope',
-    function ($scope) {
-      $scope.onNext = function () {
-        $scope.tt_isOpen = false;
-        $scope.nextPage();
       };
     }
   ]);
@@ -38323,8 +38328,10 @@ angular.module("history/partial/historypanel.tpl.html", []).run(["$templateCache
     "            <span class=\"sr-only\"></span>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <div class=\"author-name\">{{getCommitAuthor(commit)}}</div>\n" +
-    "        <div class=\"commit-time\">{{getCommitTime(commit)}}</div>\n" +
+    "        <span ng-if=\"isMerge(commit)\" class=\"glyphicon glyphicon-random merged\" tooltip-placement=\"top\"\n" +
+    "              tooltip=\"{{'merge_commit' | translate}}\" tooltip-append-to-body=\"true\"></span>\n" +
+    "        <div class=\"author-name ellipsis\">{{getCommitAuthor(commit)}}</div>\n" +
+    "        <div class=\"commit-time ellipsis\">{{getCommitTime(commit)}}</div>\n" +
     "\n" +
     "      </li>\n" +
     "      <li ng-if=\"historyService.nextPage\" class=\"list-group-item\">\n" +
