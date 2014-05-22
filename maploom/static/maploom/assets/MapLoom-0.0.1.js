@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-05-20
+ * MapLoom - v0.0.1 - 2014-05-22
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -33575,7 +33575,10 @@ var GeoGitRevertFeatureOptions = function () {
             visible: minimalConfig.visibility,
             source: new ol.source.TileWMS({
               url: server.url,
-              params: { 'LAYERS': minimalConfig.name }
+              params: {
+                'LAYERS': minimalConfig.name,
+                'tiled': 'true'
+              }
             })
           });
           if (goog.isDefAndNotNull(url)) {
