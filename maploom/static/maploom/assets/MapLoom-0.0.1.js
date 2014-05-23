@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-05-22
+ * MapLoom - v0.0.1 - 2014-05-23
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -33395,7 +33395,7 @@ var GeoGitRevertFeatureOptions = function () {
         httpService_.post(url, wpsPostData).success(function (data, status, headers, config) {
           var x2js = new X2JS();
           var json = x2js.xml_str2json(data);
-          if (goog.isDefAndNotNull(json.ExecuteResponse.Status.ProcessFailed)) {
+          if (goog.isDefAndNotNull(json.ExecuteResponse) && goog.isDefAndNotNull(json.ExecuteResponse.Status) && goog.isDefAndNotNull(json.ExecuteResponse.Status.ProcessFailed)) {
             console.log('----[ Warning: wps gs:bounds failed, zooming to layer bounds ', data, status, headers, config);
             service_.zoomToLayerExtent(layer);
             deferredResponse.resolve();
