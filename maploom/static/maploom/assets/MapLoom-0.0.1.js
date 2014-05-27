@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-05-23
+ * MapLoom - v0.0.1 - 2014-05-27
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
