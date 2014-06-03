@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-05-27
+ * MapLoom - v0.0.1 - 2014-06-03
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -30175,7 +30175,11 @@ var DiffColorMap = {
             return '';
           };
           scope.selectValue = function (property, index) {
-            property.newvalue = property.enum[index]._value;
+            if (index === null) {
+              property.newvalue = null;
+            } else {
+              property.newvalue = property.enum[index]._value;
+            }
           };
           scope.selectBooleanValue = function (property, index) {
             property.newvalue = property.enum[index]._value === 'true';
@@ -30394,7 +30398,11 @@ var DiffColorMap = {
             });
           };
           scope.selectValue = function (property, index) {
-            property[1] = property.enum[index]._value;
+            if (index === null) {
+              property[1] = null;
+            } else {
+              property[1] = property.enum[index]._value;
+            }
           };
           scope.$on('modal-closed', closeModal);
           function onResize() {
@@ -38004,6 +38012,9 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                    <span class=\"caret\"></span>\n" +
     "                  </button>\n" +
     "                  <ul class=\"dropdown-menu\">\n" +
+    "                    <li>\n" +
+    "                      <a ng-click=\"selectValue(attribute, null)\">&nbsp;</a>\n" +
+    "                    </li>\n" +
     "                    <li ng-repeat=\"enum in attribute.enum\">\n" +
     "                      <a ng-click=\"selectValue(attribute, $index)\">{{enum._value}}</a>\n" +
     "                    </li>\n" +
@@ -38111,6 +38122,9 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "              <span class=\"caret\"></span>\n" +
     "            </button>\n" +
     "            <ul class=\"dropdown-menu\">\n" +
+    "              <li>\n" +
+    "                <a ng-click=\"selectValue(prop, null)\">&nbsp;</a>\n" +
+    "              </li>\n" +
     "              <li ng-repeat=\"enum in prop.enum\">\n" +
     "                <a ng-click=\"selectValue(prop, $index)\">{{enum._value}}</a>\n" +
     "              </li>\n" +
