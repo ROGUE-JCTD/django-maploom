@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-06-03
+ * MapLoom - v0.0.1 - 2014-06-11
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -26943,7 +26943,7 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
                 bsSort[sortKey] = applyLast ? bsSort[sortKey] : $this.attr('data-defaultsort');
                 if (bsSort[sortKey] != null && (applyLast == (sortKey == thisLastSort))) {
                     bsSort[sortKey] = bsSort[sortKey] == 'asc' ? 'desc' : 'asc';
-                    doSort($this, $sortTable)
+                    doSort($this, $sortTable);
                 }
             });
             $this.trigger('sorted');
@@ -26975,14 +26975,14 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
             return;
         }
 
-        //sortColumn = newColumn ? newColumn : sortColumn;
-
         var localSignClass = $this.attr('data-defaultsign') || signClass;
+
         // update arrow icon
         if ($.browser.mozilla) {
             var moz_arrow = $table.find('div.mozilla');
             if (moz_arrow != null) {
-                moz_arrow.parent().html(moz_arrow.text());
+                moz_arrow.find('.sign').remove();
+                moz_arrow.parent().html(moz_arrow.html());
             }
             $this.wrapInner('<div class="mozilla"></div>');
             $this.children().eq(0).append('<span class="sign ' + localSignClass + '"></span>');
@@ -26993,11 +26993,11 @@ Proj4js.defs["EPSG:900913"]=Proj4js.defs["GOOGLE"];
         }
 
         // sort direction
-
         var sortKey = $this.attr('data-sortkey');
+        var initialDirection = $this.attr('data-firstsort') != 'desc' ? 'desc' : 'asc';
 
         lastSort = sortKey;
-        bsSort[sortKey] = bsSort[sortKey] == 'asc' ? 'desc' : 'asc';
+        bsSort[sortKey] = (bsSort[sortKey] || initialDirection) == 'asc' ? 'desc' : 'asc';
         if (bsSort[sortKey] == 'desc') { $this.find('span.sign').addClass('up'); }
 
         // sort rows
@@ -38994,7 +38994,7 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "        </tr>\n" +
     "      </table>\n" +
     "    </div>\n" +
-    "    <button type=\"submit\" class=\"btn btn-primary table-btn\" ng-show=\"tableviewform.$visible\">{{'save_btn' | translate}}</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-primary table-btn\" ng-show=\"tableviewform.$visible\">{{'save_btn' | translate}}</button>\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"tableviewform.$cancel()\" ng-show=\"tableviewform.$visible\">{{'cancel_btn' | translate}}</button>\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"tableviewform.$show()\"\n" +
     "          ng-show=\"!tableviewform.$visible && !readOnly\" tooltip=\"{{'edit_attributes' | translate}}\" tooltip-append-to-body=\"true\">\n" +
