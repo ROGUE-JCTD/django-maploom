@@ -27231,12 +27231,19 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
         }
         $(e.target).css('z-index', 760);
       });
+      var errorDialogShowing = false;
       onErrorCallback = function (msg) {
         if (goog.isDefAndNotNull(ignoreNextScriptError) && ignoreNextScriptError && msg.indexOf('Script error') > -1) {
           ignoreNextScriptError = false;
           return;
         }
-        dialogService.error($translate('error'), $translate('script_error', { error: msg }));
+        if (errorDialogShowing) {
+          return;
+        }
+        errorDialogShowing = true;
+        dialogService.error($translate('error'), $translate('script_error', { error: msg })).then(function () {
+          errorDialogShowing = false;
+        });
       };
       ol.HAVE_PROJ4JS = ol.ENABLE_PROJ4JS && typeof Proj4js == 'object';
       $scope.mapService = mapService;
@@ -27503,7 +27510,6 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'skip': 'Skip',
       'connected_as': 'Connected as {{value}}.',
       'connect_as': 'Connect as...',
-      'datastoretype': 'Datastore Type',
       'branch': 'Branch',
       'layerinfo': 'Layer Info',
       'author_fetch_failed': 'An unknown error occured while determining the authors of the feature.',
@@ -27775,7 +27781,6 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'skip': 'Omitir',
       'connected_as': 'Conectado como {{value}}.',
       'connect_as': 'Conecte como...',
-      'datastoretype': 'Tipo de almacen de datos',
       'branch': 'Rama',
       'layerinfo': 'Informacion de las Capas',
       'author_fetch_failed': 'Un error desconocido ocurri\xf3 mientras que la determinaci\xf3n de los autores del elemento.',
@@ -29933,7 +29938,7 @@ var DiffColorMap = {
       mapService_.map.getLayers().forEach(function (layer) {
         var metadata = layer.get('metadata');
         if (goog.isDefAndNotNull(metadata)) {
-          if (goog.isDefAndNotNull(metadata.repoName) && metadata.repoName === repoName) {
+          if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === repoName) {
             if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
               service_.layer = layer;
               if (goog.isDefAndNotNull(layer.get('metadata').schema)) {
@@ -32263,93 +32268,35 @@ var GeoGitRevertFeatureOptions = function () {
       }
       return null;
     };
-    this.isNotLayerGroup = function (layer) {
-      var featureType = layer.get('metadata').name;
-      var url = layer.get('metadata').url + '/wms?version=' + settings.WMSVersion + '&request=DescribeLayer&layers=' + featureType;
-      var deferredResponse = q.defer();
-      http.get(url).then(function (response) {
-        var strings = response.data.split('</LayerDescription>');
-        if (strings.length <= 2) {
-          deferredResponse.resolve(response.data);
-        } else {
-          deferredResponse.reject('Is a Layergroup.');
-        }
-      }, function (reject) {
-        deferredResponse.reject(reject);
-      });
-      return deferredResponse.promise;
-    };
-    this.getDataStoreName = function (layer) {
+    this.getFeatureType = function (layer) {
       var featureType = layer.get('metadata').name;
       var workspaceRoute = service_.parseWorkspaceRoute(featureType);
-      var url = layer.get('metadata').url + '/rest/layers/' + featureType + '.json';
       var deferredResponse = q.defer();
+      var url = layer.get('metadata').url + '/wfs?version=' + settings.WFSVersion + '&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
       http.get(url).then(function (response) {
-        var resourceUrl = response.data.layer.resource.href;
-        var datastoreStartIndex = resourceUrl.indexOf(workspaceRoute.workspace + '/datastores');
-        if (datastoreStartIndex === -1) {
-          deferredResponse.reject('No datastore.');
-        }
-        datastoreStartIndex = datastoreStartIndex + workspaceRoute.workspace.length + 12;
-        var datastoreEnd = resourceUrl.substr(datastoreStartIndex);
-        var datastoreEndIndex = datastoreEnd.indexOf('/');
-        var datastore = datastoreEnd.substring(0, datastoreEndIndex);
-        deferredResponse.resolve(datastore);
-      }, function (reject) {
-        deferredResponse.reject(reject);
-      });
-      return deferredResponse.promise;
-    };
-    this.getDataStore = function (layer, name) {
-      var url = layer.get('metadata').url + '/rest/workspaces/' + layer.get('metadata').workspace + '/datastores/' + name + '.json';
-      var deferredResponse = q.defer();
-      http.get(url).then(function (response) {
-        if (goog.isDefAndNotNull(response.data) && goog.isDefAndNotNull(response.data.dataStore)) {
-          deferredResponse.resolve(response.data.dataStore);
-        } else {
-          deferredResponse.reject(translate_('unable_to_get_datastore'));
-        }
-      }, function (reject) {
-        deferredResponse.reject(reject);
-      });
-      return deferredResponse.promise;
-    };
-    this.getFeatureType = function (layer, dataStore) {
-      var featureType = layer.get('metadata').name;
-      var workspaceRoute = service_.parseWorkspaceRoute(featureType);
-      var url = layer.get('metadata').url + '/rest/workspaces/' + workspaceRoute.workspace + '/datastores/' + dataStore.name + '/featuretypes/' + workspaceRoute.typeName + '.json';
-      var deferredResponse = q.defer();
-      http.get(url).then(function (response) {
-        response.data.featureType.workspace = workspaceRoute.workspace;
-        var featureType = response.data.featureType;
-        url = layer.get('metadata').url + '/wfs?version=' + settings.WFSVersion + '&request=DescribeFeatureType&typeName=' + workspaceRoute.typeName;
-        http.get(url).then(function (response) {
-          var x2js = new X2JS();
-          var json = x2js.xml_str2json(response.data);
-          var schema = [];
-          if (goog.isDefAndNotNull(json.schema)) {
-            var savedSchema = layer.get('metadata').savedSchema;
-            forEachArrayish(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
-              schema[obj._name] = obj;
-              schema[obj._name].visible = true;
-              if (goog.isDefAndNotNull(savedSchema)) {
-                for (var index = 0; index < savedSchema.length; index++) {
-                  if (obj._name == savedSchema[index].name) {
-                    schema[obj._name].visible = savedSchema[index].visible;
-                  }
+        var x2js = new X2JS();
+        var json = x2js.xml_str2json(response.data);
+        var schema = [];
+        if (goog.isDefAndNotNull(json.schema)) {
+          var savedSchema = layer.get('metadata').savedSchema;
+          forEachArrayish(json.schema.complexType.complexContent.extension.sequence.element, function (obj) {
+            schema[obj._name] = obj;
+            schema[obj._name].visible = true;
+            if (goog.isDefAndNotNull(savedSchema)) {
+              for (var index = 0; index < savedSchema.length; index++) {
+                if (obj._name == savedSchema[index].name) {
+                  schema[obj._name].visible = savedSchema[index].visible;
                 }
               }
-              if (goog.isDefAndNotNull(obj.simpleType)) {
-                schema[obj._name]._type = 'simpleType';
-              }
-            });
-            layer.get('metadata').schema = schema;
-            layer.get('metadata').editable = true;
-          }
-          deferredResponse.resolve(featureType);
-        }, function (reject) {
-          deferredResponse.reject(reject);
-        });
+            }
+            if (goog.isDefAndNotNull(obj.simpleType)) {
+              schema[obj._name]._type = 'simpleType';
+            }
+          });
+          layer.get('metadata').schema = schema;
+          layer.get('metadata').editable = true;
+        }
+        deferredResponse.resolve();
       }, function (reject) {
         deferredResponse.reject(reject);
       });
@@ -32388,72 +32335,58 @@ var GeoGitRevertFeatureOptions = function () {
       });
       return deferredResponse.promise;
     };
-    this.isGeoGit = function (layer, server) {
+    this.isGeoGit = function (layer, server, fullConfig) {
       if (goog.isDefAndNotNull(layer)) {
         var metadata = layer.get('metadata');
         if (!goog.isDefAndNotNull(metadata.isGeoGit)) {
-          service_.isNotLayerGroup(layer).then(function () {
-            service_.getDataStoreName(layer).then(function (dataStoreName) {
-              service_.getDataStore(layer, dataStoreName).then(function (dataStore) {
-                if (goog.isDefAndNotNull(dataStore.type) && dataStore.type === 'GeoGIT' && (goog.isDefAndNotNull(server.authentication) || server.isLocal === true)) {
-                  var repoName = dataStore.connectionParameters.entry[0].$;
-                  repoName = repoName.substring(repoName.lastIndexOf('/' || '\\') + 1, repoName.length);
-                  metadata.branchName = dataStore.connectionParameters.entry[1].$;
-                  if (metadata.branchName === 'false') {
-                    metadata.branchName = 'master';
-                  }
-                  var geogitURL = metadata.url + '/geogit/' + metadata.workspace + ':' + dataStore.name;
-                  http.get(geogitURL + '/repo/manifest').then(function () {
-                    var addRepo = function (admin) {
-                      var promise = service_.addRepo(new GeoGitRepo(geogitURL, sha1(metadata.url + ':' + dataStore.connectionParameters.entry[0].$), dataStore.connectionParameters.entry[1].$, repoName), admin);
-                      promise.then(function (repo) {
-                        if (goog.isDef(repo.id)) {
-                          rootScope.$broadcast('repoAdded', repo);
-                          metadata.repoId = repo.id;
-                        } else {
-                          metadata.repoId = repo;
-                        }
-                      }, function (reject) {
-                        dialogService_.error(translate_('error'), translate_('unable_to_add_remote') + reject);
-                      });
-                      metadata.isGeoGit = true;
-                      metadata.geogitStore = dataStore.name;
-                      metadata.repoName = repoName;
-                    };
-                    http.get(geogitURL + '/merge').then(function () {
-                      metadata.isGeoGitAdmin = true;
-                      addRepo(true);
-                    }, function (reject) {
-                      metadata.isGeoGitAdmin = false;
-                      addRepo(false);
-                    });
-                  }, function () {
-                    metadata.isGeoGit = false;
-                  });
-                } else {
-                  metadata.isGeoGit = false;
-                }
-                service_.getFeatureType(layer, dataStore).then(function (featureType) {
-                  metadata.projection = featureType.srs;
-                  ol.proj.getTransform(metadata.projection, 'EPSG:4326');
-                  metadata.nativeName = featureType.nativeName;
-                  rootScope.$broadcast('layerInfoLoaded', layer);
-                }, function (rejected) {
-                  dialogService_.error(translate_('error'), translate_('unable_to_get_feature_type') + ' (' + rejected.status + ')');
-                });
-              }, function (rejected) {
-                dialogService_.error(translate_('error'), translate_('unable_to_get_datastore') + ' (' + rejected.status + ')');
-              });
-            }, function (rejected) {
-              if (goog.isDefAndNotNull(rejected.status)) {
-                dialogService_.error(translate_('error'), translate_('unable_to_get_datastore_name') + ' (' + rejected.status + ')');
+          if (goog.isDefAndNotNull(fullConfig.Identifier) && goog.isDefAndNotNull(fullConfig.Identifier[0])) {
+            var splitGeogit = fullConfig.Identifier[0].split(':');
+            if (goog.isArray(splitGeogit) && (splitGeogit.length === 3 || splitGeogit.length === 4)) {
+              var workspace = splitGeogit[0];
+              var repoName = splitGeogit[1];
+              var nativeName = splitGeogit[2];
+              metadata.branchName = 'master';
+              metadata.nativeName = nativeName;
+              if (splitGeogit.length === 4) {
+                metadata.branchName = splitGeogit[3];
               }
-            });
-          }, function (rejected) {
-            if (goog.isDefAndNotNull(rejected.status)) {
-              dialogService_.error(translate_('error'), translate_('layer_was_layer_group') + ' (' + rejected.status + ')');
+              var geogitURL = metadata.url + '/geogit/' + workspace + ':' + repoName;
+              http.get(geogitURL + '/repo/manifest').then(function () {
+                var addRepo = function (admin) {
+                  var promise = service_.addRepo(new GeoGitRepo(geogitURL, sha1(metadata.url + ':' + repoName), metadata.branchName, repoName), admin);
+                  promise.then(function (repo) {
+                    if (goog.isDef(repo.id)) {
+                      rootScope.$broadcast('repoAdded', repo);
+                      metadata.repoId = repo.id;
+                    } else {
+                      metadata.repoId = repo;
+                    }
+                  }, function (reject) {
+                    dialogService_.error(translate_('error'), translate_('unable_to_add_remote') + reject);
+                  });
+                  metadata.isGeoGit = true;
+                  metadata.geogitStore = repoName;
+                };
+                http.get(geogitURL + '/merge').then(function () {
+                  metadata.isGeoGitAdmin = true;
+                  addRepo(true);
+                }, function (reject) {
+                  metadata.isGeoGitAdmin = false;
+                  addRepo(false);
+                });
+              }, function () {
+                metadata.isGeoGit = false;
+              });
+            } else {
+              metadata.isGeoGit = false;
             }
-          });
+            service_.getFeatureType(layer).then(function () {
+              ol.proj.getTransform(metadata.projection, 'EPSG:4326');
+              rootScope.$broadcast('layerInfoLoaded', layer);
+            }, function (rejected) {
+              dialogService_.error(translate_('error'), translate_('unable_to_get_feature_type') + ' (' + rejected.status + ')');
+            });
+          }
         }
       }
     };
@@ -32978,7 +32911,6 @@ var GeoGitRevertFeatureOptions = function () {
             scope.abstract = null;
             scope.srs = null;
             scope.serverName = null;
-            scope.datastoreType = null;
             scope.keywords = null;
             scope.repoName = null;
             scope.branchName = null;
@@ -33007,15 +32939,12 @@ var GeoGitRevertFeatureOptions = function () {
             if (goog.isDefAndNotNull(metadata.projection)) {
               scope.srs = metadata.projection;
             }
-            if (goog.isDefAndNotNull(metadata.dataStoreType)) {
-              scope.datastoreType = metadata.dataStoreType;
-            }
             if (goog.isDefAndNotNull(metadata.keywords)) {
               scope.keywords = metadata.keywords.toString();
             }
             if (metadata.isGeoGit) {
               scope.branchName = metadata.branchName;
-              scope.repoName = metadata.repoName;
+              scope.repoName = metadata.geogitStore;
             }
             var server = serverService.getServerById(scope.layer.get('metadata').serverId);
             scope.serverName = server.name;
@@ -33719,7 +33648,7 @@ var GeoGitRevertFeatureOptions = function () {
               readOnly: false,
               editable: false,
               bbox: goog.isArray(fullConfig.BoundingBox) ? fullConfig.BoundingBox[0] : fullConfig.BoundingBox,
-              projection: goog.isArray(fullConfig.CRS) ? fullConfig.CRS[0] : fullConfig.CRS,
+              projection: service_.getCRSCode(fullConfig.CRS),
               savedSchema: minimalConfig.schema
             },
             visible: minimalConfig.visibility,
@@ -33740,10 +33669,10 @@ var GeoGitRevertFeatureOptions = function () {
               if (goog.isDefAndNotNull(json.ServiceExceptionReport) && goog.isDefAndNotNull(json.ServiceExceptionReport.ServiceException) && json.ServiceExceptionReport.ServiceException.indexOf('read-only') >= 0) {
                 layer.get('metadata').readOnly = true;
               }
-              geogitService_.isGeoGit(layer, server);
+              geogitService_.isGeoGit(layer, server, fullConfig);
             }).error(function (data, status, headers, config) {
               layer.get('metadata').readOnly = true;
-              geogitService_.isGeoGit(layer, server);
+              geogitService_.isGeoGit(layer, server, fullConfig);
             });
           }
         } else if (server.ptype === 'gxp_tmssource') {
@@ -34157,6 +34086,15 @@ var GeoGitRevertFeatureOptions = function () {
       }
       return [];
     };
+    this.getCRSCode = function (CRS) {
+      var code = 'EPSG:4326';
+      forEachArrayish(CRS, function (_code) {
+        if (_code !== 'CRS:84') {
+          code = _code;
+        }
+      });
+      return code;
+    };
   });
 }());
 (function () {
@@ -34368,7 +34306,7 @@ var GeoGitRevertFeatureOptions = function () {
         mapService_.map.getLayers().forEach(function (layer) {
           var metadata = layer.get('metadata');
           if (goog.isDefAndNotNull(metadata)) {
-            if (goog.isDefAndNotNull(metadata.repoName) && metadata.repoName === repoName) {
+            if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === repoName) {
               var splitFeature = conflict.id.split('/');
               if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
                 if (goog.isDefAndNotNull(layer.get('metadata').schema)) {
@@ -38568,10 +38506,6 @@ angular.module("layers/partials/layerinfo.tpl.html", []).run(["$templateCache", 
     "  <div ng-show=\"serverURL\">\n" +
     "    <div><h4 translate=\"server_url\"></h4></div>\n" +
     "    <div class=\"well\">{{serverURL}}</div>\n" +
-    "  </div>\n" +
-    "  <div ng-show=\"datastoreType\">\n" +
-    "    <div><h4 translate=\"datastoretype\"></h4></div>\n" +
-    "    <div class=\"well\">{{datastoreType}}</div>\n" +
     "  </div>\n" +
     "  <div ng-show=\"repoName\">\n" +
     "    <div><h4 translate=\"repo\"></h4></div>\n" +
