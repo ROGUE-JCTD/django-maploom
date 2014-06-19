@@ -34922,8 +34922,16 @@ var GeoGitRevertFeatureOptions = function () {
   module.provider('notificationService', function () {
     this.$get = [
       '$rootScope',
-      function ($rootScope) {
+      '$timeout',
+      function ($rootScope, $timeout) {
         rootScope = $rootScope;
+        var updateTimestamps = function () {
+          for (i = 0; i < notifications.length; i = i + 1) {
+            notifications[i].timestr = moment(notifications[i].time).fromNow();
+          }
+          $timeout(updateTimestamps, 10000, true);
+        };
+        updateTimestamps();
         return this;
       }
     ];
@@ -34932,6 +34940,8 @@ var GeoGitRevertFeatureOptions = function () {
     };
     this.addNotification = function (notification) {
       notification.id = nextNotificationId;
+      notification.time = new Date();
+      notification.timestr = moment(notification.time).fromNow();
       nextNotificationId = nextNotificationId + 1;
       notifications.push(notification);
       rootScope.$broadcast('notification_added', notification);
@@ -38879,6 +38889,7 @@ angular.module("notifications/partial/notifications.tpl.html", []).run(["$templa
     "                    <span>\n" +
     "                        <p id=\"notification-text-{{notification.id}}\" class=\"notification-text\">\n" +
     "                          {{notification.text}}</p>\n" +
+    "                        <span class=\"notification-time\">{{notification.timestr}}</span>\n" +
     "                        <div stop-event='click' ng-click=\"removeNotification({{notification.id}})\" id=\"close-button-{{notification.id}}\"\n" +
     "                             class=\"glyphicon glyphicon-remove-circle close-notification\"></div>\n" +
     "                    </span>\n" +
