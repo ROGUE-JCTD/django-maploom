@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-06-17
+ * MapLoom - v0.0.1 - 2014-06-19
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -27543,7 +27543,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'filter': 'Filter:',
       'merge_commit': 'Merge Commit',
       'always_anonymous': 'Always Log On Anonymously',
-      'script_error': 'The following script error has occurred: "{{error}}".  It is recommended that you reload the ' + 'web page to resolve any potential complications.'
+      'script_error': 'The following script error has occurred: "{{error}}".  It is recommended that you reload the ' + 'web page to resolve any potential complications.',
+      'show_changes': 'Show Changes'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -27814,7 +27815,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'filter': 'Filtro:',
       'merge_commit': 'Fusion Confirmada',
       'always_anonymous': 'Conecte Siempre An\xf3nimamente',
-      'script_error': 'Se ha producido un error de script siguiente: "{{error}}". Se recomienda volver a cargar ' + 'la p\xe1gina web para resolver cualquier posible complicaci\xf3n.'
+      'script_error': 'Se ha producido un error de script siguiente: "{{error}}". Se recomienda volver a cargar ' + 'la p\xe1gina web para resolver cualquier posible complicaci\xf3n.',
+      'show_changes': 'Mostrar Cambios'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -28910,8 +28912,8 @@ var DiffColorMap = {
 (function () {
   var module = angular.module('loom_diff_list_directive', []);
   module.directive('loomDiffList', [
-    '$parse',
-    function ($parse) {
+    'mapService',
+    function (mapService) {
       return {
         restrict: 'C',
         replace: true,
@@ -28923,6 +28925,18 @@ var DiffColorMap = {
           conflictList: '=',
           mergeList: '=',
           clickCallback: '='
+        },
+        link: function (scope) {
+          scope.conciseName = function (input) {
+            if (input.length > 9) {
+              return input.substr(input.length - 4);
+            } else {
+              return input;
+            }
+          };
+          scope.zoomToFeature = function (feature) {
+            mapService.zoomToExtent(feature.extent, null, null, 0.5);
+          };
         }
       };
     }
@@ -29163,7 +29177,8 @@ var DiffColorMap = {
           var feature = {
               repo: _repo,
               layer: splitFeature[0],
-              feature: splitFeature[1]
+              feature: splitFeature[1],
+              extent: geom.getExtent()
             };
           switch (change.change) {
           case 'ADDED':
@@ -29988,7 +30003,6 @@ var DiffColorMap = {
           service_.performFeatureDiff(feature, merged_, ancestor_, service_.merged);
           break;
         }
-        mapService_.zoomToExtent(geom.getExtent(), null, null, 0.5);
         service_.title = feature.id;
         rootScope_.$broadcast('feature-diff-feature-set');
       };
@@ -36979,70 +36993,91 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
 }());
 (function () {
   var module = angular.module('loom_update_notification_directive', []);
-  module.directive('loomUpdateNotification', function () {
-    return {
-      restrict: 'C',
-      replace: true,
-      scope: { notification: '=' },
-      templateUrl: 'updatenotification/partial/updatenotification.tpl.html',
-      link: function (scope) {
-        var headerElement = angular.element('#update-notification-header-' + scope.notification.id);
-        headerElement.attr('data-toggle', 'collapse');
-        headerElement.attr('data-target', '#notification-description-' + scope.notification.id);
-        headerElement.attr('data-parent', '#notification-collapse-group');
-        headerElement.addClass('toggle');
-        headerElement.addClass('collapsed');
-        var repos = scope.notification.repos;
-        var adds = [];
-        var modifies = [];
-        var deletes = [];
-        var merges = [];
-        var conflicts = [];
-        var i = 0;
-        var featureHandler = function (repoFeature) {
-          var splitFeature = repoFeature.id.split('/');
-          var feature = {
-              repo: repos[i].name,
-              layer: splitFeature[0],
-              feature: splitFeature[1],
-              original: repoFeature
-            };
-          switch (repoFeature.change) {
-          case 'ADDED':
-            adds.push(feature);
-            break;
-          case 'MODIFIED':
-            modifies.push(feature);
-            break;
-          case 'REMOVED':
-            deletes.push(feature);
-            break;
-          case 'MERGED':
-            merges.push(feature);
-            break;
-          case 'CONFLICT':
-            conflicts.push(feature);
-            break;
+  module.directive('loomUpdateNotification', [
+    'mapService',
+    function (mapService) {
+      return {
+        restrict: 'C',
+        replace: true,
+        scope: { notification: '=' },
+        templateUrl: 'updatenotification/partial/updatenotification.tpl.html',
+        link: function (scope) {
+          var headerElement = angular.element('#update-notification-header-' + scope.notification.id);
+          headerElement.attr('data-toggle', 'collapse');
+          headerElement.attr('data-target', '#notification-description-' + scope.notification.id);
+          headerElement.attr('data-parent', '#notification-collapse-group');
+          headerElement.addClass('toggle');
+          headerElement.addClass('collapsed');
+          var repos = scope.notification.repos;
+          var adds = [];
+          var modifies = [];
+          var deletes = [];
+          var merges = [];
+          var conflicts = [];
+          var i = 0;
+          var featureHandler = function (repoFeature) {
+            var splitFeature = repoFeature.id.split('/');
+            var crs = goog.isDefAndNotNull(repoFeature.crs) ? repoFeature.crs : null;
+            mapService.map.getLayers().forEach(function (layer) {
+              var metadata = layer.get('metadata');
+              if (goog.isDefAndNotNull(metadata)) {
+                if (goog.isDefAndNotNull(metadata.geogitStore) && metadata.geogitStore === repos[i].name) {
+                  if (goog.isDefAndNotNull(metadata.nativeName) && metadata.nativeName === splitFeature[0]) {
+                    if (goog.isDefAndNotNull(metadata.projection)) {
+                      crs = metadata.projection;
+                    }
+                  }
+                }
+              }
+            });
+            var geom = WKT.read(repoFeature.geometry);
+            if (goog.isDefAndNotNull(crs)) {
+              geom.transform(crs, mapService.map.getView().getView2D().getProjection());
+            }
+            var feature = {
+                repo: repos[i].name,
+                layer: splitFeature[0],
+                feature: splitFeature[1],
+                original: repoFeature,
+                extent: geom.getExtent()
+              };
+            switch (repoFeature.change) {
+            case 'ADDED':
+              adds.push(feature);
+              break;
+            case 'MODIFIED':
+              modifies.push(feature);
+              break;
+            case 'REMOVED':
+              deletes.push(feature);
+              break;
+            case 'MERGED':
+              merges.push(feature);
+              break;
+            case 'CONFLICT':
+              conflicts.push(feature);
+              break;
+            }
+          };
+          for (i = 0; i < repos.length; i += 1) {
+            var features = repos[i].features;
+            if (goog.isDefAndNotNull(features)) {
+              scope.noFeatures = false;
+              forEachArrayish(features, featureHandler);
+            } else {
+              scope.noFeatures = true;
+              scope.message = scope.notification.emptyMessage;
+            }
           }
-        };
-        for (i = 0; i < repos.length; i += 1) {
-          var features = repos[i].features;
-          if (goog.isDefAndNotNull(features)) {
-            scope.noFeatures = false;
-            forEachArrayish(features, featureHandler);
-          } else {
-            scope.noFeatures = true;
-            scope.message = scope.notification.emptyMessage;
-          }
+          scope.adds = adds;
+          scope.modifies = modifies;
+          scope.deletes = deletes;
+          scope.merges = merges;
+          scope.conflicts = conflicts;
         }
-        scope.adds = adds;
-        scope.modifies = modifies;
-        scope.deletes = deletes;
-        scope.merges = merges;
-        scope.conflicts = conflicts;
-      }
-    };
-  });
+      };
+    }
+  ]);
 }());
 (function () {
   angular.module('loom_update_notification', ['loom_update_notification_directive']);
@@ -37944,27 +37979,77 @@ angular.module("diff/partial/difflist.tpl.html", []).run(["$templateCache", func
   $templateCache.put("diff/partial/difflist.tpl.html",
     "<div class=\"difflist\">\n" +
     "  <ul class=\"list-group\">\n" +
-    "    <li class=\"list-group-item conflict\" ng-click=\"clickCallback(conflict,'conflict')\" ng-repeat=\"conflict in conflictList\">\n" +
+    "    <li class=\"list-group-item conflict\" ng-repeat=\"conflict in conflictList\">\n" +
     "      <span class=\"glyphicon glyphicon-warning-sign\"/><span class=\"ellipsis diff-list-title\">\n" +
-    "      '{{conflict.feature}}' {{'in_lower_case' | translate}} {{conflict.layer}}</span>\n" +
+    "      '{{conciseName(conflict.feature)}}' {{'in_lower_case' | translate}} {{conflict.layer}}</span>\n" +
     "      <span ng-if=\"!conflict.resolved\" class=\"badge conflict-badge\">{{'conflict' | translate}}</span>\n" +
     "      <span ng-if=\"conflict.resolved\" class=\"badge resolved-badge\">{{'fixed' | translate}}</span>\n" +
+    "      <div class=\"diff-list-buttons\">\n" +
+    "          <span ng-click=\"zoomToFeature(conflict)\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'go_to_map' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-globe\"></i>\n" +
+    "          </span>\n" +
+    "          <span ng-click=\"clickCallback(conflict,'conflict')\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'show_changes' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-tasks\"></i>\n" +
+    "          </span>\n" +
+    "      </div>\n" +
     "    </li>\n" +
-    "    <li class=\"list-group-item merged\" ng-click=\"clickCallback(merged,'merge')\" ng-repeat=\"merged in mergeList\">\n" +
+    "    <li class=\"list-group-item merged\" ng-repeat=\"merged in mergeList\">\n" +
     "      <span class=\"glyphicon glyphicon-random\"/><span class=\"ellipsis diff-list-title\">\n" +
-    "      '{{merged.feature}}' {{'in_lower_case' | translate}} {{merged.layer}}</span>\n" +
+    "      '{{conciseName(merged.feature)}}' {{'in_lower_case' | translate}} {{merged.layer}}</span>\n" +
+    "      <div class=\"diff-list-buttons\">\n" +
+    "          <span ng-click=\"zoomToFeature(merged)\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'go_to_map' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-globe\"></i>\n" +
+    "          </span>\n" +
+    "          <span ng-click=\"clickCallback(merged,'merge')\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'show_changes' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-tasks\"></i>\n" +
+    "          </span>\n" +
+    "      </div>\n" +
     "    </li>\n" +
-    "    <li class=\"list-group-item add\" ng-click=\"clickCallback(add,'add')\" ng-repeat=\"add in addList\">\n" +
+    "    <li class=\"list-group-item add\" ng-repeat=\"add in addList\">\n" +
     "      <span class=\"glyphicon glyphicon-plus-sign\"/><span class=\"ellipsis diff-list-title\">\n" +
-    "      '{{add.feature}}' {{'to_lower_case' | translate}} {{add.layer}}</span>\n" +
+    "      '{{conciseName(add.feature)}}' {{'to_lower_case' | translate}} {{add.layer}}</span>\n" +
+    "      <div class=\"diff-list-buttons\">\n" +
+    "          <span ng-click=\"zoomToFeature(add)\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'go_to_map' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-globe\"></i>\n" +
+    "          </span>\n" +
+    "          <span ng-click=\"clickCallback(add,'add')\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'show_changes' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-tasks\"></i>\n" +
+    "          </span>\n" +
+    "      </div>\n" +
     "    </li>\n" +
-    "    <li class=\"list-group-item modify\" ng-click=\"clickCallback(modify,'modify')\" ng-repeat=\"modify in modifyList\">\n" +
+    "    <li class=\"list-group-item modify\" ng-repeat=\"modify in modifyList\">\n" +
     "      <span class=\"glyphicon glyphicon-edit\"/><span class=\"ellipsis diff-list-title\">\n" +
-    "      '{{modify.feature}}' {{'in_lower_case' | translate}} {{modify.layer}}</span>\n" +
+    "      '{{conciseName(modify.feature)}}' {{'in_lower_case' | translate}} {{modify.layer}}</span>\n" +
+    "      <div class=\"diff-list-buttons\">\n" +
+    "          <span ng-click=\"zoomToFeature(modify)\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'go_to_map' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-globe\"></i>\n" +
+    "          </span>\n" +
+    "          <span ng-click=\"clickCallback(modify,'modify')\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'show_changes' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-tasks\"></i>\n" +
+    "          </span>\n" +
+    "      </div>\n" +
     "    </li>\n" +
-    "    <li class=\"list-group-item delete\" ng-click=\"clickCallback(delete,'delete')\" ng-repeat=\"delete in deleteList\">\n" +
+    "    <li class=\"list-group-item delete\" ng-repeat=\"delete in deleteList\">\n" +
     "      <span class=\"glyphicon glyphicon-minus-sign\"/><span class=\"ellipsis diff-list-title\">\n" +
-    "      '{{delete.feature}}' {{'from_lower_case' | translate}} {{delete.layer}}</span>\n" +
+    "      '{{conciseName(delete.feature)}}' {{'from_lower_case' | translate}} {{delete.layer}}</span>\n" +
+    "      <div class=\"diff-list-buttons\">\n" +
+    "          <span ng-click=\"zoomToFeature(delete)\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'go_to_map' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-globe\"></i>\n" +
+    "          </span>\n" +
+    "          <span ng-click=\"clickCallback(delete,'delete')\" stop-event=\"click mousedown\" tooltip-append-to-body=\"true\"\n" +
+    "                tooltip-placement=\"top\" tooltip=\"{{'show_changes' | translate}}\" class=\"btn btn-xs btn-default\">\n" +
+    "            <i class=\"glyphicon glyphicon-tasks\"></i>\n" +
+    "          </span>\n" +
+    "      </div>\n" +
     "    </li>\n" +
     "  </ul>\n" +
     "</div>");
