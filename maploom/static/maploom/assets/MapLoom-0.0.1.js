@@ -35074,6 +35074,7 @@ var GeoGitRevertFeatureOptions = function () {
   var geogitService_ = null;
   var featureDiffService_ = null;
   var service_ = null;
+  var timeout_ = null;
   module.provider('refreshService', function () {
     this.$get = [
       'mapService',
@@ -35092,11 +35093,13 @@ var GeoGitRevertFeatureOptions = function () {
         translate_ = $translate;
         featureDiffService_ = featureDiffService;
         service_ = this;
-        this.refreshLayers();
+        timeout_ = setTimeout(function () {
+          refresh(mapService);
+        }, 60000);
         return this;
       }
     ];
-    this.autoRefresh = false;
+    this.autoRefresh = true;
     function refresh(mapService) {
       if (service_.autoRefresh) {
         var refreshed = {};
@@ -35104,7 +35107,10 @@ var GeoGitRevertFeatureOptions = function () {
         var layers = mapService.getLayers();
         var refreshTimeout = 60000;
         if (!goog.isDefAndNotNull(layers)) {
-          setTimeout(function () {
+          if (goog.isDefAndNotNull(timeout_)) {
+            clearTimeout(timeout_);
+          }
+          timeout_ = setTimeout(function () {
             refresh(mapService);
           }, refreshTimeout);
           return;
@@ -35113,7 +35119,10 @@ var GeoGitRevertFeatureOptions = function () {
           layers = [layers];
         }
         if (layers.length < 1) {
-          setTimeout(function () {
+          if (goog.isDefAndNotNull(timeout_)) {
+            clearTimeout(timeout_);
+          }
+          timeout_ = setTimeout(function () {
             refresh(mapService);
           }, refreshTimeout);
           return;
@@ -35226,7 +35235,10 @@ var GeoGitRevertFeatureOptions = function () {
             if (layers.length > idx) {
               processLayer(layers[idx], idx + 1);
             } else {
-              setTimeout(function () {
+              if (goog.isDefAndNotNull(timeout_)) {
+                clearTimeout(timeout_);
+              }
+              timeout_ = setTimeout(function () {
                 refresh(mapService);
               }, refreshTimeout);
             }
@@ -35257,10 +35269,7 @@ var GeoGitRevertFeatureOptions = function () {
       }
     }
     this.refreshLayers = function () {
-      this.autoRefresh = !this.autoRefresh;
-      if (this.autoRefresh) {
-        refresh(mapService_);
-      }
+      refresh(mapService_);
     };
   });
 }());
