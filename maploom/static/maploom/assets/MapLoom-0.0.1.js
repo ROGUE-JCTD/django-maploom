@@ -27347,6 +27347,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'commit_merge': 'Commit Merge',
       'added_1_feature': 'Added 1 feature to \'{{layer}}\' via MapLoom.',
       'modified_1_feature': 'Modified 1 feature in \'{{layer}}\' via MapLoom.',
+      'modified_x_features': 'Modified {{num}} features in \'{{layer}}\' via MapLoom.',
       'removed_1_feature': 'Removed 1 feature from \'{{layer}}\' via MapLoom.',
       'applied_via_maploom': 'Applied via MapLoom.',
       'conflicts_in': 'Conflicts resolved in \'{{layer}}\'',
@@ -27619,6 +27620,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'commit_merge': 'Confirmar Fusion',
       'added_1_feature': 'A\xf1adi\xf3 1 elemento a \'{{layer}}\' a trav\xe9s MapLoom.',
       'modified_1_feature': 'Modificado 1 elemento de \'{{layer}}\' a trav\xe9s MapLoom.',
+      'modified_x_features': 'Modificado {{num}} elementos de \'{{layer}}\' a trav\xe9s MapLoom.',
       'removed_1_feature': 'Eliminado 1 elemento de \'{{layer}}\' a trav\xe9s MapLoom.',
       'applied_via_maploom': 'Aplica a trav\xe9s de MapLoom.',
       'conflicts_in': 'Los conflictos resueltos en \'{{layer}}\'',
@@ -30281,15 +30283,37 @@ var DiffColorMap = {
             } else {
               property.newvalue = property.enum[index]._value;
             }
+            scope.validateField(property, 'newvalue');
           };
           scope.selectBooleanValue = function (property, index) {
             property.newvalue = property.enum[index]._value === 'true';
+            scope.validateField(property, 'newvalue');
           };
           scope.validateInteger = function (property, key) {
             property.valid = validateInteger(property[key]);
           };
           scope.validateDouble = function (property, key) {
             property.valid = validateDouble(property[key]);
+          };
+          scope.validateField = function (property, key) {
+            property.valid = true;
+            switch (property.type) {
+            case 'xsd:int':
+              property.valid = validateInteger(property[key]);
+              break;
+            case 'xsd:integer':
+              property.valid = validateInteger(property[key]);
+              break;
+            case 'xsd:double':
+              property.valid = validateDouble(property[key]);
+              break;
+            case 'xsd:decimal':
+              property.valid = validateDouble(property[key]);
+              break;
+            }
+            if (featureDiffService.schema[property.attributename]._nillable === 'false' && (property[key] === '' || property[key] === null)) {
+              property.valid = false;
+            }
           };
           scope.$on('feature-diff-performed', updateVariables);
           scope.$on('show-authors', function () {
@@ -30407,7 +30431,8 @@ var DiffColorMap = {
                       { _value: 'false' }
                     ];
                   }
-                  prop.valid = true;
+                  prop.nillable = attributeTypes[prop[0]]._nillable;
+                  scope.validateField(prop, 1);
                   scope.properties.push(prop);
                 }
               }
@@ -30439,11 +30464,26 @@ var DiffColorMap = {
           scope.removePhoto = function (property, photo) {
             goog.array.remove(property[1], photo);
           };
-          scope.validateInteger = function (property, key) {
-            property.valid = validateInteger(property[key]);
-          };
-          scope.validateDouble = function (property, key) {
-            property.valid = validateDouble(property[key]);
+          scope.validateField = function (property, key) {
+            property.valid = true;
+            if (property[key] !== '' && property[key] !== null) {
+              switch (property.type) {
+              case 'xsd:int':
+                property.valid = validateInteger(property[key]);
+                break;
+              case 'xsd:integer':
+                property.valid = validateInteger(property[key]);
+                break;
+              case 'xsd:double':
+                property.valid = validateDouble(property[key]);
+                break;
+              case 'xsd:decimal':
+                property.valid = validateDouble(property[key]);
+                break;
+              }
+            } else if (property.nillable === 'false') {
+              property.valid = false;
+            }
           };
           var parentModal = element.closest('.modal');
           var closeModal = function (event, element) {
@@ -30507,6 +30547,7 @@ var DiffColorMap = {
             } else {
               property[1] = property.enum[index]._value;
             }
+            scope.validateField(property, 1);
           };
           scope.$on('modal-closed', closeModal);
           function onResize() {
@@ -31004,15 +31045,6 @@ var DiffColorMap = {
     };
     this.getEnabled = function () {
       return enabled_;
-    };
-    this.setSelectedItem = function (item) {
-      selectedItem_ = item;
-    };
-    this.setSelectedItemProperties = function (properties) {
-      selectedItemProperties_ = properties;
-    };
-    this.setSelectedLayer = function (layer) {
-      selectedLayer_ = layer;
     };
     this.hide = function () {
       selectedItem_ = null;
@@ -31549,7 +31581,7 @@ var DiffColorMap = {
       } else if (save) {
         var propertyXmlPartial = '';
         goog.array.forEach(properties, function (property, index) {
-          if (property[0] === 'fotos' || property[0] === 'photos') {
+          if ((property[0] === 'fotos' || property[0] === 'photos') && goog.isObject(property[1])) {
             var newArray = [];
             forEachArrayish(property[1], function (photo) {
               newArray.push(photo.original);
@@ -31684,14 +31716,14 @@ var DiffColorMap = {
       commitMsg = translate_('added_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
       wfsRequestTypePartial = '<wfs:Insert handle="' + commitMsg + '"><feature:' + featureType + ' xmlns:feature="http://www.geonode.org/">' + partial + '</feature:' + featureType + '></wfs:Insert>';
       goog.array.forEach(properties, function (obj) {
-        if (obj[0] !== 'fotos' && obj[0] !== 'photos') {
-          selectedItem_.properties[obj[0]] = obj[1];
-        } else {
+        if (obj[0] === 'fotos' && obj[0] === 'photos' && goog.isArray(obj[1])) {
           var newArray = [];
           forEachArrayish(obj[1], function (photo) {
             newArray.push(photo.original);
           });
           selectedItem_.properties[obj[0]] = JSON.stringify(newArray);
+        } else {
+          selectedItem_.properties[obj[0]] = obj[1];
         }
       });
     } else {
@@ -31703,14 +31735,14 @@ var DiffColorMap = {
         commitMsg = translate_('modified_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
         wfsRequestTypePartial = '<wfs:Update handle="' + commitMsg + '" xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.get('metadata').name + '">' + partial + filter + '</wfs:Update>';
         goog.array.forEach(properties, function (obj) {
-          if (obj[0] !== 'fotos' && obj[0] !== 'photos') {
-            selectedItem_.properties[obj[0]] = obj[1];
-          } else {
+          if (obj[0] === 'fotos' && obj[0] === 'photos' && goog.isArray(obj[1])) {
             var newArray = [];
             forEachArrayish(obj[1], function (photo) {
               newArray.push(photo.original);
             });
             selectedItem_.properties[obj[0]] = JSON.stringify(newArray);
+          } else {
+            selectedItem_.properties[obj[0]] = obj[1];
           }
         });
       }
@@ -36416,10 +36448,12 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             tableViewService.filter().then(function () {
               scope.isSaving = false;
               tableViewService.selectedLayer.get('metadata').loadingTable = false;
+              scope.selectedRow = null;
               updateData();
             }, function (reject) {
               scope.isSaving = false;
               tableViewService.selectedLayer.get('metadata').loadingTable = false;
+              scope.selectedRow = null;
             });
           };
           scope.clearFilters = function () {
@@ -36510,20 +36544,43 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             }
             featureManagerService.hide();
           });
+          scope.selectValue = function (properties, name, index) {
+            if (index === null) {
+              properties[name] = null;
+            } else {
+              properties[name] = scope.restrictions[name].type[index]._value;
+            }
+          };
+          var featuresModified = 0;
           function hasValidationErrors() {
             var numErrors = 0;
+            featuresModified = 0;
             for (var row in scope.rows) {
               var feature = scope.rows[row].feature;
+              scope.rows[row].modified = false;
               for (var prop in feature.properties) {
-                if (feature.properties[prop] !== '' && feature.properties[prop] !== null && scope.restrictions[prop] === 'int') {
-                  if (!validateInteger(feature.properties[prop])) {
-                    numErrors++;
-                  }
-                } else if (feature.properties[prop] !== '' && feature.properties[prop] !== null && scope.restrictions[prop] === 'double') {
-                  if (!validateDouble(feature.properties[prop])) {
-                    numErrors++;
-                  }
+                if (prop === 'photos' || prop === 'fotos') {
+                  continue;
                 }
+                if (feature.properties[prop] !== tableViewService.rows[row].feature.properties[prop]) {
+                  scope.rows[row].modified = true;
+                }
+                if (feature.properties[prop] !== '' && feature.properties[prop] !== null) {
+                  if (scope.restrictions[prop].type === 'int') {
+                    if (!validateInteger(feature.properties[prop])) {
+                      numErrors++;
+                    }
+                  } else if (scope.restrictions[prop].type === 'double') {
+                    if (!validateDouble(feature.properties[prop])) {
+                      numErrors++;
+                    }
+                  }
+                } else if (scope.restrictions[prop].nillable === 'false') {
+                  numErrors++;
+                }
+              }
+              if (scope.rows[row].modified) {
+                featuresModified++;
               }
             }
             if (numErrors > 0) {
@@ -36533,6 +36590,52 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
               return false;
             }
           }
+          function getWfsFeaturesXml() {
+            var xml = '';
+            for (var index in scope.rows) {
+              if (!scope.rows[index].modified) {
+                continue;
+              }
+              var feature = scope.rows[index].feature;
+              xml += '' + '<wfs:Update' + ' xmlns:feature="http://www.geonode.org/" ' + 'typeName="' + tableViewService.selectedLayer.get('metadata').name + '">';
+              for (var property in feature.properties) {
+                var value = feature.properties[property];
+                xml += '<wfs:Property>' + '<wfs:Name>' + property + '</wfs:Name>';
+                if (goog.isDefAndNotNull(value)) {
+                  xml += '<wfs:Value>' + value + '</wfs:Value>';
+                } else {
+                  xml += '<wfs:Value></wfs:Value>';
+                }
+                xml += '</wfs:Property>';
+              }
+              xml += '' + '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">' + '<ogc:FeatureId fid="' + feature.id + '" />' + '</ogc:Filter>' + '</wfs:Update>';
+            }
+            return xml;
+          }
+          function getWfsData() {
+            var commitMessage = '';
+            if (featuresModified === 1) {
+              commitMessage = $translate('modified_1_feature', { 'layer': tableViewService.selectedLayer.get('metadata').nativeName });
+            } else {
+              commitMessage = $translate('modified_x_features', {
+                'num': featuresModified,
+                'layer': tableViewService.selectedLayer.get('metadata').nativeName
+              });
+            }
+            console.log('commit message: ', commitMessage);
+            var xml = '' + '<?xml version="1.0" encoding="UTF-8"?>' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs"' + ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.0.0" handle="' + commitMessage + '">' + getWfsFeaturesXml() + '</wfs:Transaction>';
+            return xml;
+          }
+          function postAllFeatures() {
+            if (config.username && config.password && typeof config.headerData === 'undefined') {
+              config.headerData = { 'Content-Type': 'text/xml;charset=utf-8' };
+            }
+            var xmlData = getWfsData();
+            var url = '/geoserver/wfs/WfsDispatcher';
+            $http.post(url, xmlData, { headers: { 'Content-Type': 'text/xml;charset=utf-8' } }).success(function (data, status, headers, config) {
+              scope.isSaving = false;
+            });
+          }
           scope.saveTable = function () {
             if (scope.isSaving) {
               return;
@@ -36540,56 +36643,12 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             if (hasValidationErrors() === true) {
               return 'Invalid fields detected';
             }
+            if (featuresModified === 0) {
+              return;
+            }
             scope.isSaving = true;
-            var featureIndex = 0;
-            var numFailed = 0;
-            var save = function () {
-              var originalPropertyArray = [];
-              var propertyArray = [];
-              var originalFeature = tableViewService.rows[featureIndex].feature;
-              var feature = scope.rows[featureIndex].feature;
-              for (var prop in feature.properties) {
-                propertyArray.push({
-                  0: prop,
-                  1: feature.properties[prop]
-                });
-                originalPropertyArray.push({
-                  0: prop,
-                  1: originalFeature.properties[prop]
-                });
-              }
-              featureManagerService.setSelectedItem({
-                type: 'feature',
-                id: originalFeature.id,
-                properties: originalPropertyArray
-              });
-              featureManagerService.setSelectedItemProperties(originalPropertyArray);
-              featureManagerService.setSelectedLayer(tableViewService.selectedLayer);
-              featureManagerService.endAttributeEditing(true, false, propertyArray).then(function () {
-                tableViewService.rows[featureIndex].feature = $.extend(true, {}, scope.rows[featureIndex].feature);
-                featureIndex++;
-                if (featureIndex < scope.rows.length) {
-                  save();
-                } else {
-                  scope.isSaving = false;
-                  if (numFailed > 0) {
-                    dialogService.error($translate('save_attributes'), $translate('failed_to_save_features', { value: numFailed }), [$translate('btn_ok')], false);
-                  }
-                }
-              }, function () {
-                featureIndex++;
-                numFailed++;
-                if (featureIndex < scope.rows.length) {
-                  save();
-                } else {
-                  scope.isSaving = false;
-                  if (numFailed > 0) {
-                    dialogService.error($translate('save_attributes'), $translate('failed_to_save_features', { value: numFailed }), [$translate('btn_ok')], false);
-                  }
-                }
-              });
-            };
-            save();
+            postAllFeatures();
+            scope.applyFilters();
             $.bootstrapSortable();
           };
         }
@@ -36684,21 +36743,30 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           }
           for (var attrIndex in service_.attributeNameList) {
             var attr = service_.attributeNameList[attrIndex];
-            var attrRestriction = '';
+            var attrRestriction = {
+                type: '',
+                nillable: true
+              };
             var schemaType = metadata.schema[attr.name]._type;
             if (schemaType === 'simpleType') {
-              attrRestriction = metadata.schema[attr.name].simpleType.restriction.enumeration;
+              attrRestriction.type = metadata.schema[attr.name].simpleType.restriction.enumeration;
             } else if (schemaType === 'xsd:int' || schemaType === 'xsd:integer') {
-              attrRestriction = 'int';
+              attrRestriction.type = 'int';
             } else if (schemaType === 'xsd:double' || schemaType === 'xsd:decimal') {
-              attrRestriction = 'double';
+              attrRestriction.type = 'double';
             } else if (schemaType === 'xsd:dateTime') {
-              attrRestriction = 'datetime';
+              attrRestriction.type = 'datetime';
             } else if (schemaType === 'xsd:date') {
-              attrRestriction = 'date';
+              attrRestriction.type = 'date';
             } else if (schemaType === 'xsd:time') {
-              attrRestriction = 'time';
+              attrRestriction.type = 'time';
+            } else if (schemaType === 'xsd:boolean') {
+              attrRestriction.type = [
+                { _value: 'true' },
+                { _value: 'false' }
+              ];
             }
+            attrRestriction.nillable = metadata.schema[attr.name]._nillable;
             service_.restrictionList[attr.name] = attrRestriction;
           }
         };
@@ -36710,7 +36778,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             metadata.filters = {};
           }
           for (var attrName in response.data.features[0].properties) {
-            if (response.data.features[0].properties.hasOwnProperty(attrName)) {
+            if (response.data.features[0].properties.hasOwnProperty(attrName) && attrName !== 'fotos' && attrName !== 'photos') {
               if (!goog.isDefAndNotNull(metadata.filters[attrName])) {
                 metadata.filters[attrName] = { filter: '' };
               }
@@ -36729,7 +36797,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
               selectedFeature = true;
             }
             row = {
-              visible: true,
+              modified: false,
               selected: selectedFeature,
               feature: response.data.features[feat]
             };
@@ -38218,7 +38286,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\" date=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
     "              -->\n" +
-    "              <div ng-switch-when=\"simpleType\" class=\"merge-select\" ng-class=\"{'input-group': attribute.editable}\">\n" +
+    "              <div ng-switch-when=\"simpleType\" class=\"merge-select\" ng-class=\"{'input-group': attribute.editable, 'has-error': !attribute.valid}\">\n" +
     "                <div ng-if=\"attribute.editable\" class=\"input-group-btn\">\n" +
     "                  <button ng-disabled=\"!isConflictPanel\" type=\"button\" class=\"btn btn-default dropdown-toggle attr-none\"\n" +
     "                          data-toggle=\"dropdown\">\n" +
@@ -38240,13 +38308,16 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                      'form-control' : attribute.editable\n" +
     "                    }\"/>\n" +
     "              </div>\n" +
-    "              <div ng-switch-when=\"xsd:boolean\" class=\"merge-select\" ng-class=\"{'input-group': attribute.editable}\">\n" +
+    "              <div ng-switch-when=\"xsd:boolean\" class=\"merge-select\" ng-class=\"{'input-group': attribute.editable, 'has-error': !attribute.valid}\">\n" +
     "                <div ng-if=\"attribute.editable\" class=\"input-group-btn\">\n" +
     "                  <button ng-disabled=\"!isConflictPanel\" type=\"button\" class=\"btn btn-default dropdown-toggle attr-none\"\n" +
     "                          data-toggle=\"dropdown\">\n" +
     "                    <span class=\"caret\"></span>\n" +
     "                  </button>\n" +
     "                  <ul class=\"dropdown-menu\">\n" +
+    "                    <li>\n" +
+    "                      <a ng-click=\"selectValue(attribute, null)\">&nbsp;</a>\n" +
+    "                    </li>\n" +
     "                    <li ng-repeat=\"enum in attribute.enum\">\n" +
     "                      <a ng-click=\"selectBooleanValue(attribute, $index)\" translate=\"{{enum._value}}\"></a>\n" +
     "                    </li>\n" +
@@ -38262,7 +38333,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "              <div ng-switch-when=\"xsd:int\" ng-class=\"{'has-error': !attribute.valid}\">\n" +
     "                <input ng-disabled=\"!isConflictPanel\" ng-model=\"attribute.newvalue\" type=\"text\"\n" +
     "                       class=\"form-control attr-none\"\n" +
-    "                       ng-change=\"validateInteger(attribute, 'newvalue')\" ng-class=\"{\n" +
+    "                       ng-change=\"validateField(attribute, 'newvalue')\" ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
     "                      'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
@@ -38271,19 +38342,21 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "              <div ng-switch-when=\"xsd:double\" ng-class=\"{'has-error': !attribute.valid}\">\n" +
     "                <input ng-disabled=\"!isConflictPanel\" ng-model=\"attribute.newvalue\" type=\"text\"\n" +
     "                       class=\"form-control attr-none\"\n" +
-    "                       ng-change=\"validateDouble(attribute, 'newvalue')\" ng-class=\"{\n" +
+    "                       ng-change=\"validateField(attribute, 'newvalue')\" ng-class=\"{\n" +
     "                      'attr-added': attribute.changetype == 'ADDED',\n" +
     "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
     "                      'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
     "                    }\"/>\n" +
     "              </div>\n" +
-    "              <input ng-switch-default ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\"\n" +
-    "                     ng-disabled=\"!isConflictPanel\" placeholder=\"\"\n" +
-    "                     ng-class=\"{\n" +
-    "                      'attr-added': attribute.changetype == 'ADDED',\n" +
-    "                      'attr-modified': attribute.changetype == 'MODIFIED',\n" +
-    "                      'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
-    "                    }\">\n" +
+    "              <div ng-switch-default ng-class=\"{'has-error': !attribute.valid}\">\n" +
+    "                <input ng-model=\"attribute.newvalue\" type=\"text\" class=\"form-control attr-none\"\n" +
+    "                       ng-disabled=\"!isConflictPanel\" ng-change=\"validateField(attribute, 'newvalue')\" placeholder=\"\"\n" +
+    "                       ng-class=\"{\n" +
+    "                        'attr-added': attribute.changetype == 'ADDED',\n" +
+    "                        'attr-modified': attribute.changetype == 'MODIFIED',\n" +
+    "                        'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
+    "                      }\">\n" +
+    "              </div>\n" +
     "            </div>\n" +
     "            <div ng-if=\"authorsShown\">\n" +
     "              <input ng-if=\"!isConflictPanel\" value=\"{{computeAuthorString(attribute)}}\" type=\"text\" readOnly=\"readOnly\"\n" +
@@ -38336,7 +38409,7 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "          <datetimepicker ng-switch-when=\"xsd:dateTime\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\"></datetimepicker>\n" +
     "          <datetimepicker ng-switch-when=\"xsd:date\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\" time=\"false\"></datetimepicker>\n" +
     "          <datetimepicker ng-switch-when=\"xsd:time\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\" date=\"false\"></datetimepicker>\n" +
-    "          <div ng-switch-when=\"simpleType\" class=\"input-group\">\n" +
+    "          <div ng-switch-when=\"simpleType\" class=\"input-group\"  ng-class=\"{'has-error': !prop.valid}\">\n" +
     "            <div class=\"input-group-btn\" ng-class=\"{'dropup': $last}\">\n" +
     "              <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">\n" +
     "                <span class=\"caret\"></span>\n" +
@@ -38349,27 +38422,30 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "                  <a ng-click=\"selectValue(prop, $index)\">{{enum._value}}</a>\n" +
     "                </li>\n" +
     "              </ul>\n" +
-    "            </div>\n" +
-    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" disabled/>\n" +
+    "          </div>\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateField(prop, 1)\" disabled/>\n" +
     "          </div>\n" +
     "          <div ng-switch-when=\"xsd:int\" ng-class=\"{'has-error': !prop.valid}\">\n" +
-    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateInteger(prop, 1)\"/>\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateField(prop, 1)\"/>\n" +
     "          </div>\n" +
     "          <div ng-switch-when=\"xsd:integer\" ng-class=\"{'has-error': !prop.valid}\">\n" +
-    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateInteger(prop, 1)\"/>\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateField(prop, 1)\"/>\n" +
     "          </div>\n" +
     "          <div ng-switch-when=\"xsd:double\" ng-class=\"{'has-error': !prop.valid}\">\n" +
-    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateDouble(prop, 1)\"/>\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateField(prop, 1)\"/>\n" +
     "          </div>\n" +
     "          <div ng-switch-when=\"xsd:decimal\" ng-class=\"{'has-error': !prop.valid}\">\n" +
-    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateDouble(prop, 1)\"/>\n" +
+    "            <input ng-model=\"prop[1]\" type=\"text\" class=\"form-control\" ng-change=\"validateField(prop, 1)\"/>\n" +
     "          </div>\n" +
-    "          <div ng-switch-when=\"xsd:boolean\" class=\"input-group\">\n" +
+    "          <div ng-switch-when=\"xsd:boolean\" class=\"input-group\"  ng-class=\"{'has-error': !prop.valid}\">\n" +
     "            <div class=\"input-group-btn\" ng-class=\"{'dropup': $last}\">\n" +
     "              <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">\n" +
     "                <span class=\"caret\"></span>\n" +
     "              </button>\n" +
     "              <ul class=\"dropdown-menu\">\n" +
+    "                <li>\n" +
+    "                  <a ng-click=\"selectValue(prop, null)\">&nbsp;</a>\n" +
+    "                </li>\n" +
     "                <li ng-repeat=\"enum in prop.enum\">\n" +
     "                  <a ng-click=\"selectValue(prop, $index)\" translate=\"{{enum._value}}\"></a>\n" +
     "                </li>\n" +
@@ -38377,7 +38453,9 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "            </div>\n" +
     "            <input value=\"{{translate(prop[1])}}\" type=\"text\" class=\"form-control\" disabled/>\n" +
     "          </div>\n" +
-    "          <autotextarea ng-switch-default ng-model=\"prop[1]\" class=\"form-control custom-form-control auto-text-area\"></autotextarea>\n" +
+    "          <div ng-switch-default  ng-class=\"{'has-error': !prop.valid}\">\n" +
+    "            <autotextarea ng-model=\"prop[1]\" class=\"form-control custom-form-control auto-text-area\" ng-change=\"validateField(prop, 1)\"></autotextarea>\n" +
+    "          </div>\n" +
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
@@ -39173,9 +39251,11 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
   $templateCache.put("tableview/partial/tableview.tpl.html",
     "<div class=\"modal-body\">\n" +
     "  <div id=\"table-loading\" class=\"loom-loading\" spinner-width=\"6\" spinner-radius=\"40\" spinner-hidden=\"!isSaving\"></div>\n" +
-    "  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"applyFilters()\" translate=\"apply_filters\">\n" +
+    "  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"applyFilters()\" translate=\"apply_filters\"\n" +
+    "          ng-disabled=\"tableviewform.$visible\">\n" +
     "  </button>\n" +
-    "  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"clearFilters()\" translate=\"clear_filters\">\n" +
+    "  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"clearFilters()\" translate=\"clear_filters\"\n" +
+    "          ng-disabled=\"tableviewform.$visible\">\n" +
     "  </button>\n" +
     "  <form editable-form name=\"tableviewform\" onaftersave=\"saveTable()\">\n" +
     "    <div class=\"panel panel-default\">\n" +
@@ -39187,14 +39267,15 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "          </tr>\n" +
     "          <tr ng-if=\"filterOn\">\n" +
     "            <td class=\"filter-row first-filter-row\" translate=\"filter\"></td>\n" +
-    "            <td class=\"filter-row\" ng-repeat=\"attr in attributes\"><input class=\"form-control\" type=\"text\"\n" +
-    "                                                                         ng-model=\"attr.filter.filter\"></td>\n" +
+    "              <td class=\"filter-row\" ng-repeat=\"attr in attributes\">\n" +
+    "                <input class=\"form-control\" type=\"text\" ng-model=\"attr.filter.filter\">\n" +
+    "              </td>\n" +
     "          </tr>\n" +
     "        </thead>\n" +
-    "        <tr ng-repeat=\"row in rows\" ng-show=\"row.visible\" ng-class=\"{selectedRow: row.selected}\" ng-click=\"selectFeature(row)\">\n" +
+    "        <tr ng-repeat=\"row in rows\" ng-class=\"{selectedRow: row.selected}\" ng-click=\"selectFeature(row)\">\n" +
     "          <td>{{row.feature.id}}</td>\n" +
-    "          <td ng-repeat=\"attr in attributes track by $index\">\n" +
-    "            <div ng-switch on=\"restrictions[attr.name]\">\n" +
+    "          <td ng-repeat=\"attr in attributes track by $index\" ng-class=\"{'table-editing': tableviewform.$visible}\">\n" +
+    "            <div ng-switch on=\"restrictions[attr.name].type\">\n" +
     "              <span ng-switch-when=\"\" editable-text=\"row.feature.properties[attr.name]\" e-form=\"tableviewform\"\n" +
     "                    e-style=\"width:160px\">{{row.feature.properties[attr.name]}}</span>\n" +
     "              <span ng-switch-when=\"noEdit\">{{row.feature.properties[attr.name]}}</span>\n" +
@@ -39210,24 +39291,38 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "                  <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name] | date:\"MM/dd/yyyy @ h:mma\"}}</span>\n" +
     "                  <datetimepicker ng-if=\"tableviewform.$visible\" id=\"table-datetime\" date-object=\"row.feature.properties\" date-key=\"attr.name\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
-    "\n" +
-    "              <span ng-switch-default editable-select=\"row.feature.properties[attr.name]\" e-form=\"tableviewform\" e-style=\"width:160px\"\n" +
-    "                    e-ng-options=\"r._value as r._value for r in restrictions[attr.name]\">{{row.feature.properties[attr.name]}}</span>\n" +
+    "              <div ng-switch-default class=\"input-group\">\n" +
+    "                <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name]}}</span>\n" +
+    "                <div ng-if=\"tableviewform.$visible\" class=\"input-group-btn\" ng-class=\"{'dropup': $last}\">\n" +
+    "                  <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">\n" +
+    "                    <span class=\"caret\"></span>\n" +
+    "                  </button>\n" +
+    "                  <ul class=\"dropdown-menu\">\n" +
+    "                    <li>\n" +
+    "                      <a ng-click=\"selectValue(row.feature.properties, attr.name, null)\">&nbsp;</a>\n" +
+    "                    </li>\n" +
+    "                    <li ng-repeat=\"enum in restrictions[attr.name].type\">\n" +
+    "                      <a ng-click=\"selectValue(row.feature.properties, attr.name, $index)\">{{enum._value}}</a>\n" +
+    "                    </li>\n" +
+    "                  </ul>\n" +
+    "                </div>\n" +
+    "                <input ng-if=\"tableviewform.$visible\" ng-model=\"row.feature.properties[attr.name]\" type=\"text\" class=\"table-dropdown form-control\" disabled/>\n" +
+    "              </div>\n" +
     "            </div>\n" +
     "          </td>\n" +
     "        </tr>\n" +
     "      </table>\n" +
     "    </div>\n" +
-    "    <button type=\"button\" class=\"btn btn-primary table-btn\" ng-show=\"tableviewform.$visible\">{{'save_btn' | translate}}</button>\n" +
-    "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"tableviewform.$cancel()\" ng-show=\"tableviewform.$visible\">{{'cancel_btn' | translate}}</button>\n" +
-    "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"tableviewform.$show()\"\n" +
+    "    <button type=\"button\" class=\"btn btn-primary table-btn\" ng-click=\"tableviewform.$submit()\" ng-show=\"tableviewform.$visible\">{{'save_btn' | translate}}</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"tableviewform.$cancel(); applyFilters()\" ng-show=\"tableviewform.$visible\">{{'cancel_btn' | translate}}</button>\n" +
+    "      <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"tableviewform.$show()\"\n" +
     "          ng-show=\"!tableviewform.$visible && !readOnly\" tooltip=\"{{'edit_attributes' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "        <i class=\"glyphicon glyphicon-edit\"></i>\n" +
     "    </button>\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"toggleWordWrap()\" tooltip=\"{{'word_wrap' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "        <i class=\"glyphicon glyphicon-text-width\"></i>\n" +
     "    </button>\n" +
-    "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"goToMap()\" ng-show=\"selectedRow != null\" tooltip=\"{{'go_to_map' | translate}}\" tooltip-append-to-body=\"true\">\n" +
+    "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"goToMap()\" ng-show=\"!tableviewform.$visible && selectedRow != null\" tooltip=\"{{'go_to_map' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "        <i class=\"glyphicon glyphicon-globe\"></i>\n" +
     "    </button>\n" +
     "    <button id='previous-page-btn' type=\"button\" class=\"btn btn-default table-btn\"\n" +
