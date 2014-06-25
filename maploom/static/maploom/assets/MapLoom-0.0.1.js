@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-06-19
+ * MapLoom - v0.0.1 - 2014-06-25
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -32350,6 +32350,14 @@ var GeoGitRevertFeatureOptions = function () {
       return deferredResponse.promise;
     };
     this.isGeoGit = function (layer, server, fullConfig) {
+      var getFeatureType = function () {
+        service_.getFeatureType(layer).then(function () {
+          ol.proj.getTransform(metadata.projection, 'EPSG:4326');
+          rootScope.$broadcast('layerInfoLoaded', layer);
+        }, function (rejected) {
+          dialogService_.error(translate_('error'), translate_('unable_to_get_feature_type') + ' (' + rejected.status + ')');
+        });
+      };
       if (goog.isDefAndNotNull(layer)) {
         var metadata = layer.get('metadata');
         if (!goog.isDefAndNotNull(metadata.isGeoGit)) {
@@ -32375,8 +32383,10 @@ var GeoGitRevertFeatureOptions = function () {
                     } else {
                       metadata.repoId = repo;
                     }
+                    getFeatureType();
                   }, function (reject) {
                     dialogService_.error(translate_('error'), translate_('unable_to_add_remote') + reject);
+                    getFeatureType();
                   });
                   metadata.isGeoGit = true;
                   metadata.geogitStore = repoName;
@@ -32390,17 +32400,18 @@ var GeoGitRevertFeatureOptions = function () {
                 });
               }, function () {
                 metadata.isGeoGit = false;
+                getFeatureType();
               });
             } else {
               metadata.isGeoGit = false;
+              getFeatureType();
             }
-            service_.getFeatureType(layer).then(function () {
-              ol.proj.getTransform(metadata.projection, 'EPSG:4326');
-              rootScope.$broadcast('layerInfoLoaded', layer);
-            }, function (rejected) {
-              dialogService_.error(translate_('error'), translate_('unable_to_get_feature_type') + ' (' + rejected.status + ')');
-            });
+          } else {
+            metadata.isGeoGit = false;
+            getFeatureType();
           }
+        } else {
+          getFeatureType();
         }
       }
     };
