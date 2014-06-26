@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-06-25
+ * MapLoom - v0.0.1 - 2014-06-26
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -31734,17 +31734,19 @@ var DiffColorMap = {
       } else if (postType === wfsPostTypes_.UPDATE) {
         commitMsg = translate_('modified_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
         wfsRequestTypePartial = '<wfs:Update handle="' + commitMsg + '" xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.get('metadata').name + '">' + partial + filter + '</wfs:Update>';
-        goog.array.forEach(properties, function (obj) {
-          if (obj[0] === 'fotos' && obj[0] === 'photos' && goog.isArray(obj[1])) {
-            var newArray = [];
-            forEachArrayish(obj[1], function (photo) {
-              newArray.push(photo.original);
-            });
-            selectedItem_.properties[obj[0]] = JSON.stringify(newArray);
-          } else {
-            selectedItem_.properties[obj[0]] = obj[1];
-          }
-        });
+        if (goog.isDefAndNotNull(properties)) {
+          goog.array.forEach(properties, function (obj) {
+            if (obj[0] === 'fotos' && obj[0] === 'photos' && goog.isArray(obj[1])) {
+              var newArray = [];
+              forEachArrayish(obj[1], function (photo) {
+                newArray.push(photo.original);
+              });
+              selectedItem_.properties[obj[0]] = JSON.stringify(newArray);
+            } else {
+              selectedItem_.properties[obj[0]] = obj[1];
+            }
+          });
+        }
       }
     }
     var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.0.0" ' + 'handle="' + commitMsg + '" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/wfs.xsd"> ' + wfsRequestTypePartial + '</wfs:Transaction>';
