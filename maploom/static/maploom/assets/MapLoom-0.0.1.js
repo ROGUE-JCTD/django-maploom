@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-06-26
+ * MapLoom - v0.0.1 - 2014-07-01
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -30441,7 +30441,7 @@ var DiffColorMap = {
               if (projection === 'EPSG:4326') {
                 scope.coordDisplay = { value: coordinateDisplays.DMS };
               } else {
-                scope.coordDisplay = { value: coordinateDisplays.Other };
+                scope.coordDisplay = { value: projection };
               }
               scope.coordinates = {
                 coords: goog.array.clone(geometry.coordinates),
@@ -30508,8 +30508,8 @@ var DiffColorMap = {
             if (numErrors > 0) {
               dialogService.warn($translate('save_attributes'), $translate('invalid_fields', { value: numErrors }), [$translate('btn_ok')], false);
               return;
-            } else if (goog.isDefAndNotNull(scope.coordinates) && scope.coordinates.changed && scope.coordDisplay.value === coordinateDisplays.DMS && ol.coordinate.toStringHDMS(scope.coordinates.coords) !== scope.coordinates.originalText) {
-              dialogService.open($translate('location_lon_lat'), $translate('latlon_confirm', { value: ol.coordinate.toStringHDMS(scope.coordinates.coords) }), [
+            } else if (goog.isDefAndNotNull(scope.coordinates) && scope.coordinates.changed && scope.coordDisplay.value === coordinateDisplays.DMS && ol.coordinate.toStringHDMS(scope.coordinates.coords4326) !== scope.coordinates.originalText) {
+              dialogService.open($translate('location_lon_lat'), $translate('latlon_confirm', { value: ol.coordinate.toStringHDMS(scope.coordinates.coords4326) }), [
                 $translate('yes_btn'),
                 $translate('no_btn')
               ], false).then(function (button) {
@@ -37677,17 +37677,35 @@ var sha1 = function (msg) {
         coordDisplay: '=coordDisplay'
       },
       link: function (scope) {
-        if (scope.geom.projection !== 'EPSG:4326') {
-          scope.coordinateDisplays = [coordinateDisplays.Other];
-        } else {
+        if (scope.geom.projection === 'EPSG:4326') {
           scope.coordinateDisplays = [
             coordinateDisplays.DMS,
             coordinateDisplays.DD
           ];
+        } else {
+          scope.coordinateDisplays = [
+            coordinateDisplays.DMS,
+            coordinateDisplays.DD,
+            scope.geom.projection
+          ];
         }
+        var transformCoords = function (coords, srcPrjName, dstPrjName) {
+          var point = new ol.geom.Point(coords);
+          point.transform(ol.proj.get(srcPrjName), ol.proj.get(dstPrjName));
+          return point.flatCoordinates;
+        };
+        var updateCoords4326 = function (geom) {
+          geom.coords4326 = goog.array.clone(geom.coords);
+          if (geom.projection !== 'EPSG:4326') {
+            geom.coords4326 = transformCoords(geom.coords, geom.projection, 'EPSG:4326');
+          }
+        };
         var setUpCoordinates = function () {
+          updateCoords4326(scope.geom);
           if (scope.coordDisplay.value === coordinateDisplays.DMS) {
-            scope.coordinates = ol.coordinate.toStringHDMS(scope.geom.coords);
+            scope.coordinates = ol.coordinate.toStringHDMS(scope.geom.coords4326);
+          } else if (scope.coordDisplay.value === coordinateDisplays.DD) {
+            scope.coordinates = ol.coordinate.toStringXY(scope.geom.coords4326, settings.DDPrecision);
           } else {
             scope.coordinates = ol.coordinate.toStringXY(scope.geom.coords, settings.DDPrecision);
           }
@@ -37790,6 +37808,10 @@ var sha1 = function (msg) {
                 valid = validateCoords('lat', split[1], scope.coordDisplay.value === coordinateDisplays.DD);
               }
             }
+          }
+          if ((scope.coordDisplay.value === coordinateDisplays.DD || scope.coordDisplay.value === coordinateDisplays.DMS) && scope.geom.projection !== 'EPSG:4326') {
+            scope.geom.coords = transformCoords(scope.geom.coords, 'EPSG:4326', scope.geom.projection);
+            updateCoords4326(scope.geom);
           }
           scope.geom.valid = valid;
           scope.geom.changed = true;
