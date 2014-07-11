@@ -41,3 +41,14 @@ Then add a map loom map to your page by placing the following tag anywhere in th
 
 	{% maploom_html %}
 
+
+Adding in GeoNode
+-----------------
+To use MapLoom as your GeoNode map client, follow the Project Configuration steps above.  Next, add the MapLoom urls
+to the bottom of the `urls.py` file in GeoNode and append them to the GeoNode url patterns.
+
+```
+from maploom.geonode.urls import urlpatterns as maploom_urls
+
+urlpatterns += maploom_urls
+```
