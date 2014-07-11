@@ -1,7 +1,7 @@
 from django import template
-from django.conf import settings
 
 register = template.Library()
+
 
 @register.inclusion_tag('maploom/_maploom_map.html')
 def maploom_html(options=None):
@@ -10,10 +10,10 @@ def maploom_html(options=None):
     """
     return dict()
 
+
 @register.inclusion_tag('maploom/_maploom_js.html')
 def maploom_js(options=None):
     """
     Maploom js template tag.
     """
     return dict()
-

@@ -9,7 +9,7 @@ setup(
     author='LMN Solutions',
     author_email='rogue@lmnsolutions.com',
     url='https://github.com/ROGUE-JCTD/django-maploom',
-    download_url = "https://github.com/ROGUE-JCTD/django-maploom",
+    download_url="https://github.com/ROGUE-JCTD/django-maploom",
     description="Use MapLoom in your django projects.",
     long_description=open(os.path.join(here, 'README.md')).read(),
     license='See LICENSE file.',
