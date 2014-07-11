@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-07-08
+ * MapLoom - v0.0.1 - 2014-07-11
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -27545,7 +27545,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'merge_commit': 'Merge Commit',
       'always_anonymous': 'Always Log On Anonymously',
       'script_error': 'The following script error has occurred: "{{error}}".  It is recommended that you reload the ' + 'web page to resolve any potential complications.',
-      'show_changes': 'Show Changes'
+      'show_changes': 'Show Changes',
+      'sure_close_table': 'Are you sure you want to close the table?  Any unsaved changes will be lost.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -27818,7 +27819,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'merge_commit': 'Fusion Confirmada',
       'always_anonymous': 'Conecte Siempre An\xf3nimamente',
       'script_error': 'Se ha producido un error de script siguiente: "{{error}}". Se recomienda volver a cargar ' + 'la p\xe1gina web para resolver cualquier posible complicaci\xf3n.',
-      'show_changes': 'Mostrar Cambios'
+      'show_changes': 'Mostrar Cambios',
+      'sure_close_table': '\xbfEst\xe1 seguro que desea cerrar la mesa? Se perder\xe1n todos los cambios no guardados.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -36530,6 +36532,29 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
               tableViewService.selectedLayer.get('metadata').loadingTable = false;
             });
           };
+          scope.cancel = function () {
+            if (scope.isSaving) {
+              return;
+            }
+            var doWork = function () {
+              scope.tableviewform.$cancel();
+              element.closest('.modal').modal('hide');
+            };
+            if (scope.tableviewform.$visible) {
+              dialogService.warn($translate('warning'), $translate('sure_close_table'), [
+                $translate('yes_btn'),
+                $translate('no_btn')
+              ], false).then(function (button) {
+                switch (button) {
+                case 0:
+                  doWork();
+                  break;
+                }
+              });
+            } else {
+              doWork();
+            }
+          };
           $('#table-view-window').on('hidden.bs.modal', function (e) {
             if (scope.isSaving) {
               return;
@@ -39360,7 +39385,7 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "            tooltip=\"{{'next_page' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "      <i class=\"glyphicon glyphicon-chevron-right\"></i>\n" +
     "    </button>\n" +
-    "    <button type=\"button\" class=\"btn btn-default table-btn pull-right\" ng-click=\"tableviewform.$cancel()\" data-dismiss=\"modal\">{{'close_btn' | translate}}</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-default table-btn pull-right\" ng-click=\"cancel()\">{{'close_btn' | translate}}</button>\n" +
     "  </form>\n" +
     "</div>\n" +
     "");
