@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-07-11
+ * MapLoom - v0.0.1 - 2014-07-14
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -27459,6 +27459,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'save_this_map': 'Save this map',
       'save_failed': 'Save failed',
       'map_save_failed': 'Map save failed with the following status: {{value}}.',
+      'map_save_permission': 'You do not have permission to edit this map.  You may save a copy of the map if ' + 'you want to keep your changes.',
       'fetch': 'Fetch',
       'fetch_error': 'There was an error trying to fetch from the remote, please try again later.',
       'fetch_timeout': 'Fetch is taking longer than it should, its possible that it is still working so' + ' wait a moment before trying again.',
@@ -27733,6 +27734,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'save_this_map': 'Guardar a este mapa',
       'save_failed': 'No se pudo guardar',
       'map_save_failed': 'No se pudo guardar el mapa con el siguiente estado: {{value}}.',
+      'map_save_permission': 'Usted no tiene permiso para modificar este mapa. Usted puede guardar una copia ' + 'del mapa si desea mantener los cambios.',
       'fetch': 'Traer',
       'fetch_error': 'Hubo un error al tratar de buscar desde el control remoto, por favor intente de nuevo m\xe1s tarde.',
       'fetch_timeout': 'Fetch est\xe1 tomando m\xe1s tiempo de lo que deber\xeda, es posible que todav\xeda est\xe1 trabajando as\xed ' + 'que espere un momento antes de volver a intentarlo.',
@@ -33886,7 +33888,11 @@ var GeoGitRevertFeatureOptions = function () {
         service_.updateMap(data);
         console.log('----[ map.save success. ', data, status, headers, config);
       }).error(function (data, status, headers, config) {
-        dialogService_.error(translate_('save_failed'), translate_('map_save_failed', { value: status }));
+        if (status == 403 || status == 401) {
+          dialogService_.error(translate_('save_failed'), translate_('map_save_permission'));
+        } else {
+          dialogService_.error(translate_('save_failed'), translate_('map_save_failed', { value: status }));
+        }
       });
     };
     this.loadLayers = function () {
