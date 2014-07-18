@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-07-14
+ * MapLoom - v0.0.1 - 2014-07-18
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -27532,7 +27532,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'true': 'True',
       'false': 'False',
       'failed_to_add_server': 'There was a problem trying to connect to the server you specified, check the url and' + ' credentials to make sure they are correct before trying again.',
-      'failed_to_save_features': '{{value}} features failed to save, please try to save again before closing' + ' the table or you will lose work.',
+      'failed_to_save_features': 'The features failed to save, please try to save again before closing' + ' the table or you will lose work.',
       'server_connect_failed': 'We were unable to connect to this server, would still like to add this server?',
       'disabled_layer': 'Layer is Disabled',
       'missing_layers_merge': 'There are {{count}} feature(s) involved in the merge that are not part of the map.  ' + 'In order to get the most accurate schema information for that layer, it is recommended that you cancel the ' + 'merge, add the missing layers, and try again. Missing layer(s): ',
@@ -27807,7 +27807,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'true': 'Verdadero',
       'false': 'Falso',
       'failed_to_add_server': 'Hubo un problema al intentar conectar con el servidor especificado, compruebe la URL y' + ' las credenciales para asegurarse de que son correctos antes de volver a intentarlo.',
-      'failed_to_save_features': '{{value}} caracteristicas no pudieron salvar, por favor tratar de salvar una' + ' vez mas antes de cerrar la tabla o perdera el trabajo.',
+      'failed_to_save_features': 'Los elementos no pudieron salvar, por favor tratar de salvar una vez m\xe1s antes de ' + 'cerrar la tabla o perder\xe1 el trabajo.',
       'server_connect_failed': 'No se pudo conectar con este servidor, todavia desea anadir este servidor?',
       'disabled_layer': 'Capa es Desactivado',
       'missing_layers_merge': 'Hay {{count}} elemento(s) que participan en la fusi\xf3n que no son parte del mapa.  ' + 'Con el fin de obtener la informaci\xf3n de esquema m\xe1s preciso para esa capa, se recomienda que usted cancela ' + 'la combinaci\xf3n, agregue las capas que faltan, y vuelve a intentarlo. Capa(s) faltante:',
@@ -30420,9 +30420,10 @@ var DiffColorMap = {
           scope.$on('startAttributeEdit', function (event, geometry, projection, properties, inserting) {
             scope.properties = [];
             scope.isSaving = false;
+            var tempProperties = {};
             var attributeTypes = featureManagerService.getSelectedLayer().get('metadata').schema;
-            goog.array.forEach(properties, function (property, index, arr) {
-              if (goog.isDefAndNotNull(attributeTypes)) {
+            if (goog.isDefAndNotNull(attributeTypes)) {
+              goog.array.forEach(properties, function (property, index, arr) {
                 var prop;
                 if (goog.isDefAndNotNull(attributeTypes[property[0]]) && attributeTypes[property[0]]._type.search('gml:') === -1) {
                   prop = goog.object.clone(property);
@@ -30437,10 +30438,15 @@ var DiffColorMap = {
                   }
                   prop.nillable = attributeTypes[prop[0]]._nillable;
                   scope.validateField(prop, 1);
-                  scope.properties.push(prop);
+                  tempProperties[property[0]] = prop;
+                }
+              });
+              for (var propName in attributeTypes) {
+                if (tempProperties.hasOwnProperty(propName)) {
+                  scope.properties.push(tempProperties[propName]);
                 }
               }
-            });
+            }
             if (geometry.type.toLowerCase() == 'point') {
               if (projection === 'EPSG:4326') {
                 scope.coordDisplay = { value: coordinateDisplays.DMS };
@@ -36665,8 +36671,13 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             }
             var xmlData = getWfsData();
             var url = '/geoserver/wfs/WfsDispatcher';
-            $http.post(url, xmlData, { headers: { 'Content-Type': 'text/xml;charset=utf-8' } }).success(function (data, status, headers, config) {
+            $http.post(url, xmlData, { headers: { 'Content-Type': 'text/xml;charset=utf-8' } }).success(function () {
+              scope.applyFilters();
+              $.bootstrapSortable();
+            }).error(function () {
               scope.isSaving = false;
+              dialogService.error($translate('save_attributes'), $translate('failed_to_save_features'), [$translate('btn_ok')], false);
+              scope.tableviewform.$show();
             });
           }
           scope.saveTable = function () {
@@ -36681,8 +36692,6 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             }
             scope.isSaving = true;
             postAllFeatures();
-            scope.applyFilters();
-            $.bootstrapSortable();
           };
         }
       };
