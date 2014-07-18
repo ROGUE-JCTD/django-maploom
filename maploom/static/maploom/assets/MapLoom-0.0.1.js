@@ -30473,6 +30473,9 @@ var DiffColorMap = {
           };
           scope.removePhoto = function (property, photo) {
             goog.array.remove(property[1], photo);
+            if (property[1].length === 0) {
+              property[1] = null;
+            }
           };
           scope.validateField = function (property, key) {
             property.valid = true;
@@ -31132,15 +31135,26 @@ var DiffColorMap = {
       if (selectedItem_ !== selectedItemOld || forceUpdate) {
         var pics = null;
         if (getItemType(selectedItem_) === 'feature' && goog.isDefAndNotNull(selectedItem_) && goog.isDefAndNotNull(selectedItem_.properties)) {
+          var jsonValue = null;
           if (goog.isDefAndNotNull(selectedItem_.properties.fotos) && selectedItem_.properties.fotos !== '') {
+            if (goog.isArray(selectedItem_.properties.fotos)) {
+              jsonValue = selectedItem_.properties.fotos;
+            } else {
+              jsonValue = JSON.parse(selectedItem_.properties.fotos);
+            }
             pics = {
               name: 'fotos',
-              pics: JSON.parse(selectedItem_.properties.fotos)
+              pics: jsonValue
             };
           } else if (goog.isDefAndNotNull(selectedItem_.properties.photos) && selectedItem_.properties.photos !== '') {
+            if (goog.isArray(selectedItem_.properties.photos)) {
+              jsonValue = selectedItem_.properties.photos;
+            } else {
+              jsonValue = JSON.parse(selectedItem_.properties.photos);
+            }
             pics = {
               name: 'photos',
-              pics: JSON.parse(selectedItem_.properties.photos)
+              pics: jsonValue
             };
           }
           if (goog.isDefAndNotNull(pics) && pics.length === 0) {
@@ -31166,13 +31180,20 @@ var DiffColorMap = {
         } else {
           mapService_.clearEditLayer();
         }
-        var props = null;
+        var tempProps = null;
+        var props = [];
         if (getItemType(selectedItem_) === 'feature') {
-          props = [];
+          tempProps = {};
           goog.object.forEach(selectedItem_.properties, function (v, k) {
             if (k === 'fotos' || k === 'photos') {
               if (goog.isDefAndNotNull(v)) {
-                var picsAttr = JSON.parse(v);
+                var jsonValue = null;
+                if (goog.isArray(v)) {
+                  jsonValue = v;
+                } else {
+                  jsonValue = JSON.parse(v);
+                }
+                var picsAttr = jsonValue;
                 if (!goog.isArray(picsAttr)) {
                   picsAttr = [picsAttr];
                 }
@@ -31189,18 +31210,32 @@ var DiffColorMap = {
                     };
                   }
                 });
-                props.push([
+                tempProps[k] = [
                   k,
                   picsAttr
-                ]);
+                ];
               }
             } else {
-              props.push([
+              tempProps[k] = [
                 k,
                 v
-              ]);
+              ];
             }
           });
+        }
+        var propName = null;
+        if (goog.isDefAndNotNull(selectedLayer_) && goog.isDefAndNotNull(selectedLayer_.get('metadata').schema)) {
+          for (propName in selectedLayer_.get('metadata').schema) {
+            if (tempProps.hasOwnProperty(propName)) {
+              props.push(tempProps[propName]);
+            }
+          }
+        } else {
+          for (propName in tempProps) {
+            if (tempProps.hasOwnProperty(propName)) {
+              props.push(tempProps[propName]);
+            }
+          }
         }
         selectedItemProperties_ = props;
       }
