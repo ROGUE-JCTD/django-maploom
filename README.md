@@ -20,8 +20,8 @@ Add ``maploom`` to ``INSTALLED_APPS`` in your project's
 ``settings`` module:
 
     INSTALLED_APPS = (
-        # other apps
         'maploom',
+        # other apps
     )
 
 Usage
@@ -52,3 +52,6 @@ from maploom.geonode.urls import urlpatterns as maploom_urls
 
 urlpatterns += maploom_urls
 ```
+**Note:** When adding `maploom` to the `INSTALLED_APPS` setting, order matters.  Django will return the first template
+it finds that matches a given name, therefore be sure that the MapLoom application precedes the `geonode.maps`
+application in your `INSTALLED_APPS` setting.
