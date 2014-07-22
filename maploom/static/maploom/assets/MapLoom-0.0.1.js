@@ -36519,6 +36519,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           };
           var updateData = function () {
             scope.rows = clone(tableViewService.rows);
+            scope.readOnly = tableViewService.readOnly;
             scope.attributes = tableViewService.attributeNameList;
             scope.currentPage = tableViewService.currentPage + 1;
             scope.totalPages = tableViewService.totalPages;
@@ -36817,6 +36818,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             service_.readOnly = true;
             return;
           }
+          service_.readOnly = false;
           for (var attrIndex in service_.attributeNameList) {
             var attr = service_.attributeNameList[attrIndex];
             var attrRestriction = {
