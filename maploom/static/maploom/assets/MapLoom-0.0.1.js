@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-07-18
+ * MapLoom - v0.0.1 - 2014-07-22
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -31180,10 +31180,9 @@ var DiffColorMap = {
         } else {
           mapService_.clearEditLayer();
         }
-        var tempProps = null;
+        var tempProps = {};
         var props = [];
         if (getItemType(selectedItem_) === 'feature') {
-          tempProps = {};
           goog.object.forEach(selectedItem_.properties, function (v, k) {
             if (k === 'fotos' || k === 'photos') {
               if (goog.isDefAndNotNull(v)) {
