@@ -28391,7 +28391,7 @@ var SERVER_SERVICE_USE_PROXY = true;
       var doWork = function () {
         console.log('---- MapService.layerInfo. trying to add server: ', server);
         service_.populateLayersConfig(server).then(function (response) {
-          if (server.layersConfig.length === 0 && !loaded) {
+          if (goog.isDefAndNotNull(server.layersConfig) && server.layersConfig.length === 0 && !loaded) {
             dialogService_.warn(translate_('add_server'), translate_('server_connect_failed'), [
               translate_('yes_btn'),
               translate_('no_btn')
@@ -28409,6 +28409,9 @@ var SERVER_SERVICE_USE_PROXY = true;
               }
             });
           } else {
+            if (!goog.isDefAndNotNull(server.layersConfig)) {
+              server.layersConfig = [];
+            }
             server.id = serverCount++;
             servers.push(server);
             rootScope_.$broadcast('server-added', server.id);
