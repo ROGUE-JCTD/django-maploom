@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-07-22
+ * MapLoom - v0.0.1 - 2014-07-25
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -30883,10 +30883,10 @@ var DiffColorMap = {
           };
           scope.isAttributeVisible = function (property) {
             var schema = featureManagerService.getSelectedLayer().get('metadata').schema;
-            if (!goog.isDefAndNotNull(schema)) {
+            if (!goog.isDefAndNotNull(schema) || !schema.hasOwnProperty(property)) {
               return true;
             }
-            return featureManagerService.getSelectedLayer().get('metadata').schema[property].visible;
+            return schema[property].visible;
           };
           scope.showFeatureHistory = function () {
             if (!scope.loadingHistory) {
@@ -31761,7 +31761,7 @@ var DiffColorMap = {
     if (postType === wfsPostTypes_.INSERT) {
       var featureType = selectedLayer_.get('metadata').name.split(':')[1];
       commitMsg = translate_('added_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
-      wfsRequestTypePartial = '<wfs:Insert handle="' + commitMsg + '"><feature:' + featureType + ' xmlns:feature="http://www.geonode.org/">' + partial + '</feature:' + featureType + '></wfs:Insert>';
+      wfsRequestTypePartial = '<wfs:Insert handle="' + commitMsg + '"><feature:' + featureType + ' xmlns:feature="' + selectedLayer_.get('metadata').workspaceURL + '">' + partial + '</feature:' + featureType + '></wfs:Insert>';
       goog.array.forEach(properties, function (obj) {
         if (obj[0] === 'fotos' && obj[0] === 'photos' && goog.isArray(obj[1])) {
           var newArray = [];
@@ -31777,10 +31777,10 @@ var DiffColorMap = {
       var filter = '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">' + '<ogc:FeatureId fid="' + selectedItem_.id + '" />' + '</ogc:Filter>';
       if (postType === wfsPostTypes_.DELETE) {
         commitMsg = translate_('removed_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
-        wfsRequestTypePartial = '<wfs:Delete handle="' + commitMsg + '" xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.get('metadata').name + '">' + filter + '</wfs:Delete>';
+        wfsRequestTypePartial = '<wfs:Delete handle="' + commitMsg + '" xmlns:feature="' + selectedLayer_.get('metadata').workspaceURL + '" typeName="' + selectedLayer_.get('metadata').name + '">' + filter + '</wfs:Delete>';
       } else if (postType === wfsPostTypes_.UPDATE) {
         commitMsg = translate_('modified_1_feature', { 'layer': selectedLayer_.get('metadata').nativeName });
-        wfsRequestTypePartial = '<wfs:Update handle="' + commitMsg + '" xmlns:feature="http://www.geonode.org/" typeName="' + selectedLayer_.get('metadata').name + '">' + partial + filter + '</wfs:Update>';
+        wfsRequestTypePartial = '<wfs:Update handle="' + commitMsg + '" xmlns:feature="' + selectedLayer_.get('metadata').workspaceURL + '" typeName="' + selectedLayer_.get('metadata').name + '">' + partial + filter + '</wfs:Update>';
         if (goog.isDefAndNotNull(properties)) {
           goog.array.forEach(properties, function (obj) {
             if (obj[0] === 'fotos' && obj[0] === 'photos' && goog.isArray(obj[1])) {
@@ -32390,6 +32390,7 @@ var GeoGitRevertFeatureOptions = function () {
           });
           layer.get('metadata').schema = schema;
           layer.get('metadata').editable = true;
+          layer.get('metadata').workspaceURL = json.schema._targetNamespace;
         }
         deferredResponse.resolve();
       }, function (reject) {
@@ -32431,12 +32432,15 @@ var GeoGitRevertFeatureOptions = function () {
       return deferredResponse.promise;
     };
     this.isGeoGit = function (layer, server, fullConfig) {
+      var deferredResponse = q.defer();
       var getFeatureType = function () {
         service_.getFeatureType(layer).then(function () {
           ol.proj.getTransform(metadata.projection, 'EPSG:4326');
           rootScope.$broadcast('layerInfoLoaded', layer);
+          deferredResponse.resolve();
         }, function (rejected) {
           dialogService_.error(translate_('error'), translate_('unable_to_get_feature_type') + ' (' + rejected.status + ')');
+          deferredResponse.reject();
         });
       };
       if (goog.isDefAndNotNull(layer)) {
@@ -32494,7 +32498,10 @@ var GeoGitRevertFeatureOptions = function () {
         } else {
           getFeatureType();
         }
+      } else {
+        deferredResponse.reject();
       }
+      return deferredResponse.promise;
     };
   });
 }());
@@ -33576,7 +33583,7 @@ var GeoGitRevertFeatureOptions = function () {
       if (!service_.layerIsEditable(layer)) {
         var layerTypeName = layer.get('metadata').name;
         var url = layer.get('metadata').url + '/wps?version=' + settings.WPSVersion;
-        var wpsPostData = '' + '<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="' + settings.WPSVersion + '" service="WPS" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'xmlns="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" ' + 'xmlns:ogc="http://www.opengis.net/ogc" ' + 'xmlns:wcs="http://www.opengis.net/wcs/1.1.1" ' + 'xmlns:xlink="http://www.w3.org/1999/xlink" ' + 'xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 ' + 'http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">' + '<ows:Identifier>gs:Bounds</ows:Identifier>' + '<wps:DataInputs>' + '<wps:Input>' + '<ows:Identifier>features</ows:Identifier>' + '<wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">' + '<wps:Body>' + '<wfs:GetFeature service="WFS" version="' + settings.WFSVersion + '" outputFormat="GML2" ' + 'xmlns:geonode="http://www.geonode.org/">' + '<wfs:Query typeName="' + layerTypeName + '"/>' + '</wfs:GetFeature>' + '</wps:Body>' + '</wps:Reference>' + '</wps:Input>' + '</wps:DataInputs>' + '<wps:ResponseForm>' + '<wps:RawDataOutput>' + '<ows:Identifier>bounds</ows:Identifier>' + '</wps:RawDataOutput>' + '</wps:ResponseForm>' + '</wps:Execute>';
+        var wpsPostData = '' + '<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="' + settings.WPSVersion + '" service="WPS" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'xmlns="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" ' + 'xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" ' + 'xmlns:ogc="http://www.opengis.net/ogc" ' + 'xmlns:wcs="http://www.opengis.net/wcs/1.1.1" ' + 'xmlns:xlink="http://www.w3.org/1999/xlink" ' + 'xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 ' + 'http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">' + '<ows:Identifier>gs:Bounds</ows:Identifier>' + '<wps:DataInputs>' + '<wps:Input>' + '<ows:Identifier>features</ows:Identifier>' + '<wps:Reference mimeType="text/xml" xlink:href="http://geoserver/wfs" method="POST">' + '<wps:Body>' + '<wfs:GetFeature service="WFS" version="' + settings.WFSVersion + '" outputFormat="GML2" ' + 'xmlns:' + layer.get('metadata').workspace + '="' + layer.get('metadata').workspaceURL + '">' + '<wfs:Query typeName="' + layerTypeName + '"/>' + '</wfs:GetFeature>' + '</wps:Body>' + '</wps:Reference>' + '</wps:Input>' + '</wps:DataInputs>' + '<wps:ResponseForm>' + '<wps:RawDataOutput>' + '<ows:Identifier>bounds</ows:Identifier>' + '</wps:RawDataOutput>' + '</wps:ResponseForm>' + '</wps:Execute>';
         httpService_.post(url, wpsPostData).success(function (data, status, headers, config) {
           var x2js = new X2JS();
           var json = x2js.xml_str2json(data);
@@ -33767,18 +33774,24 @@ var GeoGitRevertFeatureOptions = function () {
             })
           });
           if (goog.isDefAndNotNull(url)) {
-            var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.0.0" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/wfs.xsd"> ' + '<wfs:Update xmlns:feature="http://www.geonode.org/" typeName="' + minimalConfig.name + '">' + '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">' + '<ogc:FeatureId fid="garbage_id" />' + '</ogc:Filter></wfs:Update>' + '</wfs:Transaction>';
-            var wfsurl = url + '/wfs/WfsDispatcher';
-            httpService_.post(wfsurl, wfsRequestData).success(function (data, status, headers, config) {
-              var x2js = new X2JS();
-              var json = x2js.xml_str2json(data);
-              if (goog.isDefAndNotNull(json.ServiceExceptionReport) && goog.isDefAndNotNull(json.ServiceExceptionReport.ServiceException) && json.ServiceExceptionReport.ServiceException.indexOf('read-only') >= 0) {
-                layer.get('metadata').readOnly = true;
-              }
-              geogitService_.isGeoGit(layer, server, fullConfig);
-            }).error(function (data, status, headers, config) {
-              layer.get('metadata').readOnly = true;
-              geogitService_.isGeoGit(layer, server, fullConfig);
+            layer.get('metadata').readOnly = true;
+            var testReadOnly = function () {
+              var wfsRequestData = '<?xml version="1.0" encoding="UTF-8"?> ' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs" ' + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service="WFS" version="1.0.0" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/wfs.xsd"> ' + '<wfs:Update xmlns:feature="' + layer.get('metadata').workspaceURL + '" typeName="' + minimalConfig.name + '">' + '<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">' + '<ogc:FeatureId fid="garbage_id" />' + '</ogc:Filter></wfs:Update>' + '</wfs:Transaction>';
+              var wfsurl = url + '/wfs/WfsDispatcher';
+              httpService_.post(wfsurl, wfsRequestData).success(function (data, status, headers, config) {
+                var x2js = new X2JS();
+                var json = x2js.xml_str2json(data);
+                if (goog.isDefAndNotNull(json.ServiceExceptionReport) && goog.isDefAndNotNull(json.ServiceExceptionReport.ServiceException) && json.ServiceExceptionReport.ServiceException.indexOf('read-only') >= 0) {
+                } else {
+                  layer.get('metadata').readOnly = false;
+                }
+              }).error(function (data, status, headers, config) {
+              });
+            };
+            geogitService_.isGeoGit(layer, server, fullConfig).then(function () {
+              testReadOnly();
+            }, function () {
+              testReadOnly();
             });
           }
         } else if (server.ptype === 'gxp_tmssource') {
@@ -35015,15 +35028,20 @@ var GeoGitRevertFeatureOptions = function () {
   var notifications = [];
   var nextNotificationId = 0;
   var rootScope = null;
+  var translate_ = null;
   module.provider('notificationService', function () {
     this.$get = [
       '$rootScope',
       '$timeout',
-      function ($rootScope, $timeout) {
+      '$translate',
+      function ($rootScope, $timeout, $translate) {
         rootScope = $rootScope;
+        translate_ = $translate;
         var updateTimestamps = function () {
           for (i = 0; i < notifications.length; i = i + 1) {
-            notifications[i].timestr = moment(notifications[i].time).fromNow();
+            var momentDate = moment(notifications[i].time);
+            momentDate.lang($translate.uses());
+            notifications[i].timestr = momentDate.fromNow();
           }
           $timeout(updateTimestamps, 10000, true);
         };
@@ -35037,7 +35055,9 @@ var GeoGitRevertFeatureOptions = function () {
     this.addNotification = function (notification) {
       notification.id = nextNotificationId;
       notification.time = new Date();
-      notification.timestr = moment(notification.time).fromNow();
+      var momentDate = moment(notification.time);
+      momentDate.lang(translate_.uses());
+      notification.timestr = momentDate.fromNow();
       nextNotificationId = nextNotificationId + 1;
       notifications.push(notification);
       rootScope.$broadcast('notification_added', notification);
@@ -36674,7 +36694,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
                 continue;
               }
               var feature = scope.rows[index].feature;
-              xml += '' + '<wfs:Update' + ' xmlns:feature="http://www.geonode.org/" ' + 'typeName="' + tableViewService.selectedLayer.get('metadata').name + '">';
+              xml += '' + '<wfs:Update' + ' xmlns:feature="' + tableViewService.selectedLayer.get('metadata').workspaceURL + '" ' + 'typeName="' + tableViewService.selectedLayer.get('metadata').name + '">';
               for (var property in feature.properties) {
                 var value = feature.properties[property];
                 xml += '<wfs:Property>' + '<wfs:Name>' + property + '</wfs:Name>';
@@ -37003,6 +37023,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       createFeature: true,
       createFeatureConcurrentCount: 5,
       layerName: 'canchas_de_futbol',
+      workspaceURL: 'http://www.geonode.org/',
       layerProjection: 'EPSG:900913',
       attributeName: 'comentarios',
       attributeValuePrefix: 'TestModule',
@@ -37067,7 +37088,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     }
   }
   function getWfsData(lon, lat, date) {
-    return '' + '<?xml version="1.0" encoding="UTF-8"?>' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs"' + ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service= "WFS" version="' + settings.WFSVersion + '" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd">' + '<wfs:Insert>' + '<feature:' + config.layerName + ' xmlns:feature="http://www.geonode.org/">' + '<feature:' + config.geomAttributeName + '>' + '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + config.layerProjection + '">' + '<gml:pos>' + lon + ' ' + lat + '</gml:pos>' + '</gml:Point>' + '</feature:' + config.geomAttributeName + '>' + '<feature:' + config.attributeName + '>' + config.attributeValuePrefix + ' runCounter: ' + runCounter + ' ' + date + '</feature:' + config.attributeName + '>' + '</feature:' + config.layerName + '>' + '</wfs:Insert>' + '</wfs:Transaction>';
+    return '' + '<?xml version="1.0" encoding="UTF-8"?>' + '<wfs:Transaction xmlns:wfs="http://www.opengis.net/wfs"' + ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' + 'service= "WFS" version="' + settings.WFSVersion + '" ' + 'xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd">' + '<wfs:Insert>' + '<feature:' + config.layerName + ' xmlns:feature="' + config.workspaceURL + '">' + '<feature:' + config.geomAttributeName + '>' + '<gml:Point xmlns:gml="http://www.opengis.net/gml" srsName="' + config.layerProjection + '">' + '<gml:pos>' + lon + ' ' + lat + '</gml:pos>' + '</gml:Point>' + '</feature:' + config.geomAttributeName + '>' + '<feature:' + config.attributeName + '>' + config.attributeValuePrefix + ' runCounter: ' + runCounter + ' ' + date + '</feature:' + config.attributeName + '>' + '</feature:' + config.layerName + '>' + '</wfs:Insert>' + '</wfs:Transaction>';
   }
   function run() {
     runCounter += 1;
