@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-07-25
+ * MapLoom - v0.0.1 - 2014-07-28
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -28388,6 +28388,10 @@ var SERVER_SERVICE_USE_PROXY = true;
       if (goog.isDefAndNotNull(loaded)) {
         loaded = false;
       }
+      if (server.ptype === 'gxp_olsource') {
+        deferredResponse.resolve();
+        return deferredResponse.promise;
+      }
       var doWork = function () {
         console.log('---- MapService.layerInfo. trying to add server: ', server);
         service_.populateLayersConfig(server).then(function (response) {
@@ -28499,6 +28503,16 @@ var SERVER_SERVICE_USE_PROXY = true;
       } else {
         service_.getServerByPtype('gxp_mapquestsource').defaultServer = true;
       }
+      if (!goog.isDefAndNotNull(service_.getServerByPtype('gxp_mapboxsource'))) {
+        config = {
+          ptype: 'gxp_mapboxsource',
+          name: 'MapBox',
+          defaultServer: true
+        };
+        service_.addServer(config);
+      } else {
+        service_.getServerByPtype('gxp_mapboxsource').defaultServer = true;
+      }
       if (!goog.isDefAndNotNull(service_.getServerByPtype('gxp_osmsource'))) {
         config = {
           ptype: 'gxp_osmsource',
@@ -28541,58 +28555,143 @@ var SERVER_SERVICE_USE_PROXY = true;
       if (!goog.isDefAndNotNull(server.layersConfig) || goog.isDefAndNotNull(force) && force) {
         server.layersConfig = [];
         if (server.ptype === 'gxp_bingsource') {
+          server.defaultServer = true;
+          if (!goog.isDefAndNotNull(server.name)) {
+            server.name = 'Bing';
+          }
           server.layersConfig = [
             {
               Title: 'BingRoad',
-              Name: 'BingRoad',
+              Name: 'Road',
               sourceParams: { imagerySet: 'Road' }
             },
             {
               Title: 'BingAerial',
-              Name: 'BingAerial',
+              Name: 'Aerial',
               sourceParams: { imagerySet: 'Aerial' }
             },
             {
               Title: 'BingAerialWithLabels',
-              Name: 'BingAerialWithLabels',
+              Name: 'AerialWithLabels',
               sourceParams: { imagerySet: 'AerialWithLabels' }
             },
             {
               Title: 'BingCollinsBart',
-              Name: 'BingCollinsBart',
+              Name: 'CollinsBart',
               sourceParams: { imagerySet: 'collinsBart' }
             },
             {
               Title: 'BingSurvey',
-              Name: 'BingSurvey',
+              Name: 'Survey',
               sourceParams: { imagerySet: 'ordnanceSurvey' }
             }
           ];
           deferredResponse.resolve(server);
         } else if (server.ptype === 'gxp_mapquestsource') {
+          server.defaultServer = true;
+          if (!goog.isDefAndNotNull(server.name)) {
+            server.name = 'MapQuest';
+          }
           server.layersConfig = [
             {
               Title: 'MapQuestSat',
-              Name: 'MapQuestSat',
+              Name: 'sat',
               sourceParams: { layer: 'sat' }
             },
             {
               Title: 'MapQuestHybrid',
-              Name: 'MapQuestHybrid',
+              Name: 'hyb',
               sourceParams: { layer: 'hyb' }
             },
             {
               Title: 'MapQuestOSM',
-              Name: 'MapQuestOSM',
+              Name: 'osm',
               sourceParams: { layer: 'osm' }
             }
           ];
           deferredResponse.resolve(server);
         } else if (server.ptype === 'gxp_osmsource') {
+          server.defaultServer = true;
+          if (!goog.isDefAndNotNull(server.name)) {
+            server.name = 'OpenStreetMap';
+          }
           server.layersConfig = [{
               Title: 'OpenStreetMap',
               Name: 'mapnik'
             }];
+          deferredResponse.resolve(server);
+        } else if (server.ptype === 'gxp_mapboxsource') {
+          server.defaultServer = true;
+          if (!goog.isDefAndNotNull(server.name)) {
+            server.name = 'MapBox';
+          }
+          server.layersConfig = [
+            {
+              Title: 'MapBoxBlueMarbleTopoBathyJan',
+              Name: 'blue-marble-topo-bathy-jan',
+              sourceParams: { layer: 'blue-marble-topo-bathy-jan' }
+            },
+            {
+              Title: 'MapBoxBlueMarbleTopoBathyJul',
+              Name: 'blue-marble-topo-bathy-jul',
+              sourceParams: { layer: 'blue-marble-topo-bathy-jul' }
+            },
+            {
+              Title: 'MapBoxBlueMarbleTopoJan',
+              Name: 'blue-marble-topo-jan',
+              sourceParams: { layer: 'blue-marble-topo-jan' }
+            },
+            {
+              Title: 'MapBoxBlueMarbleTopoJul',
+              Name: 'blue-marble-topo-jul',
+              sourceParams: { layer: 'blue-marble-topo-jul' }
+            },
+            {
+              Title: 'MapBoxControlRoom',
+              Name: 'control-room',
+              sourceParams: { layer: 'control-room' }
+            },
+            {
+              Title: 'MapBoxGeographyClass',
+              Name: 'geography-class',
+              sourceParams: { layer: 'geography-class' }
+            },
+            {
+              Title: 'MapBoxNaturalEarthHypso',
+              Name: 'natural-earth-hypso',
+              sourceParams: { layer: 'natural-earth-hypso' }
+            },
+            {
+              Title: 'MapBoxNaturalEarthHypsoBathy',
+              Name: 'natural-earth-hypso-bathy',
+              sourceParams: { layer: 'natural-earth-hypso-bathy' }
+            },
+            {
+              Title: 'MapBoxNaturalEarth1',
+              Name: 'natural-earth-1',
+              sourceParams: { layer: 'natural-earth-1' }
+            },
+            {
+              Title: 'MapBoxNaturalEarth2',
+              Name: 'natural-earth-2',
+              sourceParams: { layer: 'natural-earth-2' }
+            },
+            {
+              Title: 'MapBoxWorldDark',
+              Name: 'world-dark',
+              sourceParams: { layer: 'world-dark' }
+            },
+            {
+              Title: 'MapBoxWorldLight',
+              Name: 'world-light',
+              sourceParams: { layer: 'world-light' }
+            },
+            {
+              Title: 'MapBoxWorldPrint',
+              Name: 'world-print',
+              sourceParams: { layer: 'world-print' }
+            }
+          ];
           deferredResponse.resolve(server);
         } else if (server.ptype === 'gxp_wmscsource' || server.ptype === 'gxp_tmssource') {
           console.log('---- ServerService.Sending GetCapabilities.server: ', server);
@@ -28631,7 +28730,11 @@ var SERVER_SERVICE_USE_PROXY = true;
               server.populatingLayersConfig = false;
             });
           }
+        } else {
+          deferredResponse.reject();
         }
+      } else {
+        deferredResponse.reject();
       }
       return deferredResponse.promise;
     };
@@ -33676,6 +33779,9 @@ var GeoGitRevertFeatureOptions = function () {
     };
     this.addLayer = function (minimalConfig, opt_layerOrder) {
       var server = serverService_.getServerById(minimalConfig.source);
+      if (server.ptype === 'gxp_mapquestsource' && minimalConfig.name === 'naip') {
+        minimalConfig.name = 'sat';
+      }
       var fullConfig = null;
       if (goog.isDefAndNotNull(server)) {
         fullConfig = serverService_.getLayerConfig(server.id, minimalConfig.name);
@@ -33726,6 +33832,25 @@ var GeoGitRevertFeatureOptions = function () {
           });
         } else if (server.ptype === 'gxp_googlesource') {
           dialogService_.error(translate_('add_layers'), translate_('layer_type_not_supported', { type: 'gxp_googlesource' }));
+        } else if (server.ptype === 'gxp_mapboxsource') {
+          var parms = {
+              url: 'http://api.tiles.mapbox.com/v3/mapbox.' + fullConfig.sourceParams.layer + '.jsonp',
+              crossOrigin: true
+            };
+          var mbsource = new ol.source.TileJSON(parms);
+          if (goog.isDefAndNotNull(mbsource)) {
+            layer = new ol.layer.Tile({
+              metadata: {
+                serverId: server.id,
+                name: minimalConfig.name,
+                title: fullConfig.Title
+              },
+              visible: minimalConfig.visibility,
+              source: mbsource
+            });
+          } else {
+            console.log('====[ Error: could not create base layer.');
+          }
         } else if (server.ptype === 'gxp_mapquestsource') {
           var source = new ol.source.MapQuest(fullConfig.sourceParams);
           if (goog.isDefAndNotNull(source)) {
@@ -34062,6 +34187,14 @@ var GeoGitRevertFeatureOptions = function () {
               }), [translate_('btn_ok')], false);
               console.log('====[ Error: Add server failed. ', reject);
             });
+          } else {
+            orderedUniqueLength--;
+            if (orderedUniqueLength === 0) {
+              pulldownService_.serversLoading = false;
+              pulldownService_.addLayers = true;
+              service_.map.updateSize();
+              serverService_.configDefaultServers();
+            }
           }
         });
       } else {
