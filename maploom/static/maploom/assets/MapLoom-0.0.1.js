@@ -1,5 +1,5 @@
 /**
- * MapLoom - v0.0.1 - 2014-07-28
+ * MapLoom - v0.0.1 - 2014-07-30
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -32716,7 +32716,7 @@ var GeoGitRevertFeatureOptions = function () {
             var sinceTime = startTime < endTime ? startTime : endTime;
             var path = historyService.pathFilter;
             var until = historyService.layer.get('metadata').branchName;
-            var url = repo.url + '/log?output_format=csv&until=' + until + '&path=' + path + '&sinceTime=' + sinceTime + '&untilTime=' + untilTime + '&summary=true';
+            var url = repo.url + '/log.csv?until=' + until + '&path=' + path + '&sinceTime=' + sinceTime + '&untilTime=' + untilTime + '&summary=true';
             $window.open(url);
           };
         }
