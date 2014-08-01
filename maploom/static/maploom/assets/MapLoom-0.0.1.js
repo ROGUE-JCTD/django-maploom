@@ -36863,7 +36863,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
               config.headerData = { 'Content-Type': 'text/xml;charset=utf-8' };
             }
             var xmlData = getWfsData();
-            var url = '/geoserver/wfs/WfsDispatcher';
+            var url = tableViewService.selectedLayer.get('metadata').url + '/wfs/WfsDispatcher';
             $http.post(url, xmlData, { headers: { 'Content-Type': 'text/xml;charset=utf-8' } }).success(function () {
               scope.applyFilters();
               $.bootstrapSortable();
