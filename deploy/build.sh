@@ -11,7 +11,7 @@ git checkout master
 MAPLOOM_PATH=../../maploom/lastSuccessful/archive
 
 # get the new index.html file and use it to make the partial
-sed -n '/body>/,/body>/p' $MAPLOOM_PATH/bin/index.html > index_body.html
+sed -n '/body class="maploom-body">/,/body>/p' $MAPLOOM_PATH/bin/index.html > index_body.html
 sed '/body>/d' ./index_body.html > index_body_no_tag.html
 echo '{% load staticfiles i18n %}{% verbatim %}' > _maploom_map.html
 cat index_body_no_tag.html >> _maploom_map.html
