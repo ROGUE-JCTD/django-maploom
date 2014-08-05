@@ -27102,6 +27102,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
     'loom_map',
     'loom_notifications',
     'loom_notification_poster',
+    'loom_notification_controller',
     'loom_update_notification',
     'loom_history',
     'loom_history_controller',
@@ -27124,6 +27125,17 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
     'loom_search',
     'loom_test',
     'loom_timeline'
+  ]);
+}());
+(function () {
+  var module = angular.module('loom_notification_controller', []);
+  module.controller('LoomNotificationController', [
+    '$scope',
+    '$translate',
+    'notificationService',
+    function ($scope, $translate, notificationService) {
+      $scope.notificationStartTime = $translate('since_time', { time: notificationService.startTime });
+    }
   ]);
 }());
 (function () {
@@ -27409,6 +27421,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'merge_successful': 'Merge Successful',
       'merge_no_changes': 'The merge resulted in no changes.',
       'select_date_range': 'Select Date Range',
+      'select_start_time': 'Select Start Time',
       'link': 'Link',
       'link_already_exists': 'The link already exists.',
       'synchronize': 'Synchronize',
@@ -27548,7 +27561,10 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'script_error': 'The following script error has occurred: "{{error}}".  It is recommended that you reload the ' + 'web page to resolve any potential complications.',
       'show_changes': 'Show Changes',
       'sure_close_table': 'Are you sure you want to close the table?  Any unsaved changes will be lost.',
-      'toggle_fullscreen': 'Toggle Full Screen'
+      'toggle_fullscreen': 'Toggle Full Screen',
+      'since_time': 'Running since {{time}}',
+      'unread_notifications': 'Unread Notifications',
+      'generate_notification': 'Generate Notification'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -27685,6 +27701,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'merge_successful': 'Fusion Exitosa',
       'merge_no_changes': 'La fusion resulto en ningun cambio.',
       'select_date_range': 'Seleccionar el Rango de Datos',
+      'select_start_time': 'Seleccione la Hora de Inicio',
       'link': 'Enlace',
       'link_already_exists': 'El enlace ya existe.',
       'synchronize': 'Sincronizar',
@@ -27824,7 +27841,10 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'script_error': 'Se ha producido un error de script siguiente: "{{error}}". Se recomienda volver a cargar ' + 'la p\xe1gina web para resolver cualquier posible complicaci\xf3n.',
       'show_changes': 'Mostrar Cambios',
       'sure_close_table': '\xbfEst\xe1 seguro que desea cerrar la mesa? Se perder\xe1n todos los cambios no guardados.',
-      'toggle_fullscreen': 'Cambiar a Pantalla Completa'
+      'toggle_fullscreen': 'Cambiar a Pantalla Completa',
+      'since_time': 'En funcionamiento desde {{time}}',
+      'unread_notifications': 'Notificaciones Sin Leer',
+      'generate_notification': 'Generar una Notificaci\xf3n'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -35115,6 +35135,112 @@ var GeoGitRevertFeatureOptions = function () {
   angular.module('loom_notification_poster', ['loom_notification_poster_directive']);
 }());
 (function () {
+  var module = angular.module('loom_generate_notification_directive', []);
+  module.directive('loomGenerateNotification', [
+    '$rootScope',
+    '$translate',
+    'mapService',
+    'geogitService',
+    'refreshService',
+    function ($rootScope, $translate, mapService, geogitService, refreshService) {
+      return {
+        templateUrl: 'notifications/partial/generatenotification.tpl.html',
+        link: function (scope, element, attrs) {
+          scope.startDate = [new Date().toISOString()];
+          scope.active = true;
+          scope.contentHidden = true;
+          scope.isLoading = false;
+          element.closest('.modal').on('hidden.bs.modal', function (e) {
+            if (!scope.$$phase && !$rootScope.$$phase) {
+              scope.$apply(function () {
+                scope.contentHidden = true;
+              });
+            } else {
+              scope.contentHidden = true;
+            }
+          });
+          element.closest('.modal').on('show.bs.modal', function (e) {
+            if (!scope.$$phase && !$rootScope.$$phase) {
+              scope.$apply(function () {
+                scope.contentHidden = false;
+                scope.startDate = [new Date().toISOString()];
+              });
+            } else {
+              scope.contentHidden = false;
+              scope.startDate = [new Date().toISOString()];
+            }
+          });
+          scope.cancel = function () {
+            element.closest('.modal').modal('hide');
+            scope.isLoading = false;
+          };
+          scope.onDiff = function () {
+            scope.isLoading = true;
+            var layers = mapService.getLayers();
+            if (!goog.isArray(layers)) {
+              layers = [layers];
+            }
+            if (layers.length < 1) {
+              scope.isLoading = false;
+              return;
+            }
+            var repos = {};
+            var layer = null;
+            var metadata = null;
+            for (var i = 0; i < layers.length; i++) {
+              layer = layers[i];
+              metadata = layer.get('metadata');
+              if (goog.isDefAndNotNull(metadata.isGeoGit) && metadata.isGeoGit === true && !goog.isDefAndNotNull(repos[metadata.repoId])) {
+                repos[metadata.repoId] = {};
+                repos[metadata.repoId].branchName = metadata.branchName;
+              }
+            }
+            var repoArray = [];
+            for (var repoId in repos) {
+              if (repos.hasOwnProperty(repoId)) {
+                repoArray.push(repoId);
+              }
+            }
+            var repoIndex = 0;
+            var updateRepoCommit = function (response) {
+              if (goog.isDefAndNotNull(response.sinceCommit)) {
+                var lastCommit = response.sinceCommit;
+                var lastCommitId = '0000000000000000000000000000000000000000';
+                if (goog.isDefAndNotNull(lastCommit.parents) && goog.isObject(lastCommit.parents)) {
+                  if (goog.isDefAndNotNull(lastCommit.parents.id)) {
+                    if (goog.isArray(lastCommit.parents.id)) {
+                      lastCommitId = lastCommit.parents.id[0];
+                    } else {
+                      lastCommitId = lastCommit.parents.id;
+                    }
+                  }
+                }
+                geogitService.getRepoById(repoArray[repoIndex]).commitId = lastCommitId;
+              }
+              repoIndex++;
+              if (repoIndex === repoArray.length) {
+                scope.isLoading = false;
+                refreshService.refreshLayers();
+                scope.cancel();
+              } else {
+                processRepo();
+              }
+            };
+            var processRepo = function () {
+              var logOptions = new GeoGitLogOptions();
+              logOptions.sinceTime = new Date(scope.startDate[0]).getTime();
+              logOptions.returnRange = true;
+              logOptions.until = repos[repoArray[repoIndex]].branchName;
+              geogitService.command(repoArray[repoIndex], 'log', logOptions).then(updateRepoCommit);
+            };
+            processRepo();
+          };
+        }
+      };
+    }
+  ]);
+}());
+(function () {
   var module = angular.module('loom_notification_badge_directive', []);
   module.directive('loomNotificationBadge', [
     'notificationService',
@@ -35162,7 +35288,8 @@ var GeoGitRevertFeatureOptions = function () {
   angular.module('loom_notifications', [
     'loom_notifications_directive',
     'loom_notifications_service',
-    'loom_notification_badge_directive'
+    'loom_notification_badge_directive',
+    'loom_generate_notification_directive'
   ]);
 }());
 (function () {
@@ -35172,6 +35299,7 @@ var GeoGitRevertFeatureOptions = function () {
   var rootScope = null;
   var translate_ = null;
   module.provider('notificationService', function () {
+    this.startTime = null;
     this.$get = [
       '$rootScope',
       '$timeout',
@@ -35179,9 +35307,12 @@ var GeoGitRevertFeatureOptions = function () {
       function ($rootScope, $timeout, $translate) {
         rootScope = $rootScope;
         translate_ = $translate;
+        var momentDate = moment(new Date());
+        momentDate.lang($translate.uses());
+        this.startTime = momentDate.format('LT');
         var updateTimestamps = function () {
           for (i = 0; i < notifications.length; i = i + 1) {
-            var momentDate = moment(notifications[i].time);
+            momentDate = moment(notifications[i].time);
             momentDate.lang($translate.uses());
             notifications[i].timestr = momentDate.fromNow();
           }
@@ -38219,7 +38350,7 @@ var WKT = {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'modal/partials/password.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'timeline/partials/timeline.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'modal/partials/password.tpl.html', 'notifications/partial/generatenotification.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'timeline/partials/timeline.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -39232,6 +39363,25 @@ angular.module("modal/partials/password.tpl.html", []).run(["$templateCache", fu
     "    </div>\n" +
     "  </div>\n" +
     "</div>");
+}]);
+
+angular.module("notifications/partial/generatenotification.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("notifications/partial/generatenotification.tpl.html",
+    "<div class=\"modal-body\">\n" +
+    "  <div class=\"history-loading loom-loading\" spinner-width=\"4\" spinner-radius=\"48\" spinner-hidden=\"!isLoading\"></div>\n" +
+    "  <form ng-if=\"!contentHidden\" class=\"form\">\n" +
+    "    <div ng-if=\"active\">\n" +
+    "      <div class=\"form-group\">\n" +
+    "        <datetimepicker date-object=\"startDate\" date-key=\"0\"></datetimepicker>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </form>\n" +
+    "  <div class=\"modal-footer\">\n" +
+    "    <button type=\"button\" class=\"btn btn-default\" ng-click=\"cancel()\">{{'cancel_btn' | translate}}</button>\n" +
+    "    <button type=\"button\" class=\"btn btn-primary\" ng-click=\"onDiff()\">{{'summarize_btn' | translate}}</button>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("notifications/partial/notificationbadge.tpl.html", []).run(["$templateCache", function($templateCache) {
