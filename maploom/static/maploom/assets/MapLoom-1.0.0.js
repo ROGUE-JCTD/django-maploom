@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-08-05
+ * MapLoom - v1.0.0 - 2014-08-06
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -31895,7 +31895,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'toggle_fullscreen': 'Toggle Full Screen',
       'since_time': 'Running since {{time}}',
       'unread_notifications': 'Unread Notifications',
-      'generate_notification': 'Generate Notification'
+      'generate_notification': 'Generate Notification',
+      'no_layers_notification': 'Generating a notification requires a GeoGit layer to function.  ' + 'Please add a GeoGit layer to the map.'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -32175,7 +32176,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'toggle_fullscreen': 'Cambiar a Pantalla Completa',
       'since_time': 'En funcionamiento desde {{time}}',
       'unread_notifications': 'Notificaciones Sin Leer',
-      'generate_notification': 'Generar una Notificaci\xf3n'
+      'generate_notification': 'Generar una Notificaci\xf3n',
+      'no_layers_notification': 'La generaci\xf3n de una notificaci\xf3n requiere una capa GeoGit funcionar. ' + 'Por favor, a\xf1ada una capa GeoGit al mapa.'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -37137,7 +37139,7 @@ var GeoGitRevertFeatureOptions = function () {
           };
           scope.getCommitTime = function (commit) {
             var date = moment(new Date(commit.author.timestamp));
-            date.lang($translate.proposedLanguage());
+            date.lang($translate.use());
             return date.format('L') + ' @ ' + date.format('LT');
           };
           scope.historyClicked = function (commit) {
@@ -39479,7 +39481,8 @@ var GeoGitRevertFeatureOptions = function () {
     'mapService',
     'geogitService',
     'refreshService',
-    function ($rootScope, $translate, mapService, geogitService, refreshService) {
+    'dialogService',
+    function ($rootScope, $translate, mapService, geogitService, refreshService, dialogService) {
       return {
         templateUrl: 'notifications/partial/generatenotification.tpl.html',
         link: function (scope, element, attrs) {
@@ -39517,10 +39520,6 @@ var GeoGitRevertFeatureOptions = function () {
             if (!goog.isArray(layers)) {
               layers = [layers];
             }
-            if (layers.length < 1) {
-              scope.isLoading = false;
-              return;
-            }
             var repos = {};
             var layer = null;
             var metadata = null;
@@ -39537,6 +39536,11 @@ var GeoGitRevertFeatureOptions = function () {
               if (repos.hasOwnProperty(repoId)) {
                 repoArray.push(repoId);
               }
+            }
+            if (repoArray.length < 1) {
+              scope.isLoading = false;
+              dialogService.warn($translate.instant('warning'), $translate.instant('no_layers_notification'));
+              return;
             }
             var repoIndex = 0;
             var updateRepoCommit = function (response) {
@@ -39645,12 +39649,12 @@ var GeoGitRevertFeatureOptions = function () {
         rootScope = $rootScope;
         translate_ = $translate;
         var momentDate = moment(new Date());
-        momentDate.lang($translate.proposedLanguage());
+        momentDate.lang($translate.use());
         this.startTime = momentDate.format('LT');
         var updateTimestamps = function () {
           for (i = 0; i < notifications.length; i = i + 1) {
             momentDate = moment(notifications[i].time);
-            momentDate.lang($translate.proposedLanguage());
+            momentDate.lang($translate.use());
             notifications[i].timestr = momentDate.fromNow();
           }
           $timeout(updateTimestamps, 10000, true);
@@ -39666,7 +39670,7 @@ var GeoGitRevertFeatureOptions = function () {
       notification.id = nextNotificationId;
       notification.time = new Date();
       var momentDate = moment(notification.time);
-      momentDate.lang(translate_.proposedLanguage());
+      momentDate.lang(translate_.use());
       notification.timestr = momentDate.fromNow();
       nextNotificationId = nextNotificationId + 1;
       notifications.push(notification);
@@ -42267,7 +42271,7 @@ var sha1 = function (msg) {
             if (!scope.$$phase && !$rootScope.$$phase) {
               scope.$apply(function () {
                 var momentDate = moment(new Date(dateOptions.defaultDate));
-                momentDate.lang($translate.proposedLanguage());
+                momentDate.lang($translate.use());
                 if (scope.time === 'true' && scope.date === 'true') {
                   scope.dateObject[scope.dateKey] = newDate.toISOString();
                   scope.disabledText = momentDate.format('L') + ' ' + momentDate.format('LT');
@@ -42281,7 +42285,7 @@ var sha1 = function (msg) {
               });
             } else {
               var momentDate = moment(new Date(dateOptions.defaultDate));
-              momentDate.lang($translate.proposedLanguage());
+              momentDate.lang($translate.use());
               if (scope.time === 'true' && scope.date === 'true') {
                 scope.dateObject[scope.dateKey] = newDate.toISOString();
                 scope.disabledText = momentDate.format('L') + ' ' + momentDate.format('LT');
@@ -42296,11 +42300,11 @@ var sha1 = function (msg) {
           };
           var dateOptions = {
               pickTime: scope.time === 'true' && scope.seperateTime === 'false',
-              language: $translate.proposedLanguage()
+              language: $translate.use()
             };
           var timeOptions = {
               pickDate: false,
-              language: $translate.proposedLanguage()
+              language: $translate.use()
             };
           if (scope.defaultDate) {
             var defaultDate = new Date();
@@ -42345,15 +42349,15 @@ var sha1 = function (msg) {
               var date;
               if (scope.date === 'true' && scope.time === 'true') {
                 date = moment(dateOptions.defaultDate);
-                date.lang($translate.proposedLanguage());
+                date.lang($translate.use());
                 scope.disabledText = date.format('L') + ' ' + date.format('LT');
               } else if (scope.time === 'true') {
                 date = moment(new Date(timeOptions.defaultDate));
-                date.lang($translate.proposedLanguage());
+                date.lang($translate.use());
                 scope.disabledText = date.format('LT');
               } else if (scope.date === 'true') {
                 date = moment.utc(dateOptions.defaultDate);
-                date.lang($translate.proposedLanguage());
+                date.lang($translate.use());
                 scope.disabledText = date.format('L');
               }
             } else {
