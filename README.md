@@ -5,6 +5,8 @@ A Django wrapper for [MapLoom](https://github.com/ROGUE-JCTD/MapLoom).
 
 Installation
 ------------
+Install the latest stable version from PIP: 
+```pip install django-maploom```
 
 Download django-maploom and install it directly from source:
 
