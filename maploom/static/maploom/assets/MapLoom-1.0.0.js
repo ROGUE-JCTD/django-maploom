@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-08-06
+ * MapLoom - v1.0.0 - 2014-08-13
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -31896,7 +31896,9 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'since_time': 'Running since {{time}}',
       'unread_notifications': 'Unread Notifications',
       'generate_notification': 'Generate Notification',
-      'no_layers_notification': 'Generating a notification requires a GeoGit layer to function.  ' + 'Please add a GeoGit layer to the map.'
+      'no_layers_notification': 'Generating a notification requires a GeoGit layer to function.  ' + 'Please add a GeoGit layer to the map.',
+      'single_sync': 'Perform Synchronization',
+      'continuous_sync': 'Toggle Auto-Synchronization'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -32177,7 +32179,9 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'since_time': 'En funcionamiento desde {{time}}',
       'unread_notifications': 'Notificaciones Sin Leer',
       'generate_notification': 'Generar una Notificaci\xf3n',
-      'no_layers_notification': 'La generaci\xf3n de una notificaci\xf3n requiere una capa GeoGit funcionar. ' + 'Por favor, a\xf1ada una capa GeoGit al mapa.'
+      'no_layers_notification': 'La generaci\xf3n de una notificaci\xf3n requiere una capa GeoGit funcionar. ' + 'Por favor, a\xf1ada una capa GeoGit al mapa.',
+      'single_sync': 'Realizar la Sincronizaci\xf3n',
+      'continuous_sync': 'Sincronizaci\xf3n Autom\xe1tica de Palanca'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -43972,12 +43976,15 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
     "        <div class=\"col-md-8 ellipsis\">{{link.name}}</div>\n" +
     "        <div class=\"col-md-4\">\n" +
     "          <div class=\"btn-group pull-left\" stop-event=\"click\">\n" +
-    "            <button ng-click=\"singleSync(link)\" ng-disabled=\"link.continuous\" data-toggle=\"button\" class=\"btn btn-xs btn-default\">\n" +
+    "            <button ng-click=\"singleSync(link)\" ng-disabled=\"link.continuous\" data-toggle=\"button\"\n" +
+    "                    class=\"btn btn-xs btn-default\" tooltip-append-to-body=\"true\"\n" +
+    "                    tooltip-placement=\"top\" tooltip=\"{{'single_sync' | translate}}\">\n" +
     "              <span class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!link.singleSync\"></span>\n" +
     "              <i class=\"glyphicon glyphicon-sort\"></i>\n" +
     "            </button>\n" +
     "            <div ng-click=\"syncService.toggleAutoSync(link)\" stop-event=\"click mousedown\"\n" +
-    "                 class=\"btn btn-xs btn-default\" ng-class=\"{'sync-on': link.continuous}\">\n" +
+    "                 class=\"btn btn-xs btn-default\" ng-class=\"{'sync-on': link.continuous}\" tooltip-append-to-body=\"true\"\n" +
+    "                 tooltip-placement=\"top\" tooltip=\"{{'continuous_sync' | translate}}\">\n" +
     "              <i class=\"glyphicon glyphicon-retweet\"></i>\n" +
     "            </div>\n" +
     "            <!--<button type=\"button\" class=\"btn btn-xs btn-default dropdown-toggle\" ng-disabled=\"link.isSyncing\" data-toggle=\"dropdown\">\n" +
