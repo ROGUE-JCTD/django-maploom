@@ -31834,6 +31834,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'decimal_degrees': 'Decimal Degrees',
       'other': 'Other',
       'search': 'Search',
+      'search_locations': 'Search Locations',
+      'search_results': 'Search Results',
       'search_no_results': 'No results matched the search query.',
       'search_error_status': 'Search failed with response code ({{status}}).',
       'search_error': 'An unknown error occurred while performing the search.',
@@ -32117,6 +32119,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'decimal_degrees': 'Grados Decimales',
       'other': 'Otro',
       'search': 'B\xfasqueda',
+      'search_locations': 'Ubicaciones de B\xfasqueda',
+      'search_results': 'Resultados de la B\xfasqueda',
       'search_no_results': 'No hay resultados que coincidan con la consulta de b\xfasqueda.',
       'search_error_status': 'Buscar fallado con el c\xf3digo de respuesta ({{status}}).',
       'search_error': 'Se ha producido un error desconocido mientras se realiza la b\xfasqueda.',
@@ -32391,7 +32395,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
           };
           scope.getPlaceholder = function () {
             if (scope.type === 'WMS') {
-              return 'http://url/wms';
+              return 'http://url/geoserver/wms';
             } else if (scope.type === 'TMS') {
               return 'http://url/1.0.0/';
             }
@@ -40132,7 +40136,7 @@ var GeoGitRevertFeatureOptions = function () {
         mapService_ = mapService;
         searchlayer_ = new ol.layer.Vector({
           metadata: {
-            title: $translate.instant('search'),
+            title: $translate.instant('search_results'),
             internalLayer: true
           },
           source: new ol.source.Vector({ parser: null }),
@@ -43772,7 +43776,7 @@ angular.module("search/partial/search.tpl.html", []).run(["$templateCache", func
     "    <em>\n" +
     "      <form ng-submit=\"performSearch()\">\n" +
     "        <div class=\"input-group input-group-sm\">\n" +
-    "          <input type=\"text\" ng-change=\"clearResults()\" ng-model=\"searchQuery\" class=\"search-box form-control\" placeholder=\"{{'search' | translate}}\">\n" +
+    "          <input type=\"text\" ng-change=\"clearResults()\" ng-model=\"searchQuery\" class=\"search-box form-control\" placeholder=\"{{'search_locations' | translate}}\">\n" +
     "                <span class=\"input-group-btn\">\n" +
     "                  <a class=\"btn btn-default\" ng-click=\"performSearch()\" type=\"button\">\n" +
     "                    <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!searchInProgress\">\n" +
@@ -44018,12 +44022,6 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
   $templateCache.put("tableview/partial/tableview.tpl.html",
     "<div class=\"modal-body\">\n" +
     "  <div id=\"table-loading\" class=\"loom-loading\" spinner-width=\"6\" spinner-radius=\"40\" spinner-hidden=\"!isSaving\"></div>\n" +
-    "  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"applyFilters()\" translate=\"apply_filters\"\n" +
-    "          ng-disabled=\"tableviewform.$visible\">\n" +
-    "  </button>\n" +
-    "  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"clearFilters()\" translate=\"clear_filters\"\n" +
-    "          ng-disabled=\"tableviewform.$visible\">\n" +
-    "  </button>\n" +
     "  <form editable-form name=\"tableviewform\" onaftersave=\"saveTable()\">\n" +
     "    <div class=\"panel panel-default\">\n" +
     "      <table class=\"table-striped table-hover sortable\">\n" +
@@ -44033,7 +44031,15 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "            <th ng-repeat=\"attr in attributes\">{{attr.name}}</th>\n" +
     "          </tr>\n" +
     "          <tr ng-if=\"filterOn\">\n" +
-    "            <td class=\"filter-row first-filter-row\" translate=\"filter\"></td>\n" +
+    "            <td class=\"filter-row first-filter-row\"><span class=\"filters-label\">{{'filter' | translate}}</span>\n" +
+    "              <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"applyFilters()\"\n" +
+    "                      translate=\"apply_filters\"\n" +
+    "                      ng-disabled=\"tableviewform.$visible\">\n" +
+    "              </button>\n" +
+    "              <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"clearFilters()\"\n" +
+    "                      translate=\"clear_filters\"\n" +
+    "                      ng-disabled=\"tableviewform.$visible\">\n" +
+    "              </button></td>\n" +
     "              <td class=\"filter-row\" ng-repeat=\"attr in attributes\">\n" +
     "                <input class=\"form-control\" type=\"text\" ng-model=\"attr.filter.filter\">\n" +
     "              </td>\n" +
