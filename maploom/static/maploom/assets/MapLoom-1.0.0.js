@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-10-01
+ * MapLoom - v1.0.0 - 2014-10-02
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -41044,6 +41044,35 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
   }
 }());
 (function () {
+  var module = angular.module('loom_filter_options_directive', []);
+  module.directive('filteroptions', [
+    'tableViewService',
+    function (tableViewService) {
+      return {
+        restrict: 'E',
+        templateUrl: 'tableview/partial/filteroptions.tpl.html',
+        scope: {
+          attribute: '=',
+          typeRestriction: '=type'
+        },
+        replace: true,
+        link: function (scope, element) {
+          console.log('attrType', scope.typeRestriction);
+          scope.exactMatch = function () {
+            scope.attribute.filter.searchType = 'exactMatch';
+          };
+          scope.strContains = function () {
+            scope.attribute.filter.searchType = 'strContains';
+          };
+          scope.numRange = function () {
+            scope.attribute.filter.searchType = 'numRange';
+          };
+        }
+      };
+    }
+  ]);
+}());
+(function () {
   var module = angular.module('loom_table_view_directive', []);
   module.filter('table', function () {
     return function (input, filter) {
@@ -41384,6 +41413,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
 (function () {
   angular.module('loom_table_view', [
     'loom_table_view_directive',
+    'loom_filter_options_directive',
     'loom_table_view_service'
   ]);
 }());
@@ -41437,7 +41467,32 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       service_.totalPages = 0;
       return this.loadData();
     };
+    function getfilterXML() {
+      var metadata = service_.selectedLayer.get('metadata');
+      var xml = '<?xml version="1.0" encoding="UTF-8"?>' + '<wfs:GetFeature service="WFS" version="' + settings.WFSVersion + '"' + ' outputFormat="JSON"' + ' maxFeatures="' + service_.resultsPerPage + '"' + ' startIndex="' + service_.resultsPerPage * service_.currentPage + '"' + ' xmlns:wfs="http://www.opengis.net/wfs"' + ' xmlns:ogc="http://www.opengis.net/ogc"' + ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' + ' xsi:schemaLocation="http://www.opengis.net/wfs' + ' http://schemas.opengis.net/wfs/1.1.0/wfs.xsd">' + '<wfs:Query typeName="' + metadata.name + '"' + ' srsName="' + metadata.projection + '"' + '>' + '<ogc:Filter>' + '<And>';
+      var searchType;
+      console.log('metadata', metadata);
+      for (var attrName in metadata.filters) {
+        searchType = metadata.filters[attrName].searchType;
+        console.log('filter type', searchType);
+        var schemaType = metadata.schema[attrName]._type;
+        if (metadata.filters[attrName].filter !== '') {
+          if (searchType === 'strContains') {
+            xml += '<ogc:PropertyIsLike wildCard="*" singleChar="#" escapeChar="!">' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>*' + metadata.filters[attrName].filter + '*</ogc:Literal>' + '</ogc:PropertyIsLike>';
+          } else if (searchType === 'exactMatch') {
+            xml += '<ogc:PropertyIsEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].filter + '</ogc:Literal>' + '</ogc:PropertyIsEqualTo>';
+          } else if (searchType === 'numRange') {
+            if (schemaType === 'xsd:int' || schemaType === 'xsd:integer' || schemaType === 'xsd:decimal' || schemaType === 'xsd:double') {
+              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].filter + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>53</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
+            }
+          }
+        }
+      }
+      xml += '</And>' + '</ogc:Filter>' + '</wfs:Query>' + '</wfs:GetFeature>';
+      return xml;
+    }
     this.loadData = function () {
+      console.log('getting data for table');
       var deferredResponse = q_.defer();
       var metadata = service_.selectedLayer.get('metadata');
       var projection = metadata.projection;
@@ -41457,10 +41512,16 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           }
         }
         if (hasFilter) {
+          console.log('filtering, filter obj:', filter);
           url += '&cql_filter=' + encodeURIComponent(filter);
+          console.log('filtering, filter url:', url);
         }
       }
-      http_.get(url).then(function (response) {
+      var postURL = this.selectedLayer.get('metadata').url + '/wfs/WfsDispatcher';
+      var xmlData = getfilterXML();
+      console.log('xmldata', xmlData);
+      http_.post(postURL, xmlData, { headers: { 'Content-Type': 'text/xml;charset=utf-8' } }).success(function (data, status, headers, config) {
+        console.log('post success', data, status, headers, config);
         var getRestrictions = function () {
           if (metadata.readOnly || !metadata.editable) {
             service_.readOnly = true;
@@ -41498,15 +41559,18 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         };
         var row;
         service_.rows = [];
-        if (response.data.features.length > 0) {
+        if (data.features.length > 0) {
           service_.attributeNameList = [];
           if (!goog.isDefAndNotNull(metadata.filters)) {
             metadata.filters = {};
           }
           for (var propName in metadata.schema) {
-            if (response.data.features[0].properties.hasOwnProperty(propName) && propName !== 'fotos' && propName !== 'photos') {
+            if (data.features[0].properties.hasOwnProperty(propName) && propName !== 'fotos' && propName !== 'photos') {
               if (!goog.isDefAndNotNull(metadata.filters[propName])) {
-                metadata.filters[propName] = { filter: '' };
+                metadata.filters[propName] = {
+                  filter: '',
+                  searchType: 'exactMatch'
+                };
               }
               service_.attributeNameList.push({
                 name: propName,
@@ -41514,25 +41578,26 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
               });
             }
           }
-          var totalFeatures = response.data.totalFeatures;
+          var totalFeatures = data.totalFeatures;
           service_.totalPages = Math.ceil(totalFeatures / service_.resultsPerPage);
           getRestrictions();
-          for (var feat in response.data.features) {
+          for (var feat in data.features) {
             var selectedFeature = false;
-            if (goog.isDefAndNotNull(service_.feature) && response.data.features[feat].id === service_.feature.id) {
+            if (goog.isDefAndNotNull(service_.feature) && data.features[feat].id === service_.feature.id) {
               selectedFeature = true;
             }
             row = {
               modified: false,
               selected: selectedFeature,
-              feature: response.data.features[feat]
+              feature: data.features[feat]
             };
             service_.rows[feat] = row;
           }
         }
         deferredResponse.resolve();
-      }, function (reject) {
-        deferredResponse.reject(reject);
+      }).error(function (data, status, headers, config) {
+        console.log('post error', data, status, headers, config);
+        deferredResponse.reject(status);
       });
       return deferredResponse.promise;
     };
@@ -42699,7 +42764,7 @@ var WKT = {
 angular.module('templates-app', []);
 
 
-angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'modal/partials/password.tpl.html', 'notifications/partial/generatenotification.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/tableview.tpl.html', 'timeline/partials/timeline.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
+angular.module('templates-common', ['addlayers/partials/addlayers.tpl.html', 'addlayers/partials/addserver.tpl.html', 'diff/partial/difflist.tpl.html', 'diff/partial/diffpanel.tpl.html', 'diff/partial/featurediff.tpl.html', 'diff/partial/featurepanel.tpl.html', 'diff/partial/panelseparator.tpl.html', 'featuremanager/partial/attributeedit.tpl.html', 'featuremanager/partial/drawselect.tpl.html', 'featuremanager/partial/exclusivemode.tpl.html', 'featuremanager/partial/featureinfobox.tpl.html', 'history/partial/historydiff.tpl.html', 'history/partial/historypanel.tpl.html', 'layers/partials/layerinfo.tpl.html', 'layers/partials/layers.tpl.html', 'legend/partial/legend.tpl.html', 'map/partial/savemap.tpl.html', 'merge/partials/merge.tpl.html', 'modal/partials/dialog.tpl.html', 'modal/partials/modal.tpl.html', 'modal/partials/password.tpl.html', 'notifications/partial/generatenotification.tpl.html', 'notifications/partial/notificationbadge.tpl.html', 'notifications/partial/notifications.tpl.html', 'search/partial/search.tpl.html', 'sync/partials/addsync.tpl.html', 'sync/partials/remoteselect.tpl.html', 'sync/partials/syncconfig.tpl.html', 'sync/partials/synclinks.tpl.html', 'tableview/partial/filteroptions.tpl.html', 'tableview/partial/tableview.tpl.html', 'timeline/partials/timeline.tpl.html', 'updatenotification/partial/updatenotification.tpl.html', 'utils/partial/loading.tpl.html']);
 
 angular.module("addlayers/partials/addlayers.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("addlayers/partials/addlayers.tpl.html",
@@ -44018,6 +44083,32 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
     "</div>");
 }]);
 
+angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("tableview/partial/filteroptions.tpl.html",
+    "<div class=\"input-group\">\n" +
+    "    <input class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.filter\">\n" +
+    "    <div class=\"input-group-btn\" ng-if=\"typeRestriction === ''\">\n" +
+    "        <button type=\"button\" class=\"btn btn-default dropdown-toggle\">\n" +
+    "            <span class=\"caret\"></span>\n" +
+    "        </button>\n" +
+    "        <ul class=\"dropdown-menu\">\n" +
+    "            <li>\n" +
+    "                <a value=\"exactMatch\" ng-click=\"exactMatch()\" class=\"filter-option\"\n" +
+    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'exactMatch')}\">\n" +
+    "                    Match\n" +
+    "                </a>\n" +
+    "            </li>\n" +
+    "            <li>\n" +
+    "                <a value=\"strContains\" ng-click=\"strContains()\" class=\"filter-option\"\n" +
+    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'strContains')}\">\n" +
+    "                    Contains\n" +
+    "                </a>\n" +
+    "            </li>\n" +
+    "        </ul>\n" +
+    "    </div>\n" +
+    "</div>");
+}]);
+
 angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("tableview/partial/tableview.tpl.html",
     "<div class=\"modal-body\">\n" +
@@ -44026,23 +44117,24 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "    <div class=\"panel panel-default\">\n" +
     "      <table class=\"table-striped table-hover sortable\">\n" +
     "        <thead>\n" +
+    "          <tr ng-if=\"filterOn\">\n" +
+    "              <td class=\"filter-row first-filter-row\"><span class=\"filters-label\">{{'filter' | translate}}</span>\n" +
+    "                  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"applyFilters()\"\n" +
+    "                          translate=\"apply_filters\"\n" +
+    "                          ng-disabled=\"tableviewform.$visible\">\n" +
+    "                  </button>\n" +
+    "                  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"clearFilters()\"\n" +
+    "                          translate=\"clear_filters\"\n" +
+    "                          ng-disabled=\"tableviewform.$visible\">\n" +
+    "                  </button></td>\n" +
+    "              <td class=\"filter-row\" ng-repeat=\"attr in attributes\">\n" +
+    "                  <!--<input class=\"form-control\" type=\"text\" ng-model=\"attr.filter.filter\">-->\n" +
+    "                  <filteroptions attribute=\"attr\" type=\"restrictions[attr.name].type\"></filteroptions>\n" +
+    "              </td>\n" +
+    "          </tr>\n" +
     "          <tr>\n" +
     "            <th>{{'feature_id' | translate}}</th>\n" +
     "            <th ng-repeat=\"attr in attributes\">{{attr.name}}</th>\n" +
-    "          </tr>\n" +
-    "          <tr ng-if=\"filterOn\">\n" +
-    "            <td class=\"filter-row first-filter-row\"><span class=\"filters-label\">{{'filter' | translate}}</span>\n" +
-    "              <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"applyFilters()\"\n" +
-    "                      translate=\"apply_filters\"\n" +
-    "                      ng-disabled=\"tableviewform.$visible\">\n" +
-    "              </button>\n" +
-    "              <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"clearFilters()\"\n" +
-    "                      translate=\"clear_filters\"\n" +
-    "                      ng-disabled=\"tableviewform.$visible\">\n" +
-    "              </button></td>\n" +
-    "              <td class=\"filter-row\" ng-repeat=\"attr in attributes\">\n" +
-    "                <input class=\"form-control\" type=\"text\" ng-model=\"attr.filter.filter\">\n" +
-    "              </td>\n" +
     "          </tr>\n" +
     "        </thead>\n" +
     "        <tr ng-repeat=\"row in rows\" ng-class=\"{selectedRow: row.selected}\" ng-click=\"selectFeature(row)\">\n" +
