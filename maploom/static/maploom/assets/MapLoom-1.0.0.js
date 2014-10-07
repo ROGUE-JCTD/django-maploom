@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-10-02
+ * MapLoom - v1.0.0 - 2014-10-07
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -41057,7 +41057,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         },
         replace: true,
         link: function (scope, element) {
-          console.log('attrType', scope.typeRestriction);
+          console.log('attribute', scope.attribute);
           scope.exactMatch = function () {
             scope.attribute.filter.searchType = 'exactMatch';
           };
@@ -41483,7 +41483,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             xml += '<ogc:PropertyIsEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].filter + '</ogc:Literal>' + '</ogc:PropertyIsEqualTo>';
           } else if (searchType === 'numRange') {
             if (schemaType === 'xsd:int' || schemaType === 'xsd:integer' || schemaType === 'xsd:decimal' || schemaType === 'xsd:double') {
-              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].filter + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>53</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
+              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
             }
           }
         }
@@ -44087,19 +44087,45 @@ angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCa
   $templateCache.put("tableview/partial/filteroptions.tpl.html",
     "<div class=\"input-group\">\n" +
     "    <input class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.filter\">\n" +
-    "    <div class=\"input-group-btn\" ng-if=\"typeRestriction === ''\">\n" +
+    "    <div class=\"input-group-btn\">\n" +
     "        <button type=\"button\" class=\"btn btn-default dropdown-toggle\">\n" +
     "            <span class=\"caret\"></span>\n" +
     "        </button>\n" +
     "        <ul class=\"dropdown-menu\">\n" +
     "            <li>\n" +
-    "                <a value=\"exactMatch\" ng-click=\"exactMatch()\" class=\"filter-option\"\n" +
+    "                <a value=\"exactMatch\" ng-click=\"exactMatch(); $event.stopPropagation();\" class=\"filter-option\"\n" +
     "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'exactMatch')}\">\n" +
-    "                    Match\n" +
+    "                    Exact Match\n" +
     "                </a>\n" +
     "            </li>\n" +
-    "            <li>\n" +
-    "                <a value=\"strContains\" ng-click=\"strContains()\" class=\"filter-option\"\n" +
+    "            <!--<li ng-if=\"typeRestriction === 'int' || typeRestriction === 'double'\">-->\n" +
+    "                <!--<a value=\"exactMatch\" ng-click=\"numRange()\" class=\"filter-option\"-->\n" +
+    "                   <!--ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">-->\n" +
+    "                    <!--Range-->\n" +
+    "                <!--</a>-->\n" +
+    "            <!--</li>-->\n" +
+    "            <!--<li ng-if=\"typeRestriction === ''\">-->\n" +
+    "                <!--<a value=\"strContains\" ng-click=\"strContains()\" class=\"filter-option\"-->\n" +
+    "                   <!--ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'strContains')}\">-->\n" +
+    "                    <!--Contains-->\n" +
+    "                <!--</a>-->\n" +
+    "            <!--</li>-->\n" +
+    "            <li ng-switch=\"typeRestriction\">\n" +
+    "                <a value=\"Range\" ng-switch-when=\"int\" ng-click=\"numRange(); $event.stopPropagation();\" class=\"filter-option\"\n" +
+    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">\n" +
+    "                    Range\n" +
+    "                </a>\n" +
+    "                <div ng-switch-when=\"double\" ng-click=\"numRange(); $event.stopPropagation();\" class=\"filter-option panel-heading\"\n" +
+    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\"\n" +
+    "                   data-toggle=\"collapse\" data-target=\"#range-panel\">\n" +
+    "                    Range\n" +
+    "                    <div class=\"panel collapsed\" id=\"range-panel\">\n" +
+    "                        <input type=\"text\" ng-model=\"attribute.filter.start\">\n" +
+    "                        to\n" +
+    "                        <input type=\"text\" ng-model=\"attribute.filter.end\">\n" +
+    "                    </div>\n" +
+    "                </div>\n" +
+    "                <a ng-switch-default ng-click=\"strContains(); $event.stopPropagation();\" class=\"filter-option\"\n" +
     "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'strContains')}\">\n" +
     "                    Contains\n" +
     "                </a>\n" +
