@@ -31709,6 +31709,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'show_history': 'Show History',
       'show_table': 'Show Table',
       'show_table_failed': 'An unknown error occurred when retrieving the features. Please try again.',
+      'show_heatmap': 'Show Heatmap',
       'show_pics': 'Show Photos',
       'edit_geometry': 'Edit Geometry',
       'edit_attributes': 'Edit Attributes',
@@ -31994,6 +31995,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'show_history': 'Mostrar Historial',
       'show_table': 'Mostrar Tabla',
       'show_table_failed': 'Se ha producido un error desconocido al recuperar los elementos. ' + 'Por favor, int\xe9ntelo de nuevo.',
+      'show_heatmap': 'Mostrar Heatmap',
       'show_pics': 'Mostrar Imagenes',
       'edit_geometry': 'Editar Geometria',
       'edit_attributes': 'Editar Atributos',
@@ -37622,6 +37624,14 @@ var GeoGitRevertFeatureOptions = function () {
               dialogService.error($translate.instant('show_table'), $translate.instant('show_table_failed'));
             });
           };
+          scope.isLoadingHeatmap = function (layer) {
+            var loading = layer.get('metadata').loadingHeatmap;
+            return goog.isDefAndNotNull(loading) && loading === true;
+          };
+          scope.showHeatmap = function (layer) {
+            layer.get('metadata').loadingHeatmap = true;
+            mapService.showHeatmap(layer);
+          };
           scope.isLoadingHistory = function (layer) {
             var loadingHistory = layer.get('metadata').loadingHistory;
             return goog.isDefAndNotNull(loadingHistory) && loadingHistory === true;
@@ -37766,6 +37776,7 @@ var GeoGitRevertFeatureOptions = function () {
   var configService_ = null;
   var dialogService_ = null;
   var pulldownService_ = null;
+  var tableViewService_ = null;
   var translate_ = null;
   var dragZoomActive = false;
   var rootScope_ = null;
@@ -37924,9 +37935,10 @@ var GeoGitRevertFeatureOptions = function () {
       '$cookies',
       'configService',
       'dialogService',
+      'tableViewService',
       '$rootScope',
       '$q',
-      function ($translate, serverService, geogitService, $http, pulldownService, $cookieStore, $cookies, configService, dialogService, $rootScope, $q) {
+      function ($translate, serverService, geogitService, $http, pulldownService, $cookieStore, $cookies, configService, dialogService, tableViewService, $rootScope, $q) {
         service_ = this;
         httpService_ = $http;
         cookieStoreService_ = $cookieStore;
@@ -37939,6 +37951,7 @@ var GeoGitRevertFeatureOptions = function () {
         translate_ = $translate;
         rootScope_ = $rootScope;
         pulldownService_ = pulldownService;
+        tableViewService_ = tableViewService;
         q_ = $q;
         this.configuration = configService_.configuration;
         this.title = this.configuration.about.title;
@@ -38683,6 +38696,60 @@ var GeoGitRevertFeatureOptions = function () {
           type: geometryType
         });
         this.map.addInteraction(draw);
+      }
+    };
+    this.showHeatmap = function (layer, filters) {
+      if (goog.isDefAndNotNull(filters)) {
+        console.log('----[ mapService.showHeatmap from tableview for layer: ', layer, ', filters: ', filters);
+      } else {
+        console.log('----[ mapService.showHeatmap for layer, no filter ', layer);
+      }
+      var heatmapLayerName = '';
+      var heatmapLayerTitle = '';
+      if (goog.isDefAndNotNull(filters)) {
+        heatmapLayerName = 'TableView';
+        heatmapLayerTitle = heatmapLayerName;
+      } else {
+        var meta = layer.get('metadata');
+        meta.heatmapVisible = true;
+        heatmapLayerName = meta.name;
+        heatmapLayerTitle = meta.title;
+      }
+      var source = new ol.source.ServerVector({
+          format: new ol.format.GeoJSON(),
+          loader: function (extent, resolution, projection) {
+            tableViewService_.getFeaturesWfs(layer, filters, extent).then(function (response) {
+              source.addFeatures(source.readFeatures(response));
+            }, function (reject) {
+            }, function (update) {
+            });
+          },
+          strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({ maxZoom: 19 })),
+          projection: 'EPSG:3857'
+        });
+      var vector = new ol.layer.Heatmap({
+          metadata: {
+            name: 'heatmap:' + heatmapLayerName,
+            title: 'heatmap:' + heatmapLayerTitle,
+            heatmapLayer: true,
+            uniqueID: sha1(heatmapLayerName),
+            editable: false
+          },
+          source: source,
+          style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+              color: 'rgba(0, 0, 255, 1.0)',
+              width: 2
+            })
+          })
+        });
+      vector.getSource().on('addfeature', function (event) {
+      });
+      console.log('heatmap layer: ', vector);
+      this.map.addLayer(vector);
+      rootScope_.$broadcast('layer-added');
+      if (goog.isDefAndNotNull(layer)) {
+        layer.get('metadata').loadingHeatmap = false;
       }
     };
     this.addModify = function () {
@@ -41225,6 +41292,10 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             $('#table-view-window').modal('hide');
             featureManagerService.show(item);
           };
+          scope.showHeatmap = function () {
+            var meta = tableViewService.selectedLayer.get('metadata');
+            mapService.showHeatmap(tableViewService.selectedLayer, meta.filters);
+          };
           scope.getPageText = function () {
             return $translate.instant('current_page', {
               currentPage: scope.currentPage,
@@ -41467,23 +41538,30 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       service_.totalPages = 0;
       return this.loadData();
     };
-    function getfilterXML() {
-      var metadata = service_.selectedLayer.get('metadata');
-      var xml = '<?xml version="1.0" encoding="UTF-8"?>' + '<wfs:GetFeature service="WFS" version="' + settings.WFSVersion + '"' + ' outputFormat="JSON"' + ' maxFeatures="' + service_.resultsPerPage + '"' + ' startIndex="' + service_.resultsPerPage * service_.currentPage + '"' + ' xmlns:wfs="http://www.opengis.net/wfs"' + ' xmlns:ogc="http://www.opengis.net/ogc"' + ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' + ' xsi:schemaLocation="http://www.opengis.net/wfs' + ' http://schemas.opengis.net/wfs/1.1.0/wfs.xsd">' + '<wfs:Query typeName="' + metadata.name + '"' + ' srsName="' + metadata.projection + '"' + '>' + '<ogc:Filter>' + '<And>';
-      var searchType;
+    function getFeaturesPostPayloadXML(layer, filters, bbox, resultsPerPage, currentPage) {
+      var paginationParamsStr = '';
+      if (goog.isDefAndNotNull(resultsPerPage) && goog.isDefAndNotNull(currentPage)) {
+        paginationParamsStr = ' maxFeatures="' + resultsPerPage + '" startIndex="' + resultsPerPage * currentPage + '"';
+      }
+      var bboxStr = '';
+      if (goog.isDefAndNotNull(bbox)) {
+        bboxStr = ' bbox="' + bbox.join(',') + '"';
+      }
+      var metadata = layer.get('metadata');
+      var xml = '<?xml version="1.0" encoding="UTF-8"?>' + '<wfs:GetFeature service="WFS" version="' + settings.WFSVersion + '"' + ' outputFormat="JSON"' + bboxStr + paginationParamsStr + ' xmlns:wfs="http://www.opengis.net/wfs"' + ' xmlns:ogc="http://www.opengis.net/ogc"' + ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' + ' xsi:schemaLocation="http://www.opengis.net/wfs' + ' http://schemas.opengis.net/wfs/1.1.0/wfs.xsd">' + '<wfs:Query typeName="' + metadata.name + '"' + ' srsName="' + metadata.projection + '"' + '>' + '<ogc:Filter>' + '<And>';
       console.log('metadata', metadata);
-      for (var attrName in metadata.filters) {
-        searchType = metadata.filters[attrName].searchType;
+      for (var attrName in filters) {
+        var searchType = filters[attrName].searchType;
         console.log('filter type', searchType);
         var schemaType = metadata.schema[attrName]._type;
-        if (metadata.filters[attrName].filter !== '') {
+        if (filters[attrName].filter !== '') {
           if (searchType === 'strContains') {
-            xml += '<ogc:PropertyIsLike wildCard="*" singleChar="#" escapeChar="!">' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>*' + metadata.filters[attrName].filter + '*</ogc:Literal>' + '</ogc:PropertyIsLike>';
+            xml += '<ogc:PropertyIsLike wildCard="*" singleChar="#" escapeChar="!">' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>*' + filters[attrName].filter + '*</ogc:Literal>' + '</ogc:PropertyIsLike>';
           } else if (searchType === 'exactMatch') {
-            xml += '<ogc:PropertyIsEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].filter + '</ogc:Literal>' + '</ogc:PropertyIsEqualTo>';
+            xml += '<ogc:PropertyIsEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].filter + '</ogc:Literal>' + '</ogc:PropertyIsEqualTo>';
           } else if (searchType === 'numRange') {
             if (schemaType === 'xsd:int' || schemaType === 'xsd:integer' || schemaType === 'xsd:decimal' || schemaType === 'xsd:double') {
-              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
+              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
             }
           }
         }
@@ -41491,6 +41569,21 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       xml += '</And>' + '</ogc:Filter>' + '</wfs:Query>' + '</wfs:GetFeature>';
       return xml;
     }
+    this.getFeaturesWfs = function (layer, filters, bbox, resultsPerPage, currentPage) {
+      console.log('---- tableviewservice.getFeaturesWfs: ', layer, filters, bbox, resultsPerPage, currentPage);
+      var deferredResponse = q_.defer();
+      var metadata = layer.get('metadata');
+      var postURL = metadata.url + '/wfs/WfsDispatcher';
+      var xmlData = getFeaturesPostPayloadXML(layer, filters, bbox, resultsPerPage, currentPage);
+      console.log('xmldata', xmlData);
+      http_.post(postURL, xmlData, { headers: { 'Content-Type': 'text/xml;charset=utf-8' } }).success(function (data, status, headers, config) {
+        deferredResponse.resolve(data);
+      }).error(function (data, status, headers, config) {
+        console.log('post error', data, status, headers, config);
+        deferredResponse.reject(status);
+      });
+      return deferredResponse.promise;
+    };
     this.loadData = function () {
       console.log('getting data for table');
       var deferredResponse = q_.defer();
@@ -41518,7 +41611,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         }
       }
       var postURL = this.selectedLayer.get('metadata').url + '/wfs/WfsDispatcher';
-      var xmlData = getfilterXML();
+      var xmlData = getFeaturesPostPayloadXML(service_.selectedLayer, metadata.filters, null, service_.resultsPerPage, service_.currentPage);
       console.log('xmldata', xmlData);
       http_.post(postURL, xmlData, { headers: { 'Content-Type': 'text/xml;charset=utf-8' } }).success(function (data, status, headers, config) {
         console.log('post success', data, status, headers, config);
@@ -43574,13 +43667,20 @@ angular.module("layers/partials/layers.tpl.html", []).run(["$templateCache", fun
     "              <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!isLoadingTable(layer)\"></div>\n" +
     "              <i class=\"glyphicon glyphicon-list\"></i>\n" +
     "            </a>\n" +
+    "            <a type=\"button\" ng-click=\"showHeatmap(layer)\" ng-show=\"layer.get('metadata').editable == true\"\n" +
+    "               class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\"\n" +
+    "               tooltip-placement=\"top\" tooltip=\"{{'show_heatmap' | translate}}\">\n" +
+    "              <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!isLoadingHeatmap(layer)\"></div>\n" +
+    "              <i class=\"glyphicon glyphicon-fire\"></i>\n" +
+    "            </a>\n" +
     "            <a type=\"button\" ng-show=\"isGeogit(layer)\" ng-click=\"showHistory(layer)\"\n" +
     "               class=\"btn btn-sm btn-default\" tooltip-append-to-body=\"true\"\n" +
     "               tooltip-placement=\"top\" tooltip=\"{{'show_history' | translate}}\">\n" +
     "              <div class=\"loom-loading\" spinner-radius=\"16\" spinner-hidden=\"!isLoadingHistory(layer)\"></div>\n" +
     "              <i class=\"glyphicon glyphicon-time\"></i>\n" +
     "            </a>\n" +
-    "            <a type=\"button\" ng-show=\"!layer.get('metadata').placeholder\" tooltip-append-to-body=\"true\" ng-click=\"getLayerInfo(layer)\"\n" +
+    "            <a type=\"button\" ng-show=\"!layer.get('metadata').placeholder && !layer.get('metadata').heatmapLayer\"\n" +
+    "               tooltip-append-to-body=\"true\" ng-click=\"getLayerInfo(layer)\"\n" +
     "               tooltip-placement=\"top\" tooltip=\"{{'show_layer_info' | translate}}\"\n" +
     "               class=\"btn btn-sm btn-default\">\n" +
     "              <i class=\"glyphicon glyphicon-info-sign\"></i>\n" +
@@ -44214,7 +44314,10 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "        <i class=\"glyphicon glyphicon-text-width\"></i>\n" +
     "    </button>\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"goToMap()\" ng-show=\"!tableviewform.$visible && selectedRow != null\" tooltip=\"{{'go_to_map' | translate}}\" tooltip-append-to-body=\"true\">\n" +
-    "        <i class=\"glyphicon glyphicon-globe\"></i>\n" +
+    "      <i class=\"glyphicon glyphicon-globe\"></i>\n" +
+    "    </button>\n" +
+    "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"showHeatmap()\" tooltip=\"{{'show_heatmap' | translate}}\" tooltip-append-to-body=\"true\">\n" +
+    "      <i class=\"glyphicon glyphicon-fire\"></i>\n" +
     "    </button>\n" +
     "    <button id='previous-page-btn' type=\"button\" class=\"btn btn-default table-btn\"\n" +
     "            ng-controller=\"previous-tt-controller\" ng-click=\"onPrevious()\" ng-disabled=\"currentPage < 2\"\n" +
