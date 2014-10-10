@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-10-07
+ * MapLoom - v1.0.0 - 2014-10-10
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -41125,6 +41125,13 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
         replace: true,
         link: function (scope, element) {
           console.log('attribute', scope.attribute);
+          if (scope.typeRestriction === 'int' || scope.typeRestriction === 'double') {
+            scope.filterType = 'number';
+          } else if (scope.typeRestriction === 'datetime' || scope.typeRestriction === 'date' || scope.typeRestriction === 'time') {
+            scope.filterType = 'date';
+          } else {
+            scope.filterType = 'text';
+          }
           scope.exactMatch = function () {
             scope.attribute.filter.searchType = 'exactMatch';
           };
@@ -41133,6 +41140,18 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           };
           scope.numRange = function () {
             scope.attribute.filter.searchType = 'numRange';
+          };
+          scope.updateFilterText = function () {
+            var filter = scope.attribute.filter;
+            if (goog.isDefAndNotNull(filter.start) && filter.start !== '' && goog.isDefAndNotNull(filter.end) && filter.end !== '') {
+              filter.filter = filter.start + ' to ' + filter.end;
+            } else if (goog.isDefAndNotNull(filter.start) && filter.start !== '') {
+              filter.filter = filter.start + ' to max';
+            } else if (goog.isDefAndNotNull(filter.end) && filter.end !== '') {
+              filter.filter = 'min to ' + filter.end;
+            } else {
+              filter.filter = '';
+            }
           };
         }
       };
@@ -41217,7 +41236,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             element[0].parentElement.style.height = contentHeight + 'px';
             var bodyHeight = contentHeight;
             angular.element('#table-view-window .modal-body')[0].style.height = bodyHeight + 'px';
-            angular.element('#table-view-window .panel')[0].style.height = bodyHeight - 134 + 'px';
+            angular.element('#table-view-window .panel')[0].style.height = bodyHeight - 85 + 'px';
           }
           angular.element('#table-view-window').on('shown.bs.modal', function () {
             resizeModal();
@@ -41552,16 +41571,17 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       console.log('metadata', metadata);
       for (var attrName in filters) {
         var searchType = filters[attrName].searchType;
-        console.log('filter type', searchType);
-        var schemaType = metadata.schema[attrName]._type;
         if (filters[attrName].filter !== '') {
           if (searchType === 'strContains') {
             xml += '<ogc:PropertyIsLike wildCard="*" singleChar="#" escapeChar="!">' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>*' + filters[attrName].filter + '*</ogc:Literal>' + '</ogc:PropertyIsLike>';
           } else if (searchType === 'exactMatch') {
             xml += '<ogc:PropertyIsEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].filter + '</ogc:Literal>' + '</ogc:PropertyIsEqualTo>';
           } else if (searchType === 'numRange') {
-            if (schemaType === 'xsd:int' || schemaType === 'xsd:integer' || schemaType === 'xsd:decimal' || schemaType === 'xsd:double') {
-              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + metadata.filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
+            if (goog.isDefAndNotNull(filters[attrName].start)) {
+              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>';
+            }
+            if (goog.isDefAndNotNull(filters[attrName].end)) {
+              xml += '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
             }
           }
         }
@@ -44186,9 +44206,9 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
 angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("tableview/partial/filteroptions.tpl.html",
     "<div class=\"input-group\">\n" +
-    "    <input class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.filter\">\n" +
+    "    <input class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.filter\" ng-disabled=\"attribute.filter.searchType === 'numRange'\">\n" +
     "    <div class=\"input-group-btn\">\n" +
-    "        <button type=\"button\" class=\"btn btn-default dropdown-toggle\">\n" +
+    "        <button type=\"button\" class=\"btn btn-default dropdown-toggle\" ng-class=\"{'dirty-filter': (attribute.filter.searchType !== 'exactMatch')}\">\n" +
     "            <span class=\"caret\"></span>\n" +
     "        </button>\n" +
     "        <ul class=\"dropdown-menu\">\n" +
@@ -44198,36 +44218,42 @@ angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCa
     "                    Exact Match\n" +
     "                </a>\n" +
     "            </li>\n" +
-    "            <!--<li ng-if=\"typeRestriction === 'int' || typeRestriction === 'double'\">-->\n" +
-    "                <!--<a value=\"exactMatch\" ng-click=\"numRange()\" class=\"filter-option\"-->\n" +
-    "                   <!--ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">-->\n" +
-    "                    <!--Range-->\n" +
-    "                <!--</a>-->\n" +
-    "            <!--</li>-->\n" +
-    "            <!--<li ng-if=\"typeRestriction === ''\">-->\n" +
-    "                <!--<a value=\"strContains\" ng-click=\"strContains()\" class=\"filter-option\"-->\n" +
-    "                   <!--ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'strContains')}\">-->\n" +
-    "                    <!--Contains-->\n" +
-    "                <!--</a>-->\n" +
-    "            <!--</li>-->\n" +
-    "            <li ng-switch=\"typeRestriction\">\n" +
-    "                <a value=\"Range\" ng-switch-when=\"int\" ng-click=\"numRange(); $event.stopPropagation();\" class=\"filter-option\"\n" +
-    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">\n" +
-    "                    Range\n" +
-    "                </a>\n" +
-    "                <div ng-switch-when=\"double\" ng-click=\"numRange(); $event.stopPropagation();\" class=\"filter-option panel-heading\"\n" +
-    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\"\n" +
-    "                   data-toggle=\"collapse\" data-target=\"#range-panel\">\n" +
-    "                    Range\n" +
-    "                    <div class=\"panel collapsed\" id=\"range-panel\">\n" +
-    "                        <input type=\"text\" ng-model=\"attribute.filter.start\">\n" +
-    "                        to\n" +
-    "                        <input type=\"text\" ng-model=\"attribute.filter.end\">\n" +
-    "                    </div>\n" +
+    "            <li ng-switch=\"filterType\">\n" +
+    "                <div ng-switch-when=\"number\" ng-click=\"numRange(); $event.stopPropagation();\">\n" +
+    "                    <div class=\"filter-option\"\n" +
+    "                         ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">Range</div>\n" +
+    "                    <span>\n" +
+    "                        <span class=\"label range-label\">From:</span>\n" +
+    "                        <input type=\"text\" ng-blur=\"updateFilterText()\" class=\"filter-range-text form-control\"\n" +
+    "                               ng-model=\"attribute.filter.start\" placeholder=\"min\">\n" +
+    "                    </span>\n" +
+    "                    <br>\n" +
+    "                    <span>\n" +
+    "                        <span class=\"label range-label\">To:</span>\n" +
+    "                        <input type=\"text\" ng-blur=\"updateFilterText()\" class=\"filter-range-text form-control\"\n" +
+    "                               ng-model=\"attribute.filter.end\" placeholder=\"max\">\n" +
+    "                    </span>\n" +
     "                </div>\n" +
-    "                <a ng-switch-default ng-click=\"strContains(); $event.stopPropagation();\" class=\"filter-option\"\n" +
+    "                <a ng-switch-when=\"text\" ng-click=\"strContains(); $event.stopPropagation();\" class=\"filter-option\"\n" +
     "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'strContains')}\">\n" +
     "                    Contains\n" +
+    "                </a>\n" +
+    "                <a ng-switch-when=\"date\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\"\n" +
+    "                   class=\"filter-option date-time-option\" ng-blur=\"updateFilterText()\"\n" +
+    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">\n" +
+    "                    Range\n" +
+    "                    <form>\n" +
+    "                        <div class=\"form-group\">\n" +
+    "                            <label for=\"start-date\">From:</label>\n" +
+    "                            <datetimepicker id=\"start-date\" ng-blur=\"updateFilterText()\" date-object=\"attribute.filter\"\n" +
+    "                                            date-key=\"'start'\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
+    "                        </div>\n" +
+    "                        <div class=\"form-group\">\n" +
+    "                            <label for=\"end-date\">To:</label>\n" +
+    "                            <datetimepicker id=\"end-date\" ng-blur=\"updateFilterText()\" date-object=\"attribute.filter\"\n" +
+    "                                            date-key=\"'end'\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
+    "                        </div>\n" +
+    "                    </form>\n" +
     "                </a>\n" +
     "            </li>\n" +
     "        </ul>\n" +
@@ -44280,7 +44306,8 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "                    e-style=\"width:160px\">{{row.feature.properties[attr.name]}}</span>\n" +
     "              <div ng-switch-when=\"datetime\">\n" +
     "                  <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name] | date:\"MM/dd/yyyy @ h:mma\"}}</span>\n" +
-    "                  <datetimepicker ng-if=\"tableviewform.$visible\" id=\"table-datetime\" date-object=\"row.feature.properties\" date-key=\"attr.name\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
+    "                  <datetimepicker ng-if=\"tableviewform.$visible\" id=\"table-datetime\" date-object=\"row.feature.properties\"\n" +
+    "                        date-key=\"attr.name\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
     "              <div ng-switch-default class=\"input-group\">\n" +
     "                <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name]}}</span>\n" +
@@ -44319,17 +44346,19 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "    <button type=\"button\" class=\"btn btn-default table-btn\" ng-click=\"showHeatmap()\" tooltip=\"{{'show_heatmap' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "      <i class=\"glyphicon glyphicon-fire\"></i>\n" +
     "    </button>\n" +
-    "    <button id='previous-page-btn' type=\"button\" class=\"btn btn-default table-btn\"\n" +
-    "            ng-controller=\"previous-tt-controller\" ng-click=\"onPrevious()\" ng-disabled=\"currentPage < 2\"\n" +
-    "            tooltip=\"{{'previous_page' | translate}}\" tooltip-append-to-body=\"true\">\n" +
-    "      <i class=\"glyphicon glyphicon-chevron-left\"></i>\n" +
-    "    </button>\n" +
-    "    <div class=\"table-page-indicator\">{{getPageText()}}</div>\n" +
-    "    <button id='next-page-btn' type=\"button\" class=\"btn btn-default table-btn\"\n" +
-    "            ng-controller=\"next-tt-controller\" ng-click=\"onNext()\" ng-disabled=\"currentPage == totalPages\"\n" +
-    "            tooltip=\"{{'next_page' | translate}}\" tooltip-append-to-body=\"true\">\n" +
-    "      <i class=\"glyphicon glyphicon-chevron-right\"></i>\n" +
-    "    </button>\n" +
+    "    <!--<div id=\"table-page-nav\">-->\n" +
+    "        <button id='previous-page-btn' type=\"button\" class=\"btn btn-default table-btn\"\n" +
+    "                ng-controller=\"previous-tt-controller\" ng-click=\"onPrevious()\" ng-disabled=\"currentPage < 2\"\n" +
+    "                tooltip=\"{{'previous_page' | translate}}\" tooltip-append-to-body=\"true\">\n" +
+    "            <i class=\"glyphicon glyphicon-chevron-left\"></i>\n" +
+    "        </button>\n" +
+    "        <div class=\"table-page-indicator\">{{getPageText()}}</div>\n" +
+    "        <button id='next-page-btn' type=\"button\" class=\"btn btn-default table-btn\"\n" +
+    "                ng-controller=\"next-tt-controller\" ng-click=\"onNext()\" ng-disabled=\"currentPage == totalPages\"\n" +
+    "                tooltip=\"{{'next_page' | translate}}\" tooltip-append-to-body=\"true\">\n" +
+    "            <i class=\"glyphicon glyphicon-chevron-right\"></i>\n" +
+    "        </button>\n" +
+    "    <!--</div>-->\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn pull-right\" ng-click=\"cancel()\">{{'close_btn' | translate}}</button>\n" +
     "  </form>\n" +
     "</div>\n" +
