@@ -44213,7 +44213,7 @@ angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCa
   $templateCache.put("tableview/partial/filteroptions.tpl.html",
     "<div class=\"input-group\">\n" +
     "    <input ng-if=\"filterType !== 'date'\" class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.text\" ng-disabled=\"attribute.filter.searchType === 'numRange'\">\n" +
-    "    <datetimepicker id=\"start-date\" ng-blur=\"updateFilterText()\" date-object=\"attribute.filter.text\" ng-disabled=\"attribute.filter.searchType === 'numRange'\"\n" +
+    "    <datetimepicker id=\"start-date\" style=\"padding-top: 12px\" date-object=\"attribute.filter.text\" ng-disabled=\"attribute.filter.searchType === 'numRange'\"\n" +
     "                    ng-if=\"filterType === 'date'\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
     "    <div class=\"input-group-btn\">\n" +
     "        <button type=\"button\" class=\"btn btn-default dropdown-toggle\" ng-class=\"{'dirty-filter': (attribute.filter.searchType !== 'exactMatch')}\">\n" +
