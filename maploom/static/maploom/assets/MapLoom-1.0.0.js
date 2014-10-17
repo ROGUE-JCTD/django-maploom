@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-10-10
+ * MapLoom - v1.0.0 - 2014-10-17
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -41144,13 +41144,13 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           scope.updateFilterText = function () {
             var filter = scope.attribute.filter;
             if (goog.isDefAndNotNull(filter.start) && filter.start !== '' && goog.isDefAndNotNull(filter.end) && filter.end !== '') {
-              filter.filter = filter.start + ' to ' + filter.end;
+              filter.text = filter.start + ' to ' + filter.end;
             } else if (goog.isDefAndNotNull(filter.start) && filter.start !== '') {
-              filter.filter = filter.start + ' to max';
+              filter.text = filter.start + ' to max';
             } else if (goog.isDefAndNotNull(filter.end) && filter.end !== '') {
-              filter.filter = 'min to ' + filter.end;
+              filter.text = 'min to ' + filter.end;
             } else {
-              filter.filter = '';
+              filter.text = '';
             }
           };
         }
@@ -41270,7 +41270,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           };
           scope.clearFilters = function () {
             for (var attrIndex in scope.attributes) {
-              scope.attributes[attrIndex].filter.filter = '';
+              scope.attributes[attrIndex].filter.text = '';
             }
             scope.applyFilters();
           };
@@ -41571,18 +41571,25 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       console.log('metadata', metadata);
       for (var attrName in filters) {
         var searchType = filters[attrName].searchType;
-        if (filters[attrName].filter !== '') {
-          if (searchType === 'strContains') {
-            xml += '<ogc:PropertyIsLike wildCard="*" singleChar="#" escapeChar="!">' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>*' + filters[attrName].filter + '*</ogc:Literal>' + '</ogc:PropertyIsLike>';
-          } else if (searchType === 'exactMatch') {
-            xml += '<ogc:PropertyIsEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].filter + '</ogc:Literal>' + '</ogc:PropertyIsEqualTo>';
-          } else if (searchType === 'numRange') {
-            if (goog.isDefAndNotNull(filters[attrName].start)) {
-              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>';
-            }
-            if (goog.isDefAndNotNull(filters[attrName].end)) {
-              xml += '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
-            }
+        if (searchType === 'strContains' && filters[attrName].text !== '') {
+          xml += '<ogc:PropertyIsLike wildCard="*" singleChar="#" escapeChar="!">' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>*' + filters[attrName].text + '*</ogc:Literal>' + '</ogc:PropertyIsLike>';
+        } else if (searchType === 'exactMatch' && filters[attrName].text !== '') {
+          var resType = service_.restrictionList[attrName].type;
+          if (resType === 'datetime' || resType === 'date' || resType === 'time') {
+            var dateStringSansTime = filters[attrName].text.split('T')[0];
+            var beginDate = moment(new Date(dateStringSansTime));
+            beginDate.add(beginDate.zone(), 'm');
+            var endDate = moment(beginDate).add(24, 'h');
+            xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + beginDate.toISOString() + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + endDate.toISOString() + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
+          } else {
+            xml += '<ogc:PropertyIsEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].text + '</ogc:Literal>' + '</ogc:PropertyIsEqualTo>';
+          }
+        } else if (searchType === 'numRange') {
+          if (goog.isDefAndNotNull(filters[attrName].start) && filters[attrName].start !== '') {
+            xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>';
+          }
+          if (goog.isDefAndNotNull(filters[attrName].end) && filters[attrName].end !== '') {
+            xml += '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
           }
         }
       }
@@ -41615,13 +41622,13 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       if (goog.isDefAndNotNull(metadata.filters)) {
         for (var attrName in metadata.filters) {
           var attr = metadata.filters[attrName];
-          if (goog.isDefAndNotNull(attr.filter) && attr.filter !== '') {
+          if (goog.isDefAndNotNull(attr.text) && attr.text !== '') {
             if (hasFilter) {
               filter += ' and ';
             } else {
               hasFilter = true;
             }
-            filter += attrName + ' like \'%' + attr.filter + '%\'';
+            filter += attrName + ' like \'%' + attr.text + '%\'';
           }
         }
         if (hasFilter) {
@@ -41681,7 +41688,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             if (data.features[0].properties.hasOwnProperty(propName) && propName !== 'fotos' && propName !== 'photos') {
               if (!goog.isDefAndNotNull(metadata.filters[propName])) {
                 metadata.filters[propName] = {
-                  filter: '',
+                  text: '',
                   searchType: 'exactMatch'
                 };
               }
@@ -42418,7 +42425,6 @@ var sha1 = function (msg) {
         replace: true,
         scope: {
           dateObject: '=dateObject',
-          dateKey: '=dateKey',
           editable: '@editable',
           defaultDate: '=defaultDate'
         },
@@ -42444,7 +42450,7 @@ var sha1 = function (msg) {
           var updateDateTime = function () {
             var newDate = new Date();
             var date = element.find('.datepicker').data('DateTimePicker');
-            if (goog.isDefAndNotNull(date)) {
+            if (goog.isDefAndNotNull(date) && goog.isDefAndNotNull(date.getDate())) {
               date = date.getDate();
               newDate.setFullYear(date.year(), date.month(), date.date());
               newDate.setHours(date.hour(), date.minute(), date.second(), date.millisecond());
@@ -42459,13 +42465,13 @@ var sha1 = function (msg) {
                 var momentDate = moment(new Date(dateOptions.defaultDate));
                 momentDate.lang($translate.use());
                 if (scope.time === 'true' && scope.date === 'true') {
-                  scope.dateObject[scope.dateKey] = newDate.toISOString();
+                  scope.dateObject = newDate.toISOString();
                   scope.disabledText = momentDate.format('L') + ' ' + momentDate.format('LT');
                 } else if (scope.time === 'true') {
-                  scope.dateObject[scope.dateKey] = newDate.toISOString().split('T')[1];
+                  scope.dateObject = newDate.toISOString().split('T')[1];
                   scope.disabledText = momentDate.format('LT');
                 } else if (scope.date === 'true') {
-                  scope.dateObject[scope.dateKey] = newDate.toISOString().split('T')[0];
+                  scope.dateObject = newDate.toISOString().split('T')[0];
                   scope.disabledText = momentDate.format('L');
                 }
               });
@@ -42473,13 +42479,13 @@ var sha1 = function (msg) {
               var momentDate = moment(new Date(dateOptions.defaultDate));
               momentDate.lang($translate.use());
               if (scope.time === 'true' && scope.date === 'true') {
-                scope.dateObject[scope.dateKey] = newDate.toISOString();
+                scope.dateObject = newDate.toISOString();
                 scope.disabledText = momentDate.format('L') + ' ' + momentDate.format('LT');
               } else if (scope.time === 'true') {
-                scope.dateObject[scope.dateKey] = newDate.toISOString().split('T')[1];
+                scope.dateObject = newDate.toISOString().split('T')[1];
                 scope.disabledText = momentDate.format('LT');
               } else if (scope.date === 'true') {
-                scope.dateObject[scope.dateKey] = newDate.toISOString().split('T')[0];
+                scope.dateObject = newDate.toISOString().split('T')[0];
                 scope.disabledText = momentDate.format('L');
               }
             }
@@ -42498,25 +42504,25 @@ var sha1 = function (msg) {
             timeOptions.defaultDate = defaultDate;
           }
           var updateDate = function () {
-            if (goog.isDefAndNotNull(scope.dateObject[scope.dateKey])) {
+            if (goog.isDefAndNotNull(scope.dateObject) && scope.dateObject !== '') {
               if (scope.date === 'false') {
-                var testDate = new Date(scope.dateObject[scope.dateKey]);
+                var testDate = new Date(scope.dateObject);
                 if ('Invalid Date' == testDate) {
-                  timeOptions.defaultDate = '2014-03-10T' + scope.dateObject[scope.dateKey];
+                  timeOptions.defaultDate = '2014-03-10T' + scope.dateObject;
                 } else {
-                  timeOptions.defaultDate = scope.dateObject[scope.dateKey];
+                  timeOptions.defaultDate = scope.dateObject;
                 }
                 if (scope.seperateTime === 'false') {
                   dateOptions.defaultDate = timeOptions.defaultDate;
                 }
               } else if (scope.time === 'false') {
-                dateOptions.defaultDate = scope.dateObject[scope.dateKey].replace('Z', '');
+                dateOptions.defaultDate = scope.dateObject.replace('Z', '');
               } else {
-                if (scope.dateObject[scope.dateKey].search('Z') === -1) {
-                  scope.dateObject[scope.dateKey] += 'Z';
+                if (scope.dateObject.search('Z') === -1) {
+                  scope.dateObject += 'Z';
                 }
-                dateOptions.defaultDate = scope.dateObject[scope.dateKey];
-                timeOptions.defaultDate = scope.dateObject[scope.dateKey];
+                dateOptions.defaultDate = scope.dateObject;
+                timeOptions.defaultDate = scope.dateObject;
               }
             }
           };
@@ -43189,7 +43195,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                        'attr-removed' : attribute.changetype == 'REMOVED' || panel.geometry.changetype == 'REMOVED'\n" +
     "                      }\">\n" +
     "                <datetimepicker ng-disabled=\"!isConflictPanel\" class=\"merge-datetime attr-none\" editable=\"{{attribute.editable}}\"\n" +
-    "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\"></datetimepicker>\n" +
+    "                                seperate-time=\"false\" date-object=\"attribute.newvalue\"></datetimepicker>\n" +
     "              </div>\n" +
     "              <!--\n" +
     "              There are a lot of problems with the handling of date and time fields, commenting out until we have the time\n" +
@@ -43201,7 +43207,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                      }\">\n" +
     "                <datetimepicker ng-disabled=\"!isConflictPanel\" class=\"merge-datetime attr-none\"\n" +
     "                                editable=\"{{attribute.editable}}\"\n" +
-    "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\" time=\"false\"></datetimepicker>\n" +
+    "                                seperate-time=\"false\" date-object=\"attribute\" time=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
     "              <div ng-switch-when=\"xsd:time\" ng-class=\"{\n" +
     "                        'attr-added': attribute.changetype == 'ADDED',\n" +
@@ -43210,7 +43216,7 @@ angular.module("diff/partial/featurepanel.tpl.html", []).run(["$templateCache", 
     "                      }\">\n" +
     "                <datetimepicker ng-disabled=\"!isConflictPanel\" class=\"merge-datetime attr-none\"\n" +
     "                                editable=\"{{attribute.editable}}\"\n" +
-    "                                seperate-time=\"false\" date-object=\"attribute\" date-key=\"'newvalue'\" date=\"false\"></datetimepicker>\n" +
+    "                                seperate-time=\"false\" date-object=\"attribute\" date=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
     "              -->\n" +
     "              <div ng-switch-when=\"simpleType\" class=\"merge-select\" ng-class=\"{'input-group': attribute.editable, 'has-error': !attribute.valid}\">\n" +
@@ -43333,9 +43339,9 @@ angular.module("featuremanager/partial/attributeedit.tpl.html", []).run(["$templ
     "      <div ng-if=\"prop[0] !== 'fotos' && prop[0] !== 'photos'\">\n" +
     "        <label class=\"control-label custom-control-label\">{{prop[0]}}</label>\n" +
     "        <div ng-switch on=\"prop.type\">\n" +
-    "          <datetimepicker ng-switch-when=\"xsd:dateTime\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\"></datetimepicker>\n" +
-    "          <datetimepicker ng-switch-when=\"xsd:date\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\" time=\"false\"></datetimepicker>\n" +
-    "          <datetimepicker ng-switch-when=\"xsd:time\" date-object=\"prop\" date-key=\"1\" default-date=\"inserting\" date=\"false\"></datetimepicker>\n" +
+    "          <datetimepicker ng-switch-when=\"xsd:dateTime\" date-object=\"prop[1]\" default-date=\"inserting\"></datetimepicker>\n" +
+    "          <datetimepicker ng-switch-when=\"xsd:date\" date-object=\"prop[1]\" default-date=\"inserting\" time=\"false\"></datetimepicker>\n" +
+    "          <datetimepicker ng-switch-when=\"xsd:time\" date-object=\"prop[1]\" default-date=\"inserting\" date=\"false\"></datetimepicker>\n" +
     "          <div ng-switch-when=\"simpleType\" class=\"input-group\"  ng-class=\"{'has-error': !prop.valid}\">\n" +
     "            <div class=\"input-group-btn\" ng-class=\"{'dropup': $last}\">\n" +
     "              <button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">\n" +
@@ -43533,11 +43539,11 @@ angular.module("history/partial/historydiff.tpl.html", []).run(["$templateCache"
     "    <div ng-if=\"active\">\n" +
     "      <div class=\"form-group\">\n" +
     "        <label class=\"control-label\">{{'start_date' | translate}}</label>\n" +
-    "        <datetimepicker date-object=\"startDate\" date-key=\"0\"></datetimepicker>\n" +
+    "        <datetimepicker date-object=\"startDate[0]\"></datetimepicker>\n" +
     "      </div>\n" +
     "      <div class=\"form-group\">\n" +
     "        <label class=\"control-label\">{{'end_date' | translate}}</label>\n" +
-    "        <datetimepicker date-object=\"endDate\" date-key=\"0\"></datetimepicker>\n" +
+    "        <datetimepicker date-object=\"endDate[0]\"></datetimepicker>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </form>\n" +
@@ -43906,7 +43912,7 @@ angular.module("notifications/partial/generatenotification.tpl.html", []).run(["
     "  <form ng-if=\"!contentHidden\" class=\"form\">\n" +
     "    <div ng-if=\"active\">\n" +
     "      <div class=\"form-group\">\n" +
-    "        <datetimepicker date-object=\"startDate\" date-key=\"0\"></datetimepicker>\n" +
+    "        <datetimepicker date-object=\"startDate[0]\"></datetimepicker>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </form>\n" +
@@ -44206,7 +44212,9 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
 angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("tableview/partial/filteroptions.tpl.html",
     "<div class=\"input-group\">\n" +
-    "    <input class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.filter\" ng-disabled=\"attribute.filter.searchType === 'numRange'\">\n" +
+    "    <input ng-if=\"filterType !== 'date'\" class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.text\" ng-disabled=\"attribute.filter.searchType === 'numRange'\">\n" +
+    "    <datetimepicker id=\"start-date\" ng-blur=\"updateFilterText()\" date-object=\"attribute.filter.text\" ng-disabled=\"attribute.filter.searchType === 'numRange'\"\n" +
+    "                    ng-if=\"filterType === 'date'\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
     "    <div class=\"input-group-btn\">\n" +
     "        <button type=\"button\" class=\"btn btn-default dropdown-toggle\" ng-class=\"{'dirty-filter': (attribute.filter.searchType !== 'exactMatch')}\">\n" +
     "            <span class=\"caret\"></span>\n" +
@@ -44219,21 +44227,21 @@ angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCa
     "                </a>\n" +
     "            </li>\n" +
     "            <li ng-switch=\"filterType\">\n" +
-    "                <div ng-switch-when=\"number\" ng-click=\"numRange(); $event.stopPropagation();\">\n" +
-    "                    <div class=\"filter-option\"\n" +
-    "                         ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">Range</div>\n" +
-    "                    <span>\n" +
-    "                        <span class=\"label range-label\">From:</span>\n" +
-    "                        <input type=\"text\" ng-blur=\"updateFilterText()\" class=\"filter-range-text form-control\"\n" +
-    "                               ng-model=\"attribute.filter.start\" placeholder=\"min\">\n" +
-    "                    </span>\n" +
-    "                    <br>\n" +
-    "                    <span>\n" +
-    "                        <span class=\"label range-label\">To:</span>\n" +
-    "                        <input type=\"text\" ng-blur=\"updateFilterText()\" class=\"filter-range-text form-control\"\n" +
-    "                               ng-model=\"attribute.filter.end\" placeholder=\"max\">\n" +
-    "                    </span>\n" +
-    "                </div>\n" +
+    "                <a ng-switch-when=\"number\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\"\n" +
+    "                   class=\"filter-option date-time-option\" ng-blur=\"updateFilterText()\"\n" +
+    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">\n" +
+    "                    Range\n" +
+    "                </a>\n" +
+    "                <form ng-switch-when=\"number\" class=\"form-horizontal\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\">\n" +
+    "                    <div class=\"form-group filter-form-group\">\n" +
+    "                        <label for=\"start-num\" class=\"col-sm-2 control-label range-label\">From:</label>\n" +
+    "                        <input id=\"start-num\" class=\"col-sm-8\" model=\"attribute.filter.start\">\n" +
+    "                    </div>\n" +
+    "                    <div class=\"form-group filter-form-group\">\n" +
+    "                        <label for=\"end-num\" class=\"col-sm-2 control-label range-label\">To:</label>\n" +
+    "                        <input id=\"end-num\" class=\"col-sm-8\" model=\"attribute.filter.end\">\n" +
+    "                    </div>\n" +
+    "                </form>\n" +
     "                <a ng-switch-when=\"text\" ng-click=\"strContains(); $event.stopPropagation();\" class=\"filter-option\"\n" +
     "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'strContains')}\">\n" +
     "                    Contains\n" +
@@ -44242,19 +44250,19 @@ angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCa
     "                   class=\"filter-option date-time-option\" ng-blur=\"updateFilterText()\"\n" +
     "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">\n" +
     "                    Range\n" +
-    "                    <form>\n" +
-    "                        <div class=\"form-group\">\n" +
-    "                            <label for=\"start-date\">From:</label>\n" +
-    "                            <datetimepicker id=\"start-date\" ng-blur=\"updateFilterText()\" date-object=\"attribute.filter\"\n" +
-    "                                            date-key=\"'start'\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
-    "                        </div>\n" +
-    "                        <div class=\"form-group\">\n" +
-    "                            <label for=\"end-date\">To:</label>\n" +
-    "                            <datetimepicker id=\"end-date\" ng-blur=\"updateFilterText()\" date-object=\"attribute.filter\"\n" +
-    "                                            date-key=\"'end'\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
-    "                        </div>\n" +
-    "                    </form>\n" +
     "                </a>\n" +
+    "                <form ng-switch-when=\"date\" class=\"form-horizontal\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\">\n" +
+    "                    <div class=\"form-group filter-form-group\">\n" +
+    "                        <label for=\"start-date\" class=\"col-sm-2 control-label range-label\">From:</label>\n" +
+    "                        <datetimepicker id=\"start-date\" class=\"col-sm-8\" date-object=\"attribute.filter.start\"\n" +
+    "                                        default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
+    "                    </div>\n" +
+    "                    <div class=\"form-group filter-form-group\">\n" +
+    "                        <label for=\"end-date\" class=\"col-sm-2 control-label range-label\">To:</label>\n" +
+    "                        <datetimepicker id=\"end-date\" class=\"col-md-8\" date-object=\"attribute.filter.end\"\n" +
+    "                                        default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
+    "                    </div>\n" +
+    "                </form>\n" +
     "            </li>\n" +
     "        </ul>\n" +
     "    </div>\n" +
@@ -44280,7 +44288,7 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "                          ng-disabled=\"tableviewform.$visible\">\n" +
     "                  </button></td>\n" +
     "              <td class=\"filter-row\" ng-repeat=\"attr in attributes\">\n" +
-    "                  <!--<input class=\"form-control\" type=\"text\" ng-model=\"attr.filter.filter\">-->\n" +
+    "                  <!--<input class=\"form-control\" type=\"text\" ng-model=\"attr.filter.text\">-->\n" +
     "                  <filteroptions attribute=\"attr\" type=\"restrictions[attr.name].type\"></filteroptions>\n" +
     "              </td>\n" +
     "          </tr>\n" +
@@ -44306,8 +44314,8 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "                    e-style=\"width:160px\">{{row.feature.properties[attr.name]}}</span>\n" +
     "              <div ng-switch-when=\"datetime\">\n" +
     "                  <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name] | date:\"MM/dd/yyyy @ h:mma\"}}</span>\n" +
-    "                  <datetimepicker ng-if=\"tableviewform.$visible\" id=\"table-datetime\" date-object=\"row.feature.properties\"\n" +
-    "                        date-key=\"attr.name\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
+    "                  <datetimepicker ng-if=\"tableviewform.$visible\" id=\"table-datetime\" date-object=\"row.feature.properties[attr.name]\"\n" +
+    "                        default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
     "              <div ng-switch-default class=\"input-group\">\n" +
     "                <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name]}}</span>\n" +
