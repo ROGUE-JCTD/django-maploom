@@ -31916,7 +31916,15 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'statistics_view': 'View Statistics',
       'exact_match': 'Exact Match',
       'range': 'Range',
-      'contains': 'Contains'
+      'minimum': 'Minimum',
+      'maximum': 'Maximum',
+      'mean': 'Mean',
+      'median': 'Median',
+      'sum': 'Sum',
+      'variance': 'Variance',
+      'standard_deviation': 'Standard Deviation',
+      'count': 'Count',
+      'populated_count': 'Populated Count'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -32206,7 +32214,16 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'statistics_view': 'Ver las estad\xedsticas',
       'exact_match': 'Igualar Exactamente',
       'range': 'Oscilar',
-      'contains': 'Contener'
+      'contains': 'Contener',
+      'minimum': 'Minimo',
+      'maximum': 'Maximo',
+      'mean': 'Promedio',
+      'median': 'Media',
+      'sum': 'Soma',
+      'variance': 'Varianza',
+      'standard_deviation': 'Desviacion Estandar',
+      'count': 'Cuentas',
+      'populated_count': 'Llenado Cuentas'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -44457,6 +44474,10 @@ angular.module("statistics/partial/statistics.tpl.html", []).run(["$templateCach
     "          <div class=\"statistics-title\">{{'mean' | translate | lowercase}}</div>\n" +
     "          <div class=\"statistics-value\">{{data.statistics.mean | number:2}}</div>\n" +
     "        </li>\n" +
+    "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.median\">\n" +
+    "          <div class=\"statistics-title\">{{'median' | translate | lowercase}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.median | number:2}}</div>\n" +
+    "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.max\">\n" +
     "          <div class=\"statistics-title\">{{'maximum' | translate | lowercase}}</div>\n" +
     "          <div class=\"statistics-value\">{{data.statistics.max | number:2}}</div>\n" +
@@ -44474,7 +44495,7 @@ angular.module("statistics/partial/statistics.tpl.html", []).run(["$templateCach
     "          <div class=\"statistics-value\">{{data.statistics.range | number:2}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.stdDev\">\n" +
-    "          <div class=\"statistics-title\">{{'standard deviation' | translate}}</div>\n" +
+    "          <div class=\"statistics-title\">{{'standard_deviation' | translate | lowercase}}</div>\n" +
     "          <div class=\"statistics-value\">{{data.statistics.stdDev | number:2}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.variance\">\n" +
@@ -44484,6 +44505,10 @@ angular.module("statistics/partial/statistics.tpl.html", []).run(["$templateCach
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.totalCount\">\n" +
     "          <div class=\"statistics-title\">{{'count' | translate | lowercase}}</div>\n" +
     "          <div class=\"statistics-value\">{{data.statistics.totalCount | number:2}}</div>\n" +
+    "        </li>\n" +
+    "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.populatedCount\">\n" +
+    "          <div class=\"statistics-title\">{{'populated_count' | translate | lowercase}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.populatedCount | number:2}}</div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
     "\n" +
