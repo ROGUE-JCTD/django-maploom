@@ -41497,8 +41497,12 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
           scope.dirty = false;
           if (scope.typeRestriction === 'int' || scope.typeRestriction === 'double') {
             scope.filterType = 'number';
-          } else if (scope.typeRestriction === 'datetime' || scope.typeRestriction === 'date' || scope.typeRestriction === 'time') {
+          } else if (scope.typeRestriction === 'datetime') {
+            scope.filterType = 'datetime';
+          } else if (scope.typeRestriction === 'date') {
             scope.filterType = 'date';
+          } else if (scope.typeRestriction === 'time') {
+            scope.filterType = 'time';
           } else {
             scope.filterType = 'text';
           }
@@ -42011,25 +42015,41 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
       console.log('metadata', metadata);
       for (var attrName in filters) {
         var searchType = filters[attrName].searchType;
+        var resType = service_.restrictionList[attrName].type;
         if (searchType === 'strContains' && filters[attrName].text !== '') {
           xml += '<ogc:PropertyIsLike wildCard="*" singleChar="#" escapeChar="!">' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>*' + filters[attrName].text + '*</ogc:Literal>' + '</ogc:PropertyIsLike>';
         } else if (searchType === 'exactMatch' && filters[attrName].text !== '') {
-          var resType = service_.restrictionList[attrName].type;
-          if (resType === 'datetime' || resType === 'date' || resType === 'time') {
+          if (resType === 'datetime') {
             var dateStringSansTime = filters[attrName].text.split('T')[0];
             var beginDate = moment(new Date(dateStringSansTime));
             beginDate.add(beginDate.zone(), 'm');
             var endDate = moment(beginDate).add(24, 'h');
             xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + beginDate.toISOString() + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + endDate.toISOString() + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
-          } else {
+          } else if (resType !== 'time') {
             xml += '<ogc:PropertyIsEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].text + '</ogc:Literal>' + '</ogc:PropertyIsEqualTo>';
           }
         } else if (searchType === 'numRange') {
-          if (goog.isDefAndNotNull(filters[attrName].start) && filters[attrName].start !== '') {
-            xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>';
-          }
-          if (goog.isDefAndNotNull(filters[attrName].end) && filters[attrName].end !== '') {
-            xml += '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
+          if (resType === 'datetime' || resType === 'date') {
+            if (goog.isDefAndNotNull(filters[attrName].start) && filters[attrName].start !== '') {
+              var startStringSansTime = filters[attrName].start.split('T')[0];
+              var firstDate = moment(new Date(startStringSansTime));
+              firstDate.add(firstDate.zone(), 'm');
+              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + firstDate.toISOString() + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>';
+            }
+            if (goog.isDefAndNotNull(filters[attrName].end) && filters[attrName].end !== '') {
+              var endStringSansTime = filters[attrName].end.split('T')[0];
+              var secondDate = moment(new Date(endStringSansTime));
+              secondDate.add(secondDate.zone(), 'm');
+              secondDate.add(24, 'h');
+              xml += '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + secondDate.toISOString() + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
+            }
+          } else {
+            if (goog.isDefAndNotNull(filters[attrName].start) && filters[attrName].start !== '') {
+              xml += '<ogc:PropertyIsGreaterThanOrEqualTo>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].start + '</ogc:Literal>' + '</ogc:PropertyIsGreaterThanOrEqualTo>';
+            }
+            if (goog.isDefAndNotNull(filters[attrName].end) && filters[attrName].end !== '') {
+              xml += '<ogc:PropertyIsLessThan>' + '<ogc:PropertyName>' + attrName + '</ogc:PropertyName>' + '<ogc:Literal>' + filters[attrName].end + '</ogc:Literal>' + '</ogc:PropertyIsLessThan>';
+            }
           }
         }
       }
@@ -44748,11 +44768,14 @@ angular.module("sync/partials/synclinks.tpl.html", []).run(["$templateCache", fu
 
 angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("tableview/partial/filteroptions.tpl.html",
+    "\n" +
     "<div class=\"input-group filter-input-group\">\n" +
-    "    <input ng-if=\"filterType !== 'date'\" class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.text\"\n" +
+    "    <input ng-if=\"filterType !== 'date' && filterType !== 'datetime'\" class=\"form-control\" type=\"text\" ng-model=\"attribute.filter.text\"\n" +
     "           ng-change=\"checkFilterStatus()\" ng-disabled=\"attribute.filter.searchType === 'numRange'\">\n" +
     "    <datetimepicker id=\"start-date\" class=\"no-radius\" style=\"padding-top: 15px\" date-object=\"attribute.filter.text\" ng-disabled=\"attribute.filter.searchType === 'numRange'\"\n" +
-    "                    ng-if=\"filterType === 'date'\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
+    "                    ng-if=\"filterType === 'datetime'\" default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
+    "    <datetimepicker id=\"start-date\" class=\"no-radius\" style=\"padding-top: 15px\" date-object=\"attribute.filter.text\" ng-disabled=\"attribute.filter.searchType === 'numRange'\"\n" +
+    "                    ng-if=\"filterType === 'date'\" default-date=\"false\" time=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
     "    <div class=\"input-group-btn\">\n" +
     "        <button type=\"button\" class=\"btn btn-default dropdown-toggle\" ng-class=\"{'dirty-filter': dirty}\">\n" +
     "            <span class=\"caret\"></span>\n" +
@@ -44790,12 +44813,12 @@ angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCa
     "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'strContains')}\">\n" +
     "                  {{'contains' | translate}}\n" +
     "                </a>\n" +
-    "                <a ng-switch-when=\"date\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\"\n" +
+    "                <a ng-switch-when=\"datetime\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\"\n" +
     "                   class=\"filter-option date-time-option\" ng-blur=\"updateFilterText()\"\n" +
     "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">\n" +
     "                  {{'range' | translate}}\n" +
     "                </a>\n" +
-    "                <form ng-switch-when=\"date\" class=\"form-horizontal\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\">\n" +
+    "                <form ng-switch-when=\"datetime\" class=\"form-horizontal\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\">\n" +
     "                  <div class=\"advanced-filter\" ng-if=\"attribute.filter.searchType === 'numRange'\">\n" +
     "                    <table class=\"range-filter-table\">\n" +
     "                      <tbody>\n" +
@@ -44812,6 +44835,40 @@ angular.module("tableview/partial/filteroptions.tpl.html", []).run(["$templateCa
     "                      </tbody>\n" +
     "                    </table>\n" +
     "                  </div>\n" +
+    "                </form>\n" +
+    "                <a ng-switch-when=\"date\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\"\n" +
+    "                   class=\"filter-option date-time-option\" ng-blur=\"updateFilterText()\"\n" +
+    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">\n" +
+    "                    Range\n" +
+    "                </a>\n" +
+    "                <form ng-switch-when=\"date\" class=\"form-horizontal\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\">\n" +
+    "                    <div class=\"form-group filter-form-group\">\n" +
+    "                        <label for=\"start-date\" class=\"col-sm-2 control-label range-label\">From:</label>\n" +
+    "                        <datetimepicker id=\"start-date\" class=\"col-sm-8\" date-object=\"attribute.filter.start\"\n" +
+    "                                        default-date=\"false\" seperate-time=\"false\" time=\"false\"></datetimepicker>\n" +
+    "                    </div>\n" +
+    "                    <div class=\"form-group filter-form-group\">\n" +
+    "                        <label for=\"end-date\" class=\"col-sm-2 control-label range-label\">To:</label>\n" +
+    "                        <datetimepicker id=\"end-date\" class=\"col-md-8\" date-object=\"attribute.filter.end\"\n" +
+    "                                        default-date=\"false\" seperate-time=\"false\" time=\"false\"></datetimepicker>\n" +
+    "                    </div>\n" +
+    "                </form>\n" +
+    "                <a ng-switch-when=\"time\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\"\n" +
+    "                   class=\"filter-option date-time-option\" ng-blur=\"updateFilterText()\"\n" +
+    "                   ng-class=\"{'filter-options-selected': (attribute.filter.searchType === 'numRange')}\">\n" +
+    "                    Range\n" +
+    "                </a>\n" +
+    "                <form ng-switch-when=\"time\" class=\"form-horizontal\" ng-click=\"numRange(); updateFilterText; $event.stopPropagation();\">\n" +
+    "                    <div class=\"form-group filter-form-group\">\n" +
+    "                        <label for=\"start-date\" class=\"col-sm-2 control-label range-label\">From:</label>\n" +
+    "                        <datetimepicker id=\"start-date\" class=\"col-sm-8\" date-object=\"attribute.filter.start\"\n" +
+    "                                        default-date=\"false\" seperate-time=\"false\" date=\"false\"></datetimepicker>\n" +
+    "                    </div>\n" +
+    "                    <div class=\"form-group filter-form-group\">\n" +
+    "                        <label for=\"end-date\" class=\"col-sm-2 control-label range-label\">To:</label>\n" +
+    "                        <datetimepicker id=\"end-date\" class=\"col-md-8\" date-object=\"attribute.filter.end\"\n" +
+    "                                        default-date=\"false\" seperate-time=\"false\" date=\"false\"></datetimepicker>\n" +
+    "                    </div>\n" +
     "                </form>\n" +
     "            </li>\n" +
     "        </ul>\n" +
@@ -44858,15 +44915,21 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "                    e-style=\"width:160px\">{{row.feature.properties[attr.name]}}</span>\n" +
     "              <span ng-switch-when=\"double\" editable-text=\"row.feature.properties[attr.name]\" e-form=\"tableviewform\"\n" +
     "                    e-style=\"width:160px\">{{row.feature.properties[attr.name]}}</span>\n" +
-    "              <span ng-switch-when=\"date\" editable-text=\"row.feature.properties[attr.name]\" e-form=\"tableviewform\"\n" +
-    "                    e-style=\"width:160px\">{{row.feature.properties[attr.name]}}</span>\n" +
-    "              <span ng-switch-when=\"time\" editable-text=\"row.feature.properties[attr.name]\" e-form=\"tableviewform\"\n" +
-    "                    e-style=\"width:160px\">{{row.feature.properties[attr.name]}}</span>\n" +
     "              <div ng-switch-when=\"datetime\">\n" +
     "                  <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name] | date:\"MM/dd/yyyy @ h:mma\"}}</span>\n" +
     "                  <datetimepicker ng-if=\"tableviewform.$visible\" id=\"table-datetime\" date-object=\"row.feature.properties[attr.name]\"\n" +
     "                        default-date=\"false\" seperate-time=\"false\"></datetimepicker>\n" +
     "              </div>\n" +
+    "                <div ng-switch-when=\"date\">\n" +
+    "                    <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name] | date:\"MM/dd/yyyy\"}}</span>\n" +
+    "                    <datetimepicker ng-if=\"tableviewform.$visible\" id=\"table-datetime\" date-object=\"row.feature.properties[attr.name]\"\n" +
+    "                                    default-date=\"false\" seperate-time=\"false\" time=\"false\"></datetimepicker>\n" +
+    "                </div>\n" +
+    "                <div ng-switch-when=\"time\">\n" +
+    "                    <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name] | date:\"h:mma\"}}</span>\n" +
+    "                    <datetimepicker ng-if=\"tableviewform.$visible\" id=\"table-datetime\" date-object=\"row.feature.properties[attr.name]\"\n" +
+    "                                    default-date=\"false\" seperate-time=\"false\" date=\"false\"></datetimepicker>\n" +
+    "                </div>\n" +
     "              <div ng-switch-default class=\"input-group\">\n" +
     "                <span ng-if=\"!tableviewform.$visible\">{{row.feature.properties[attr.name]}}</span>\n" +
     "                <div ng-if=\"tableviewform.$visible\" class=\"input-group-btn\" ng-class=\"{'dropup': $last}\">\n" +
