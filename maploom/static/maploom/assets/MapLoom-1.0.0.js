@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-10-22
+ * MapLoom - v1.0.0 - 2014-10-23
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -38736,6 +38736,7 @@ var GeoGitRevertFeatureOptions = function () {
     };
     this.showHeatmap = function (layer, filters) {
       if (goog.isDefAndNotNull(filters)) {
+        filters = goog.object.clone(filters);
         console.log('----[ mapService.showHeatmap from tableview for layer: ', layer, ', filters: ', filters);
       } else {
         console.log('----[ mapService.showHeatmap for layer, no filter ', layer);
