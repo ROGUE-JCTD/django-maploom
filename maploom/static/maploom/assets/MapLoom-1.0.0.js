@@ -31925,7 +31925,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'variance': 'Variance',
       'standard_deviation': 'Standard Deviation',
       'count': 'Count',
-      'populated_count': 'Populated Count'
+      'populated_count': 'Populated Count',
+      'unique_values': 'Unique Values'
     };
   var module = angular.module('loom_translations_en', ['pascalprecht.translate']);
   module.config([
@@ -32224,7 +32225,8 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
       'variance': 'Varianza',
       'standard_deviation': 'Desviacion Estandar',
       'count': 'Cuentas',
-      'populated_count': 'Llenado Cuentas'
+      'populated_count': 'Llenado Cuentas',
+      'unique_values': 'Valor \xdanico'
     };
   var module = angular.module('loom_translations_es', ['pascalprecht.translate']);
   module.config([
@@ -44511,6 +44513,10 @@ angular.module("statistics/partial/statistics.tpl.html", []).run(["$templateCach
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.populatedCount\">\n" +
     "          <div class=\"statistics-title\">{{'populated_count' | translate | lowercase}}</div>\n" +
     "          <div class=\"statistics-value\">{{data.statistics.populatedCount | number:2}}</div>\n" +
+    "        </li>\n" +
+    "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.uniqueValueCount\">\n" +
+    "          <div class=\"statistics-title\">{{'unique_values' | translate | lowercase}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.uniqueValueCount | number:2}}</div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
     "\n" +
