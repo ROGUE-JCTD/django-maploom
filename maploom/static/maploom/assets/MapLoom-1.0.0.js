@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-10-23
+ * MapLoom - v1.0.0 - 2014-10-27
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -41688,6 +41688,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             scope.attributes = tableViewService.attributeNameList;
             scope.currentPage = tableViewService.currentPage + 1;
             scope.totalPages = tableViewService.totalPages;
+            scope.totalFeatures = tableViewService.totalFeatures;
           };
           var clearSession = function () {
             tableViewService.clear();
@@ -41973,6 +41974,7 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
     this.resultsPerPage = 25;
     this.currentPage = 0;
     this.totalPages = 0;
+    this.totalFeatures = 0;
     this.nextPage = function () {
       this.currentPage++;
       return this.loadData();
@@ -42159,8 +42161,8 @@ var SynchronizationLink = function (_name, _repo, _localBranch, _remote, _remote
             });
           }
         }
-        var totalFeatures = data.totalFeatures;
-        service_.totalPages = Math.ceil(totalFeatures / service_.resultsPerPage);
+        service_.totalFeatures = data.totalFeatures;
+        service_.totalPages = Math.ceil(service_.totalFeatures / service_.resultsPerPage);
         getRestrictions();
         for (var feat in data.features) {
           var selectedFeature = false;
@@ -44983,11 +44985,13 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "        </button>\n" +
     "        <div class=\"table-page-indicator\">{{getPageText()}}</div>\n" +
     "        <button id='next-page-btn' type=\"button\" class=\"btn btn-default table-btn\"\n" +
-    "                ng-controller=\"next-tt-controller\" ng-click=\"onNext()\" ng-disabled=\"currentPage == totalPages\"\n" +
+    "                ng-controller=\"next-tt-controller\" ng-click=\"onNext()\" ng-disabled=\"currentPage >= totalPages\"\n" +
     "                tooltip=\"{{'next_page' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "            <i class=\"glyphicon glyphicon-chevron-right\"></i>\n" +
     "        </button>\n" +
     "    <!--</div>-->\n" +
+    "\n" +
+    "    <div class=\"table-view-footer-text no-select\">{{totalFeatures | number:0}} {{'features' | translate}}</div>\n" +
     "    <button type=\"button\" class=\"btn btn-default table-btn pull-right\" ng-click=\"cancel()\">{{'close_btn' | translate}}</button>\n" +
     "  </form>\n" +
     "</div>\n" +
