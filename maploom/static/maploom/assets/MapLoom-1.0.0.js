@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-10-27
+ * MapLoom - v1.0.0 - 2014-10-28
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -43232,6 +43232,15 @@ var sha1 = function (msg) {
       }
     };
   });
+  module.filter('removeCharacters', function () {
+    return function (str, subStr) {
+      if (goog.isDefAndNotNull(str) && goog.isDefAndNotNull(subStr)) {
+        return goog.string.remove(str, subStr);
+      } else {
+        return str;
+      }
+    };
+  });
 }());
 var regExes = {
     typeStr: /^\s*(\w+)\s*\(\s*(.*)\s*\)\s*$/,
@@ -44498,47 +44507,47 @@ angular.module("statistics/partial/statistics.tpl.html", []).run(["$templateCach
     "      <ul id=\"statistics-hud-bar\">\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.mean\">\n" +
     "          <div class=\"statistics-title\">{{'mean' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.mean | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.mean | number:2 | removeCharacters:\".00\"}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.median\">\n" +
     "          <div class=\"statistics-title\">{{'median' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.median | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.median | number:2 | removeCharacters:\".00\"}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.max\">\n" +
     "          <div class=\"statistics-title\">{{'maximum' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.max | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.max | number:2 | removeCharacters:\".00\"}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.min\">\n" +
     "          <div class=\"statistics-title\">{{'minimum' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.min | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.min | number:2 | removeCharacters:\".00\"}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.sum\">\n" +
     "          <div class=\"statistics-title\">{{'sum' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.sum | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.sum | number:2 | removeCharacters:\".00\"}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.range\">\n" +
     "          <div class=\"statistics-title\">{{'range' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.range | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.range | number:2 | removeCharacters:\".00\"}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.stdDev\">\n" +
     "          <div class=\"statistics-title\">{{'standard_deviation' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.stdDev | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.stdDev | number:2 | removeCharacters:\".00\"}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.variance\">\n" +
     "          <div class=\"statistics-title\">{{'variance' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.variance | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.variance | number:2 | removeCharacters:\".00\"}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.totalCount\">\n" +
     "          <div class=\"statistics-title\">{{'count' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.totalCount | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.totalCount | number:0}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.populatedCount\">\n" +
     "          <div class=\"statistics-title\">{{'populated_count' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.populatedCount | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.populatedCount | number:0}}</div>\n" +
     "        </li>\n" +
     "        <li class=\"table-center statistics-hud-group\" ng-if=\"data.statistics.uniqueValueCount\">\n" +
     "          <div class=\"statistics-title\">{{'unique_values' | translate | lowercase}}</div>\n" +
-    "          <div class=\"statistics-value\">{{data.statistics.uniqueValueCount | number:2}}</div>\n" +
+    "          <div class=\"statistics-value\">{{data.statistics.uniqueValueCount | number:0}}</div>\n" +
     "        </li>\n" +
     "      </ul>\n" +
     "\n" +
