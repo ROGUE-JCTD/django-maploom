@@ -45035,7 +45035,6 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "    <!--</div>-->\n" +
     "\n" +
     "    <div class=\"table-view-footer-text no-select\">{{totalFeatures | number:0}} {{'features' | translate}}</div>\n" +
-    "    <button type=\"button\" class=\"btn btn-default table-btn pull-right\" ng-click=\"cancel()\">{{'close_btn' | translate}}</button>\n" +
     "  </form>\n" +
     "</div>\n" +
     "");
