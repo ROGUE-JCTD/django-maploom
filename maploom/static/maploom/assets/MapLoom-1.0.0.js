@@ -44930,15 +44930,9 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "      <table class=\"table-striped table-hover\" ng-class=\"{sortable: isSortable}\">\n" +
     "        <thead>\n" +
     "          <tr ng-if=\"filterOn\">\n" +
-    "              <td class=\"filter-row first-filter-row\"><span class=\"filters-label\">{{'filter' | translate}}</span>\n" +
-    "                  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"applyFilters()\"\n" +
-    "                          translate=\"apply_filters\"\n" +
-    "                          ng-disabled=\"tableviewform.$visible\">\n" +
-    "                  </button>\n" +
-    "                  <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default\" ng-click=\"clearFilters()\"\n" +
-    "                          translate=\"clear_filters\"\n" +
-    "                          ng-disabled=\"tableviewform.$visible\">\n" +
-    "                  </button></td>\n" +
+    "              <td class=\"filter-row first-filter-row\">\n" +
+    "                  <span class=\"filters-label\">{{'filter' | translate}}</span>\n" +
+    "              </td>\n" +
     "              <td class=\"filter-row\" ng-repeat=\"attr in attributes\">\n" +
     "                  <!--<input class=\"form-control\" type=\"text\" ng-model=\"attr.filter.text\">-->\n" +
     "                  <filteroptions attribute=\"attr\" type=\"restrictions[attr.name].type\"></filteroptions>\n" +
@@ -45032,6 +45026,13 @@ angular.module("tableview/partial/tableview.tpl.html", []).run(["$templateCache"
     "                tooltip=\"{{'next_page' | translate}}\" tooltip-append-to-body=\"true\">\n" +
     "            <i class=\"glyphicon glyphicon-chevron-right\"></i>\n" +
     "        </button>\n" +
+    "\n" +
+    "      <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default table-btn pull-right\" ng-click=\"clearFilters()\"\n" +
+    "              translate=\"clear_filters\" ng-disabled=\"tableviewform.$visible\">\n" +
+    "      </button>\n" +
+    "      <button ng-if=\"filterOn\" type=\"button\" class=\"filter-button btn btn-default table-btn pull-right\" ng-click=\"applyFilters()\"\n" +
+    "              translate=\"apply_filters\" style=\"margin-right:5px;\" ng-disabled=\"tableviewform.$visible\">\n" +
+    "      </button>\n" +
     "    <!--</div>-->\n" +
     "\n" +
     "    <div class=\"table-view-footer-text no-select\">{{totalFeatures | number:0}} {{'features' | translate}}</div>\n" +
