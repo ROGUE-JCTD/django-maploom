@@ -35559,7 +35559,15 @@ var DiffColorMap = {
       return selectedItem_;
     };
     this.getSelectedItemPics = function () {
-      return selectedItemPics_;
+      var picStrings = [];
+      goog.array.forEach(selectedItemPics_.pics, function (item, index) {
+        if (goog.isObject(item)) {
+          picStrings[index] = item.modified;
+        } else {
+          picStrings[index] = item;
+        }
+      });
+      return picStrings;
     };
     this.getSelectedItemProperties = function () {
       return selectedItemProperties_;
@@ -35716,7 +35724,7 @@ var DiffColorMap = {
                       original: item,
                       modified: '/file-service/' + item
                     };
-                  } else {
+                  } else if (goog.isString(item)) {
                     picsAttr[index] = {
                       original: item,
                       modified: item
@@ -35815,7 +35823,7 @@ var DiffColorMap = {
         if (goog.isDefAndNotNull(activeIndex)) {
           options.index = activeIndex;
         }
-        blueimp.Gallery(selectedItemPics_.pics, options);
+        blueimp.Gallery(this.getSelectedItemPics(), options);
       }
     };
     this.startFeatureInsert = function (layer) {
@@ -44054,7 +44062,7 @@ angular.module("featuremanager/partial/featureinfobox.tpl.html", []).run(["$temp
     "  <div ng-if=\"featureManagerService.getState() == 'feature'\">\n" +
     "    <div id=\"pic-carousel-container\" ng-if=\"featureManagerService.getSelectedItemPics() && isAttributeVisible(featureManagerService.getSelectedItemPics().name)\">\n" +
     "      <carousel id=\"feature-info-box-carousel\" interval=\"2000\">\n" +
-    "        <slide ng-repeat=\"pic in featureManagerService.getSelectedItemPics().pics\">\n" +
+    "        <slide ng-repeat=\"pic in featureManagerService.getSelectedItemPics() track by $index\">\n" +
     "          <img ng-src=\"{{pic}}\" style=\"margin: auto\" ng-click=\"featureManagerService.showPics($index)\">\n" +
     "        </slide>\n" +
     "      </carousel>\n" +
