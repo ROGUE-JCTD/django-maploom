@@ -1,5 +1,5 @@
 /**
- * MapLoom - v1.0.0 - 2014-12-04
+ * MapLoom - v1.0.0 - 2014-12-09
  * http://www.lmnsolutions.com
  *
  * Copyright (c) 2014 LMN Solutions
@@ -32460,11 +32460,7 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
             });
           };
           scope.getPattern = function () {
-            if (scope.type === 'WMS') {
-              return new RegExp('/wms');
-            } else {
-              return new RegExp('');
-            }
+            return new RegExp('');
           };
           scope.getPlaceholder = function () {
             if (scope.type === 'WMS') {
@@ -32510,11 +32506,12 @@ angular.module("xeditable",[]).value("editableOptions",{theme:"default",buttons:
                   dialogService.promptCredentials(scope.server.url, false).then(function (credentials) {
                     scope.server.username = credentials.username;
                     scope.server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
-                    var subURL = scope.server.url.replace('/wms', '/rest/settings.json');
-                    subURL = subURL.replace('http://', 'http://null:null@');
+                    var serverBaseUrl = removeUrlLastRoute(server.url);
+                    var serverAuthenticationUrl = serverBaseUrl + '/rest/settings.json';
+                    serverAuthenticationUrl = serverAuthenticationUrl.replace('http://', 'http://null:null@');
                     ignoreNextScriptError = true;
                     $.ajax({
-                      url: subURL,
+                      url: serverAuthenticationUrl,
                       type: 'GET',
                       dataType: 'jsonp',
                       jsonp: 'callback',
@@ -32781,11 +32778,12 @@ var SERVER_SERVICE_USE_PROXY = true;
             server.username = credentials.username;
             server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
             server.config.alwaysAnonymous = false;
-            var subURL = server.url.replace('/wms', '/rest/settings.json');
-            subURL = subURL.replace('http://', 'http://null:null@');
+            var serverBaseUrl = removeUrlLastRoute(server.url);
+            var serverAuthenticationUrl = serverBaseUrl + '/rest/settings.json';
+            serverAuthenticationUrl = serverAuthenticationUrl.replace('http://', 'http://null:null@');
             ignoreNextScriptError = true;
             $.ajax({
-              url: subURL,
+              url: serverAuthenticationUrl,
               type: 'GET',
               dataType: 'jsonp',
               jsonp: 'callback',
@@ -32872,11 +32870,12 @@ var SERVER_SERVICE_USE_PROXY = true;
               server.username = credentials.username;
               server.authentication = $.base64.encode(credentials.username + ':' + credentials.password);
               server.config.alwaysAnonymous = false;
-              var subURL = server.url.replace('/wms', '/rest/settings.json');
-              subURL = subURL.replace('http://', 'http://null:null@');
+              var serverBaseUrl = removeUrlLastRoute(server.url);
+              var serverAuthenticationUrl = serverBaseUrl + '/rest/settings.json';
+              serverAuthenticationUrl = serverAuthenticationUrl.replace('http://', 'http://null:null@');
               ignoreNextScriptError = true;
               $.ajax({
-                url: subURL,
+                url: serverAuthenticationUrl,
                 type: 'GET',
                 dataType: 'jsonp',
                 jsonp: 'callback',
@@ -36989,7 +36988,7 @@ var GeoGitRevertFeatureOptions = function () {
           rootScope.$broadcast('layerInfoLoaded', layer);
           deferredResponse.resolve();
         }, function (rejected) {
-          dialogService_.error(translate_.instant('error'), translate_.instant('unable_to_get_feature_type') + ' (' + rejected.status + ')');
+          console.log('====[ ', translate_.instant('error'), ': ', translate_.instant('unable_to_get_feature_type'), ', Status Code: ', rejected.status);
           deferredResponse.reject();
         });
       };
@@ -42896,6 +42895,16 @@ var sha1 = function (msg) {
   }
   var localtemp = cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4);
   return localtemp.toLowerCase();
+};
+var removeUrlLastRoute = function (urlWithRoutes) {
+  var newUrl = null;
+  if (goog.isDefAndNotNull(urlWithRoutes)) {
+    if (urlWithRoutes.lastIndexOf('/') === urlWithRoutes.length - 1) {
+      urlWithRoutes = urlWithRoutes.substring(0, urlWithRoutes.lastIndexOf('/'));
+    }
+    newUrl = urlWithRoutes.substring(0, urlWithRoutes.lastIndexOf('/'));
+  }
+  return newUrl;
 };
 (function () {
   var module = angular.module('loom_loading_directive', []);
