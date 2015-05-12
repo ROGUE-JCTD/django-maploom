@@ -7,7 +7,7 @@ setup(
     name='django-maploom',
     version='0.0.1@2015-05-12.12:33:34.2db641596b',
     author='LMN Solutions',
-    author_email='rogue@lmnsolutions.com',
+    author_email='geoshape.org@gmail.com',
     url='https://github.com/ROGUE-JCTD/django-maploom',
     download_url="https://github.com/ROGUE-JCTD/django-maploom",
     description="Use MapLoom in your django projects.",
