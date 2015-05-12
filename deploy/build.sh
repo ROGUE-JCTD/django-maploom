@@ -40,6 +40,7 @@ VER=$VER_DATE.$VER_SHA1
 sed -i "s|^    version=.*|    version='0.0.1@"$VER_DATE.$VER_SHA1"',|" ./setup.py
 
 # if git status doesn't have 'nothing' (to commit) in it, go ahead and commit
+# for this to work you can, 1) cd ~ 2) ssh-keygen -t rsa (Press enter for all values) 3) add pub key to the repo's deploy keys on github. 
 if [[ $(git status) != *nothing* ]]; then
   git add .
   git commit -m "jenkins job django-maploom: use latest maploom to build maploom django wrapper."
