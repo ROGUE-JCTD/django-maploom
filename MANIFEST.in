@@ -1,4 +1,4 @@
-include README.rst CHANGES LICENSE
+include README.md CHANGES LICENSE
 recursive-include maploom/static *.js
 recursive-include maploom/static *.css
 recursive-include maploom/static *.png
