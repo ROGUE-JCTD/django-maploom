@@ -61,9 +61,13 @@ pushd .
 cd $MAPLOOM_REPO
 VER_SHA1=`git log --format="%H" | head -n1 | cut -c 1-10`
 popd
+
 VER=$VER_DATE.$VER_SHA1
-#echo "s|^    version=.*|    version='0.0.1@"$VER_DATE.$VER_SHA1"',|" ./setup.py
-sed -ie "s|^    version=.*|    version='0.0.1@"$VER_DATE.$VER_SHA1"',|" ./setup.py
+
+# Find version='x@y' then, keep x and replace y to be be latest data+commit_id
+# this is so that when you push to pypi, it detects that it is an updated version.
+# you can manually update the version to proper version instead before pushing to pypi
+sed -ie "s|^    version='\(.*\)@.*|    version='\1@"$VER_DATE.$VER_SHA1"',|" ./setup.py
 
 if [ $JENKINS_MODE == false ]; then
   echo "the following files will be staged and pushed: "
