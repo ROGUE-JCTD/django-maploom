@@ -2,6 +2,7 @@
 *.log
 *.pot
 *.pyc
+*.pye
 local_settings.py
 build
 dist
