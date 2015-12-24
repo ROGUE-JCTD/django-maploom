@@ -34,6 +34,14 @@ fi
 
 echo "Using maploom build at: "$MAPLOOM_PATH
 
+if [ $JENKINS_MODE == false ]; then
+    echo 'have you built maploom at latest/proper commit in release mode using "grunt" (not "grunt watch")?'
+    read -p "=> continue? " yn
+fi
+
+[ ! -d $MAPLOOM_PATH/bin ] && echo 'Directory '$MAPLOOM_PATH/bin' not found.'
+[ ! -f $MAPLOOM_PATH/bin/index.html ] && echo '/MapLoom/build/maploom.html not found.'
+
 # get the new index.html file and use it to make the partial
 sed -n '/body class="maploom-body">/,/body>/p' $MAPLOOM_PATH/bin/index.html > index_body.html
 sed '/body>/d' ./index_body.html > index_body_no_tag.html
