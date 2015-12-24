@@ -57,6 +57,7 @@ mv _maploom_map.html maploom/templates/maploom
 # a version number which we can set in setup.py
 VER_DATE=`date +%Y-%m-%d.%H:%M:%S`
 pushd .
+
 cd $MAPLOOM_REPO
 VER_SHA1=`git log --format="%H" | head -n1 | cut -c 1-10`
 popd
@@ -64,11 +65,23 @@ VER=$VER_DATE.$VER_SHA1
 #echo "s|^    version=.*|    version='0.0.1@"$VER_DATE.$VER_SHA1"',|" ./setup.py
 sed -ie "s|^    version=.*|    version='0.0.1@"$VER_DATE.$VER_SHA1"',|" ./setup.py
 
+if [ $JENKINS_MODE == false ]; then
+  echo "the following files will be staged and pushed: "
+  git diff --name-only
+  while true; do
+      read -p "=> continue? " yn
+      case $yn in
+          [Yy]* ) break;;
+          [Nn]* ) echo "    Aborted!. ";exit;;
+          * ) echo "    Please answer yes or no.";;
+      esac
+  done
+fi
+
 # if git status doesn't have 'nothing' (to commit) in it, go ahead and commit
 # for this to work you can, 1) cd ~ 2) ssh-keygen -t rsa (Press enter for all values) 3) add pub key to the repo's deploy keys on github. 
 if [[ $(git status) != *nothing* ]]; then
   git add .
-
   # path to the maploom build that will be used
   if [ $JENKINS_MODE == true ]; then
     COMMIT_MSG="jenkins job django-maploom: use latest maploom to build maploom django wrapper."
