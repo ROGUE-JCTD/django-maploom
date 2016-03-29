@@ -34,6 +34,46 @@ fi
 
 echo "Using maploom build at: "$MAPLOOM_PATH
 
+
+# search the bin/assets folder for files containing MapLoom- and .js and parse the version number
+MAPLOOM_VERS_NEW="x.x.x"
+MAPLOOM_VERS_OLD="x.x.x"
+for f in $MAPLOOM_PATH/bin/assets/*
+do
+ if [[ $f == *"MapLoom-"* ]] && [[ $f == *".js" ]]
+ then
+   tok=$(IFS='-'; tokens=($f); echo "${tokens[1]}";)
+   MAPLOOM_VERS_NEW=$(IFS='.'; tokens=($tok); echo "${tokens[0]}.${tokens[1]}.${tokens[2]}";)
+ fi
+done
+
+# find the old version number from django-maploom/maploom/static/maploom/assets and replace each
+# instance of it in _maploom_js.html with the new version
+for f in maploom/static/maploom/assets/*
+do
+ if [[ $f == *"MapLoom-"* ]] && [[ $f == *".js" ]]
+ then
+   tok=$(IFS='-'; tokens=($f); echo "${tokens[1]}";)
+   MAPLOOM_VERS_OLD=$(IFS='.'; tokens=($tok); echo "${tokens[0]}.${tokens[1]}.${tokens[2]}";)
+
+   if [ $MAPLOOM_VERS_OLD != $MAPLOOM_VERS_NEW ]
+   then
+     echo "Using MapLoom version $MAPLOOM_VERS_NEW, previous version was $MAPLOOM_VERS_OLD"
+   fi
+
+   versCount=$(grep -o "$MAPLOOM_VERS_OLD" maploom/templates/maploom/_maploom_js.html | wc -l)
+   if [ $versCount == 2 ]
+   then
+     sed -i .bak "s/$MAPLOOM_VERS_OLD/$MAPLOOM_VERS_NEW/g" maploom/templates/maploom/_maploom_js.html
+     rm maploom/templates/maploom/_maploom_js.html.bak
+   else
+     echo -e "Error: MapLoom version in _maploom_js.html does not match the version of the\nfiles in maploom/static/maploom/assets/"
+     echo -e "edit _maploom_js.html to reference the correct version and run the script again"
+     exit
+   fi
+ fi
+done
+
 if [ $JENKINS_MODE == false ]; then
     echo 'have you built maploom at latest/proper commit in release mode using "grunt" (not "grunt watch")?'
     read -p "=> continue? " yn
@@ -56,7 +96,7 @@ rm -r maploom/static/maploom/assets
 rm -r maploom/static/maploom/fonts
 rm maploom/templates/maploom/_maploom_map.html
 
-#copy the new fonts assets
+# copy the new fonts assets
 cp -r $MAPLOOM_PATH/bin/assets maploom/static/maploom/
 cp -r $MAPLOOM_PATH/bin/fonts maploom/static/maploom/
 mv _maploom_map.html maploom/templates/maploom
