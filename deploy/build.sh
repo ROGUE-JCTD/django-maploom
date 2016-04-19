@@ -64,7 +64,7 @@ do
    versCount=$(grep -o "$MAPLOOM_VERS_OLD" maploom/templates/maploom/_maploom_js.html | wc -l)
    if [ $versCount == 2 ]
    then
-     sed -i .bak "s/$MAPLOOM_VERS_OLD/$MAPLOOM_VERS_NEW/g" maploom/templates/maploom/_maploom_js.html
+     sed -i.bak "s/$MAPLOOM_VERS_OLD/$MAPLOOM_VERS_NEW/g" maploom/templates/maploom/_maploom_js.html
      rm maploom/templates/maploom/_maploom_js.html.bak
    else
      echo -e "Error: MapLoom version in _maploom_js.html does not match the version of the\nfiles in maploom/static/maploom/assets/"
@@ -101,7 +101,7 @@ cp -r $MAPLOOM_PATH/bin/assets maploom/static/maploom/
 cp -r $MAPLOOM_PATH/bin/fonts maploom/static/maploom/
 mv _maploom_map.html maploom/templates/maploom
 
-# get the commit id of the last commit of the maploom repo and the current date-time to build 
+# get the commit id of the last commit of the maploom repo and the current date-time to build
 # a version number which we can set in setup.py
 VER_DATE=`date +%Y-%m-%d.%H:%M:%S`
 pushd .
@@ -131,7 +131,7 @@ if [ $JENKINS_MODE == false ]; then
 fi
 
 # if git status doesn't have 'nothing' (to commit) in it, go ahead and commit
-# for this to work you can, 1) cd ~ 2) ssh-keygen -t rsa (Press enter for all values) 3) add pub key to the repo's deploy keys on github. 
+# for this to work you can, 1) cd ~ 2) ssh-keygen -t rsa (Press enter for all values) 3) add pub key to the repo's deploy keys on github.
 if [[ $(git status) != *nothing* ]]; then
   git add .
   # path to the maploom build that will be used
